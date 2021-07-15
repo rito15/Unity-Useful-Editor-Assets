@@ -63,3 +63,6 @@ crashlytics-build.properties
 *.cmd.meta
 _*
 
+Packages
+ProjectSettings
+.vsconfig
