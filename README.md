@@ -2,4 +2,4 @@
 
 - Game View Auto Updater
 
-- Animation Event Controller
+- Animator Event Controller
