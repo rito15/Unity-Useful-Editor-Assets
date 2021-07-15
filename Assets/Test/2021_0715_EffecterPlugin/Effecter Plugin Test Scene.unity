@@ -149,6 +149,99 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &230023290
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 230023291}
+  m_Layer: 0
+  m_Name: "TODO : \uC774\uC804, \uB2E4\uC74C \uC560\uB2C8\uBA54\uC774\uC158\uC73C\uB85C
+    \uB118\uAE30\uAE30"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &230023291
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230023290}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &336359490
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 336359491}
+  m_Layer: 0
+  m_Name: "TODO : \uD604\uC7AC \uC7AC\uC0DD \uC911\uC778 \uC560\uB2C8\uBA54\uC774\uC158
+    \uBC18\uBCF5 \uAE30\uB2A5 (bool)"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &336359491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336359490}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &611233390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 611233391}
+  m_Layer: 0
+  m_Name: "TODO : \uD3B8\uC9D1 \uBAA8\uB4DC\uC5D0\uC11C Invalid time range for Transition
+    exit time condition \uC5D0\uB7EC \uB098\uB294\uAC70 \uD574\uACB0\uD558\uAE30"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &611233391
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 611233390}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1138514726
@@ -262,7 +355,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1487534092
 GameObject:
@@ -384,7 +477,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1636721342
 GameObject:
@@ -606,12 +699,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9314ef1657a17f9499fd87d0655ea683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stopAndEdit: 0
-  _timeScale: 1
+  _stopAndEdit: 1
+  _timeScale: 0.526
   _timeScale_editMode: 0
   _currentFrame: 0
   _effects:
   - name: Burst_Red
+    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
     spawnFrame: 40
     effectPrefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
       type: 3}
@@ -620,9 +714,11 @@ MonoBehaviour:
     position: {x: -0.09, y: -0.44, z: -0.01}
     rotation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
+    animationClipIndex: 0
     editor_foldout: 1
   - name: Burst_White
-    spawnFrame: 56
+    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
+    spawnFrame: 23
     effectPrefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
       type: 3}
     spawnAxis: {fileID: 0}
@@ -630,4 +726,29 @@ MonoBehaviour:
     position: {x: 0.12, y: 3.09, z: -0.02}
     rotation: {x: 90, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
+    animationClipIndex: 0
+    editor_foldout: 1
+  - name: Burst_White
+    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
+    spawnFrame: 16
+    effectPrefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
+      type: 3}
+    spawnAxis: {fileID: 0}
+    createdEffect: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    animationClipIndex: 1
+    editor_foldout: 1
+  - name: Burst_White 2
+    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
+    spawnFrame: 49
+    effectPrefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
+      type: 3}
+    spawnAxis: {fileID: 0}
+    createdEffect: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    animationClipIndex: 1
     editor_foldout: 1
