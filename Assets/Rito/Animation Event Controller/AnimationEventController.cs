@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 #if UNITY_EDITOR
+using System.Text;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 #endif
 
 // 작성자 : Rito15
@@ -54,7 +56,7 @@ namespace Rito
             [NonSerialized] public Vector3 prev_createdLocalRotation = Vector3.zero;
             [NonSerialized] public Vector3 prev_createdLocalScale = Vector3.one;
 
-            public bool editor_foldout = false;
+            [HideInInspector] public bool editor_foldout = false;
 #endif
         }
 
@@ -74,7 +76,7 @@ namespace Rito
         public int _currentFrame;
 
         [Space]
-        public List<EffectBundle> _effects = new List<EffectBundle>();
+        public List<EffectBundle> _effects;// = new List<EffectBundle>();
 
         private Animator _animator;
         private float _curFrame;
@@ -129,9 +131,6 @@ namespace Rito
             UpdateOffsetsFromCreatedEffect();
         }
 
-        private int _prev_effectsLen_editmode = 0;
-        private int _prev_effectsLen_playmode = 0;
-
         private void OnValidate()
         {
             // 공통
@@ -141,11 +140,6 @@ namespace Rito
                     if (effect.spawnFrame < 0)
                         effect.spawnFrame = 0;
                 }
-
-            // 공통 - 에디터 전용
-#if UNITY_EDITOR
-            OnValidate_EditorOnly();
-#endif
 
             // 에디터 모드
             if (Application.isPlaying == false)
@@ -160,53 +154,9 @@ namespace Rito
             }
         }
 
-        private void OnValidate_EditorOnly()
-        {
-            if (_effects != null)
-            {
-                for (int i = 0; i < _effects.Count; i++)
-                {
-                    EffectBundle curEffect = _effects[i];
-
-                    // Created Effect 에 프리팹 넣지 못하게 방지
-                    if (curEffect.createdEffect != null && PrefabUtility.IsPartOfPrefabAsset(curEffect.createdEffect))
-                    {
-                        curEffect.createdEffect = null;
-                        EditorUtility.DisplayDialog("Rito", "Created Effect에는 프리팹 애셋을 등록할 수 없습니다.", "OK");
-                    }
-                }
-            }
-        }
-
         private void OnValidateEditmode()
         {
             _currentFrame = 0;
-
-            if (_effects != null)
-            {
-                // 배열의 크기를 증가시킬 경우, 새로 생성된 배열 요소들은 생성자 호출
-                if (_effects.Count > _prev_effectsLen_editmode)
-                {
-                    for (int i = _prev_effectsLen_editmode; i < _effects.Count; i++)
-                    {
-                        _effects[i] = new EffectBundle();
-                    }
-                }
-
-                for (int i = 0; i < _effects.Count; i++)
-                {
-                    EffectBundle curEffect = _effects[i];
-
-                    // Created Effect에 초기화 못하게 하기
-                    if (curEffect.createdEffect != null)
-                    {
-                        curEffect.createdEffect = null;
-                        EditorUtility.DisplayDialog("Rito", "Created Effect에는 직접 할당할 수 없습니다.", "OK");
-                    }
-                }
-            }
-
-            _prev_effectsLen_editmode = _effects == null ? 0 : _effects.Count; // Update Prev
         }
 
         private void OnValidatePlaymode()
@@ -216,21 +166,6 @@ namespace Rito
             // 프레임 설정 범위 제한
             int endFrame = GetTotalFrameInt();
             _currentFrame = Mathf.Clamp(_currentFrame, 0, endFrame);
-
-#if UNITY_EDITOR
-            if (_effects != null)
-            {
-                // 배열의 크기를 증가시킬 경우, 새로 생성된 배열 요소들은 생성자 호출
-                if (_effects.Count > _prev_effectsLen_playmode && _prev_effectsLen_playmode > 0)
-                {
-                    for (int i = _prev_effectsLen_playmode; i < _effects.Count; i++)
-                    {
-                        _effects[i] = new EffectBundle();
-                    }
-                }
-            }
-            _prev_effectsLen_playmode = _effects == null ? 0 : _effects.Count; // Update Prev
-#endif
         }
         #endregion
         /***********************************************************************
@@ -390,20 +325,22 @@ namespace Rito
 #if UNITY_EDITOR
         static AnimationEventController()
         {
-            UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
-            UnityEditor.EditorApplication.playModeStateChanged += PlayModeStateChanged;
+            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+            EditorApplication.playModeStateChanged += PlayModeStateChanged;
         }
 
-        private static void PlayModeStateChanged(UnityEditor.PlayModeStateChange obj)
+        private static void PlayModeStateChanged(PlayModeStateChange obj)
         {
             switch (obj)
             {
-                case UnityEditor.PlayModeStateChange.ExitingPlayMode:
+                case PlayModeStateChange.ExitingPlayMode:
                     SaveAllDataToJson();
                     break;
 
-                case UnityEditor.PlayModeStateChange.EnteredEditMode:
+                case PlayModeStateChange.EnteredEditMode:
                     LoadAllDataFromJson();
+                    EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+                    EditorSceneManager.SaveOpenScenes();
                     break;
             }
         }
@@ -538,14 +475,40 @@ namespace Rito
                 }
             }
 
+            private List<(int frame, string name)> sortedEffectInfo = new List<(int frame, string name)>();
+            private StringBuilder frameInfoSb = new StringBuilder();
             private void OnInspectorGUIOnAvailable()
             {
                 totalFrameInt = m.GetTotalFrameInt();
 
                 if (Application.isPlaying)
                 {
-                    string str = EngHan("Frame Range of Current Animation", "재생 중인 애니메이션 프레임 범위");
-                    EditorGUILayout.HelpBox($"{str} : 0 ~ {totalFrameInt}", MessageType.Info);
+                    string str = EngHan("Total Frame", "전체 프레임");
+
+                    frameInfoSb.Clear();
+                    frameInfoSb.Append(str).Append(" : ").Append(totalFrameInt);
+                    
+                    // 프레임별 이펙트 생성 정보
+                    if (m._effects?.Count > 0)
+                    {
+                        sortedEffectInfo.Clear();
+
+                        m._effects.ForEach(x =>
+                        {
+                            if (x.effectPrefab != null) 
+                                sortedEffectInfo.Add((x.spawnFrame, x.name));
+                        });
+                        sortedEffectInfo.Sort(((int frame, string name) a, (int frame, string name) b) => a.frame - b.frame);
+
+                        for (int i = 0; i < sortedEffectInfo.Count; i++)
+                        {
+                            var x = sortedEffectInfo[i];
+                            frameInfoSb.Append($"\n[{x.frame:D3}] ").Append(x.name);
+                        }
+                    }
+
+                    EditorGUILayout.HelpBox(frameInfoSb.ToString(), MessageType.Info);
+
                     EditorGUILayout.Space(8f);
                 }
 
@@ -572,8 +535,10 @@ namespace Rito
                     {
                         EditorGUILayout.BeginHorizontal();
 
-                        if (GUILayout.Button("<<")) m._currentFrame--;
-                        if (GUILayout.Button(">>")) m._currentFrame++;
+                        if (GUILayout.Button("<<")) m._currentFrame -= 2;
+                        if (GUILayout.Button("<")) m._currentFrame--;
+                        if (GUILayout.Button(">")) m._currentFrame++;
+                        if (GUILayout.Button(">>")) m._currentFrame += 2;
 
                         EditorGUILayout.EndHorizontal();
                     }
@@ -581,8 +546,36 @@ namespace Rito
 
                 EditorGUILayout.Space(8f);
 
+                if (GUILayout.Button(EngHan("Restart from Beginning", "처음부터 다시 시작")))
+                {
+                    RemoveAllCreatedEffects();
+                    m._currentFrame = 0;
+                    m._animator.Play(0, 0, 0);
+                }
+                if (GUILayout.Button(EngHan("Remove All Instantiated Effects", "복제된 모든 이펙트 제거")))
+                {
+                    RemoveAllCreatedEffects();
+                }
+
+                void RemoveAllCreatedEffects()
+                {
+                    if (m._effects != null && m._effects.Count > 0)
+                    {
+                        for (int i = 0; i < m._effects.Count; i++)
+                        {
+                            if (m._effects[i].createdEffect != null)
+                                Destroy(m._effects[i].createdEffect.gameObject);
+                        }
+                    }
+                }
+
+                EditorGUILayout.Space(8f);
+
                 // Effects Array
                 DrawEffectsArray();
+
+                //EditorGUILayout.PropertyField(_effects);
+                //serializedObject.ApplyModifiedProperties();
             }
 
             private void DrawEngHanButton()
@@ -773,7 +766,8 @@ namespace Rito
 
                         if (GUILayout.Button(buttonStr_remove) && effect.createdEffect != null)
                         {
-                            Destroy(effect.createdEffect.gameObject);
+                            if(effect.createdEffect != null)
+                                Destroy(effect.createdEffect.gameObject);
                         }
 
                         EditorGUILayout.EndHorizontal();
