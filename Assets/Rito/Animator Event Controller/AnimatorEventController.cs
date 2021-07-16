@@ -77,23 +77,6 @@ namespace Rito
 
             [HideInInspector] public bool edt_foldout = false;
 #endif
-            public bool CreatedObjIsChanged()
-            {
-                if (createdObject == null) return false;
-
-                if (createdObject.position != prev_createdObjPosition) return true;
-                if (createdObject.eulerAngles != prev_createdObjRotation) return true;
-                if (createdObject.localScale != prev_createdObjLocalScale) return true;
-
-                return false;
-            }
-
-            public void RecordPrevCreatedObjTransform()
-            {
-                prev_createdObjPosition = createdObject.position;
-                prev_createdObjRotation = createdObject.eulerAngles;
-                prev_createdObjLocalScale = createdObject.localScale;
-            }
         }
 
         #endregion
@@ -231,23 +214,15 @@ namespace Rito
         }
 
 #if UNITY_EDITOR
-        /// <summary> 생성된 오브젝트의 트랜스폼을 수정하면 오프셋에 적용시키기 </summary>
+        /// <summary> 생성된 오브젝트의 트랜스폼을 직접 수정하면 오프셋에 적용시키기 </summary>
         private void UpdateOffsetsFromCreatedObject_EditorOnly()
         {
+            // 커스텀 에디터 창이 켜져있지 않는 경우에만 적용
             if (edt_customEditorEnabled) return;
 
             foreach (var bundle in _bundles)
             {
                 if (bundle.createdObject == null) continue;
-
-                //if (bundle.prev_createdLocalPosition != bundle.createdObject.localPosition)
-                //    bundle.position = bundle.createdObject.localPosition;
-
-                //if (bundle.prev_createdLocalRotation != bundle.createdObject.localEulerAngles)
-                //    bundle.rotation = bundle.createdObject.localEulerAngles;
-
-                //if (bundle.prev_createdLocalScale != bundle.createdObject.localScale)
-                //    bundle.scale = bundle.createdObject.localScale;
 
                 ModifyBundleTransformInfo(bundle);
             }
@@ -401,13 +376,11 @@ namespace Rito
             if (bundle.spawnAxis)
                 bundleTr.SetParent(bundle.spawnAxis);
 
+            bundleTr.gameObject.SetActive(true); // 프리팹 루트가 비활성화 상태였을 경우, 활성화
+
             bundleTr.localPosition = bundle.position;
             bundleTr.localEulerAngles = bundle.rotation;
             bundleTr.localScale = bundle.scale;
-
-#if UNITY_EDITOR
-            //RememberPrevTransform(bundle);
-#endif
 
             // 현재 생성된 오브젝트 트랜스폼 캐싱
             bundle.createdObject = bundleTr;
@@ -425,19 +398,10 @@ namespace Rito
         {
             if (bundle.createdObject == null) return;
 
-            // 부모 축을 기준으로 생성해서 월드 공간에 방생하는 경우 : 공간 변환 필요
+            // 부모 축을 기준으로 생성해서 월드 공간에 방생하는 경우
             if (bundle.keepParentState == false && bundle.spawnAxis != null)
             {
-                //Matrix4x4 mat = bundle.spawnAxis.worldToLocalMatrix;
-                //
-                //if (bundle.CreatedObjIsChanged())
-                //{
-                //    _currentFrameInt = bundle.spawnFrame;
-                //}
-                //
-                //bundle.position = mat.MultiplyPoint(bundle.createdObject.position);
-                //bundle.rotation = mat.MultiplyVector(bundle.createdObject.eulerAngles);
-                //bundle.scale = bundle.createdObject.localScale;
+                // .
             }
             else
             {
@@ -445,8 +409,6 @@ namespace Rito
                 bundle.rotation = bundle.createdObject.localEulerAngles;
                 bundle.scale = bundle.createdObject.localScale;
             }
-
-            bundle.RecordPrevCreatedObjTransform();
         }
 #endif
 
@@ -774,10 +736,9 @@ namespace Rito
                             index = EditorGUILayout.Popup(curClipStr, index, allStateNames);
                             if (EditorGUI.EndChangeCheck())
                             {
-                                m.edt_forceToStartAnimatorState = allStateNames[index];
-
                                 // 강제로 현재 재생할 애니메이터 상태 변경
                                 // -> Mono의 Update 내에서 스트링 캐치하고 실행해줌
+                                m.edt_forceToStartAnimatorState = allStateNames[index];
                             }
                         }
                     }
@@ -945,7 +906,8 @@ namespace Rito
                         bundle.animationClip = allClips[bundle.animationClipIndex];
 
                         // Spawn Frame
-                        bundle.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, bundle.spawnFrame, 0, m.GetTotalFrameInt(bundle.animationClip));
+                        // 이벤트는 1프레임부터 가능하도록 제한 추가
+                        bundle.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, bundle.spawnFrame, 1, m.GetTotalFrameInt(bundle.animationClip));
                     }
                     else
                     {
@@ -1087,7 +1049,7 @@ namespace Rito
                                 bundle.scale = bundle.createdObject.lossyScale;
                             }
 
-                            EditorLog("Here");
+                            //EditorLog("Here");
                         }
                     }
 
