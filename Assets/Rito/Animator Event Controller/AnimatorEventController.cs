@@ -1,4 +1,9 @@
-﻿using System;
+﻿
+#if UNITY_EDITOR
+#define DEBUG_ON
+#endif
+
+using System;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,22 +22,29 @@ using UnityEditor.Animations;
 
 namespace Rito
 {
-    /// <summary> 애니메이터가 현재 재생 중인 애니메이션의 특정 프레임에 생성되는 이펙트 관리 </summary>
+    /// <summary> 애니메이터 이벤트 관리 </summary>
     [DisallowMultipleComponent]
     public class AnimatorEventController : MonoBehaviour
     {
+        [System.Diagnostics.Conditional("DEBUG_ON")]
+        private static void EditorLog(object msg)
+        {
+            Debug.Log(msg);
+        }
+
         /***********************************************************************
         *                               Class Definition
         ***********************************************************************/
         #region .
         [Serializable]
-        public class EffectBundle
+        public class EventBundle
         {
-            public EffectBundle()
+            public EventBundle()
             {
                 position = Vector3.zero;
                 rotation = Vector3.zero;
                 scale = Vector3.one;
+                keepParentState = true;
             }
 
             public string name;
@@ -43,11 +55,12 @@ namespace Rito
             public AnimationClip animationClip;
 
             [Space]
-            public GameObject effectPrefab;
-            public Transform spawnAxis;
+            public GameObject bundlePrefab;
+            public Transform spawnAxis;  // 생성 기준 트랜스폼
+            public bool keepParentState = true; // 생성 이후에도 Spawn Axis의 자식으로 유지
 
             [Space]
-            public Transform createdEffect;
+            public Transform createdObject;
 
             // local Transforms
             public Vector3 position = Vector3.zero;
@@ -57,13 +70,30 @@ namespace Rito
 
             [NonSerialized] public bool isPlayed = false;
 #if UNITY_EDITOR
-            // Created Effect의 이전 트랜스폼 값들
-            [NonSerialized] public Vector3 prev_createdLocalPosition = Vector3.zero;
-            [NonSerialized] public Vector3 prev_createdLocalRotation = Vector3.zero;
-            [NonSerialized] public Vector3 prev_createdLocalScale = Vector3.one;
+            // Created Object의 이전 트랜스폼 값들
+            [NonSerialized] public Vector3 prev_createdObjPosition = Vector3.zero;
+            [NonSerialized] public Vector3 prev_createdObjRotation = Vector3.zero;
+            [NonSerialized] public Vector3 prev_createdObjLocalScale = Vector3.one;
 
             [HideInInspector] public bool edt_foldout = false;
 #endif
+            public bool CreatedObjIsChanged()
+            {
+                if (createdObject == null) return false;
+
+                if (createdObject.position != prev_createdObjPosition) return true;
+                if (createdObject.eulerAngles != prev_createdObjRotation) return true;
+                if (createdObject.localScale != prev_createdObjLocalScale) return true;
+
+                return false;
+            }
+
+            public void RecordPrevCreatedObjTransform()
+            {
+                prev_createdObjPosition = createdObject.position;
+                prev_createdObjRotation = createdObject.eulerAngles;
+                prev_createdObjLocalScale = createdObject.localScale;
+            }
         }
 
         #endregion
@@ -82,7 +112,7 @@ namespace Rito
         public int _currentFrameInt;
 
         [Space]
-        public List<EffectBundle> _effects;
+        public List<EventBundle> _bundles = new List<EventBundle>();
 
         private Animator _animator;
         private float _curFrame;
@@ -105,7 +135,7 @@ namespace Rito
         private void Update()
         {
             if (AnimatorIsNotValid()) return;
-            if (EffectArrayIsNotValid()) return;
+            //if (EventArrayIsNotValid()) return;
 
 #if UNITY_EDITOR
             // 시간 조정 권한 가진 경우에만 타임스케일 변경
@@ -148,20 +178,20 @@ namespace Rito
                 _currentFrameInt = (int)_curFrame;
             }
 
-            UpdateEffects();
+            UpdateEvents();
 #if UNITY_EDITOR
-            UpdateOffsetsFromCreatedEffect_EditorOnly();
+            UpdateOffsetsFromCreatedObject_EditorOnly();
 #endif
         }
 
         private void OnValidate()
         {
             // 공통
-            if (_effects != null && _effects.Count > 0)
-                foreach (var effect in _effects)
+            if (_bundles != null && _bundles.Count > 0)
+                foreach (var bundle in _bundles)
                 {
-                    if (effect.spawnFrame < 0)
-                        effect.spawnFrame = 0;
+                    if (bundle.spawnFrame < 0)
+                        bundle.spawnFrame = 0;
                 }
 
 #if UNITY_EDITOR
@@ -177,47 +207,49 @@ namespace Rito
         *                               Update Methods
         ***********************************************************************/
         #region .
-        /// <summary> 지정된 프레임에 각 이펙트 재생 </summary>
-        private void UpdateEffects()
+        /// <summary> 지정된 프레임에 각 이벤트 재생 </summary>
+        private void UpdateEvents()
         {
             AnimationClip currentClip = GetCurrentAnimationClip();
 
-            foreach (var effect in _effects)
+            foreach (var bundle in _bundles)
             {
                 // 재생 중인 클립이 설정된 클립과 다르면 무시
-                if (effect.animationClip != currentClip) continue;
+                if (bundle.animationClip != currentClip) continue;
 
-                if (_currentFrameInt < effect.spawnFrame)
+                if (_currentFrameInt < bundle.spawnFrame)
                 {
-                    effect.isPlayed = false;
+                    bundle.isPlayed = false;
                 }
 
-                if (!effect.isPlayed && _currentFrameInt >= effect.spawnFrame)
+                if (!bundle.isPlayed && _currentFrameInt >= bundle.spawnFrame)
                 {
-                    effect.isPlayed = true;
-                    SpawnEffect(effect);
+                    bundle.isPlayed = true;
+                    SpawnObject(bundle);
                 }
             }
         }
 
 #if UNITY_EDITOR
-        /// <summary> 생성된 이펙트 트랜스폼을 수정하면 오프셋에 적용시키기 </summary>
-        private void UpdateOffsetsFromCreatedEffect_EditorOnly()
+        /// <summary> 생성된 오브젝트의 트랜스폼을 수정하면 오프셋에 적용시키기 </summary>
+        private void UpdateOffsetsFromCreatedObject_EditorOnly()
         {
-            foreach (var effect in _effects)
+            if (edt_customEditorEnabled) return;
+
+            foreach (var bundle in _bundles)
             {
-                if (effect.createdEffect == null) continue;
+                if (bundle.createdObject == null) continue;
 
-                if (effect.prev_createdLocalPosition != effect.createdEffect.localPosition)
-                    effect.position = effect.createdEffect.localPosition;
+                //if (bundle.prev_createdLocalPosition != bundle.createdObject.localPosition)
+                //    bundle.position = bundle.createdObject.localPosition;
 
-                if (effect.prev_createdLocalRotation != effect.createdEffect.localEulerAngles)
-                    effect.rotation = effect.createdEffect.localEulerAngles;
+                //if (bundle.prev_createdLocalRotation != bundle.createdObject.localEulerAngles)
+                //    bundle.rotation = bundle.createdObject.localEulerAngles;
 
-                if (effect.prev_createdLocalScale != effect.createdEffect.localScale)
-                    effect.scale = effect.createdEffect.localScale;
+                //if (bundle.prev_createdLocalScale != bundle.createdObject.localScale)
+                //    bundle.scale = bundle.createdObject.localScale;
 
-                RememberPrevTransform(effect);
+                ModifyBundleTransformInfo(bundle);
             }
         }
 #endif
@@ -242,14 +274,14 @@ namespace Rito
                 AllAnimationClips.Length == 0;
         }
 
-        private bool EffectArrayIsValid()
+        private bool EventArrayIsValid()
         {
-            return _effects != null && _effects.Count > 0;
+            return _bundles != null && _bundles.Count > 0;
         }
 
-        private bool EffectArrayIsNotValid()
+        private bool EventArrayIsNotValid()
         {
-            return _effects == null || _effects.Count == 0;
+            return _bundles == null || _bundles.Count == 0;
         }
 
         #endregion
@@ -348,15 +380,15 @@ namespace Rito
         *                               Private Methods
         ***********************************************************************/
         #region .
-        /// <summary> 특정 프레임에 이펙트 생성하기 </summary>
-        private void SpawnEffect(EffectBundle effect)
+        /// <summary> 특정 프레임에 오브젝트 생성하기 </summary>
+        private void SpawnObject(EventBundle bundle)
         {
-            if (effect.effectPrefab == null) return;
+            if (bundle.bundlePrefab == null) return;
 
-            // 기존에 생성된 이펙트가 있었으면 지워버리기
-            if (effect.createdEffect != null)
+            // 기존에 생성된 오브젝트가 있었으면 지워버리기
+            if (bundle.createdObject != null)
             {
-                Destroy(effect.createdEffect.gameObject);
+                Destroy(bundle.createdObject.gameObject);
             }
 
 #if UNITY_EDITOR
@@ -364,31 +396,57 @@ namespace Rito
                 edt_gapCount = 0;
 #endif
 
-            Transform effectTr = Instantiate(effect.effectPrefab).transform;
+            Transform bundleTr = Instantiate(bundle.bundlePrefab).transform;
 
-            if (effect.spawnAxis)
-                effectTr.SetParent(effect.spawnAxis);
+            if (bundle.spawnAxis)
+                bundleTr.SetParent(bundle.spawnAxis);
 
-            effectTr.localPosition = effect.position;
-            effectTr.localEulerAngles = effect.rotation;
-            effectTr.localScale = effect.scale;
+            bundleTr.localPosition = bundle.position;
+            bundleTr.localEulerAngles = bundle.rotation;
+            bundleTr.localScale = bundle.scale;
 
 #if UNITY_EDITOR
-            RememberPrevTransform(effect);
+            //RememberPrevTransform(bundle);
 #endif
 
-            // 현재 생성된 이펙트 트랜스폼 캐싱
-            effect.createdEffect = effectTr;
+            // 현재 생성된 오브젝트 트랜스폼 캐싱
+            bundle.createdObject = bundleTr;
+
+            if (bundle.keepParentState == false && bundle.spawnAxis != null)
+            {
+                bundle.createdObject.SetParent(null);
+            }
+
+            ModifyBundleTransformInfo(bundle);
         }
 
 #if UNITY_EDITOR
-        private void RememberPrevTransform(EffectBundle effect)
+        private void ModifyBundleTransformInfo(EventBundle bundle)
         {
-            if (effect.createdEffect == null) return;
+            if (bundle.createdObject == null) return;
 
-            effect.prev_createdLocalPosition = effect.createdEffect.localPosition;
-            effect.prev_createdLocalRotation = effect.createdEffect.localEulerAngles;
-            effect.prev_createdLocalScale = effect.createdEffect.localScale;
+            // 부모 축을 기준으로 생성해서 월드 공간에 방생하는 경우 : 공간 변환 필요
+            if (bundle.keepParentState == false && bundle.spawnAxis != null)
+            {
+                //Matrix4x4 mat = bundle.spawnAxis.worldToLocalMatrix;
+                //
+                //if (bundle.CreatedObjIsChanged())
+                //{
+                //    _currentFrameInt = bundle.spawnFrame;
+                //}
+                //
+                //bundle.position = mat.MultiplyPoint(bundle.createdObject.position);
+                //bundle.rotation = mat.MultiplyVector(bundle.createdObject.eulerAngles);
+                //bundle.scale = bundle.createdObject.localScale;
+            }
+            else
+            {
+                bundle.position = bundle.createdObject.localPosition;
+                bundle.rotation = bundle.createdObject.localEulerAngles;
+                bundle.scale = bundle.createdObject.localScale;
+            }
+
+            bundle.RecordPrevCreatedObjTransform();
         }
 #endif
 
@@ -431,7 +489,7 @@ namespace Rito
 
             foreach (var target in targets)
             {
-                if (target._effects != null && target._effects.Count > 0)
+                if (target._bundles != null)
                 {
                     string jsonStr = JsonUtility.ToJson(new SerializableAnimatorEventController(target));
                     File.WriteAllText(GetJsonFilePath(target.GetInstanceID().ToString()), jsonStr, System.Text.Encoding.UTF8);
@@ -445,7 +503,7 @@ namespace Rito
 
             foreach (var target in targets)
             {
-                if (target._effects != null && target._effects.Count > 0)
+                if (target._bundles != null)
                 {
                     string filePath = GetJsonFilePath(target.GetInstanceID().ToString());
 
@@ -456,9 +514,9 @@ namespace Rito
 
                         restored.RestoreValues(target);
 
-                        for (int i = 0; i < target._effects.Count; i++)
+                        for (int i = 0; i < target._bundles.Count; i++)
                         {
-                            target._effects[i].createdEffect = null;
+                            target._bundles[i].createdObject = null;
                         }
 
                         File.Delete(filePath);
@@ -473,11 +531,11 @@ namespace Rito
             public bool stopAndEdit;
             public float timeScaleNormal;
             public float timeScaleEdit;
-            public List<EffectBundle> effects;
+            public List<EventBundle> bundles;
 
             public SerializableAnimatorEventController(AnimatorEventController aec)
             {
-                this.effects = aec._effects;
+                this.bundles = aec._bundles;
                 this.stopAndEdit = aec._stopAndEdit;
                 this.timeScaleNormal = aec._timeScale;
                 this.timeScaleEdit = aec._timeScale_editMode;
@@ -485,7 +543,7 @@ namespace Rito
 
             public void RestoreValues(AnimatorEventController aec)
             {
-                aec._effects = this.effects;
+                aec._bundles = this.bundles;
                 aec._stopAndEdit = this.stopAndEdit;
                 aec._timeScale = this.timeScaleNormal;
                 aec._timeScale_editMode = this.timeScaleEdit;
@@ -499,22 +557,23 @@ namespace Rito
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
-        private int edt_effectsArraySize = 0;
-        private int edt_gapCount = edt_GapCountMax; // 이펙트 강제 생성 시 타임스케일 잠시 복원하는 동안 카운트
+        private int edt_bundlesArraySize = 0;
+        private int edt_gapCount = edt_GapCountMax; // 오브젝트 강제 생성 시 타임스케일 잠시 복원하는 동안 카운트
         private const int edt_GapCountMax = 1;
         private string edt_forceToStartAnimatorState = ""; // 에디터에서 강제로 특정 애니메이션 상태 실행
+        private bool edt_customEditorEnabled;
 
         [CustomEditor(typeof(AnimatorEventController))]
         private class CE : UnityEditor.Editor
         {
             private AnimatorEventController m;
 
-            //private SerializedProperty _effects;
+            //private SerializedProperty _bundles;
 
             private bool isHangle = false;
             private static readonly string HanglePrefsKey = "Rito_AEC_Hangle";
 
-            private bool effectArrayFoldout = false;
+            private bool bundleArrayFoldout = false;
             private static readonly string ArrayFoldoutPrefsKey = "Rito_AEC_ArrayFoldout";
 
             private bool animationEventFoldout = false;
@@ -530,8 +589,6 @@ namespace Rito
             private AnimatorState[] allStates;
             private string[] allStateNames;
 
-            private int currentAnimClipIndex;
-
             private void OnEnable()
             {
                 m = target as AnimatorEventController;
@@ -539,13 +596,20 @@ namespace Rito
                 if(m._animator == null)
                     m._animator = m.GetComponent<Animator>();
 
-                //_effects = serializedObject.FindProperty(nameof(m._effects));
+                //_bundles = serializedObject.FindProperty(nameof(m._bundles));
 
                 _timeController = m; // 시간 조정 권한 양도
 
                 isHangle = EditorPrefs.GetBool(HanglePrefsKey, false);
-                effectArrayFoldout = EditorPrefs.GetBool(ArrayFoldoutPrefsKey, false);
+                bundleArrayFoldout = EditorPrefs.GetBool(ArrayFoldoutPrefsKey, false);
                 animationEventFoldout = EditorPrefs.GetBool(AnimationEventPrefsKey, false);
+
+                m.edt_customEditorEnabled = true;
+            }
+
+            private void OnDisable()
+            {
+                m.edt_customEditorEnabled = false;
             }
 
             public override void OnInspectorGUI()
@@ -572,8 +636,8 @@ namespace Rito
                 }
             }
 
-            private readonly List<EffectBundle> sortedEffectList = new List<EffectBundle>();
-            private readonly StringBuilder sortedEffectInfoSb = new StringBuilder();
+            private readonly List<EventBundle> sortedEventList = new List<EventBundle>();
+            private readonly StringBuilder sortedEventInfoSb = new StringBuilder();
             private void OnInspectorGUIOnAvailable()
             {
                 totalFrameInt = m.GetCurrentTotalFrameInt();
@@ -592,17 +656,17 @@ namespace Rito
                 DrawAnimationEventList();
                 DrawAnimationControlPart();
 
-                EditorGUILayout.Space(8f);
+                Space(8f);
 
-                DrawEffectsArray();
+                DrawEventsArray();
 
-                //EditorGUILayout.PropertyField(_effects);
+                //EditorGUILayout.PropertyField(_bundles);
                 //serializedObject.ApplyModifiedProperties();
             }
 
             private void DrawAnimationEventList()
             {
-                string eventFoldoutStr = EngHan("Animation Events", "애니메이션 이벤트 목록");
+                string eventFoldoutStr = EngHan("Registered Events", "등록된 이벤트 목록");
 
                 bool oldFoldout = animationEventFoldout;
                 animationEventFoldout = EditorGUILayout.Foldout(animationEventFoldout, eventFoldoutStr, true);
@@ -616,35 +680,35 @@ namespace Rito
                     // 클립마다 등록된 이벤트들 나열
                     foreach (var clip in allClips)
                     {
-                        sortedEffectList.Clear();
+                        sortedEventList.Clear();
 
-                        m._effects.ForEach(eff =>
+                        m._bundles.ForEach(eff =>
                         {
-                            if (eff.effectPrefab != null && eff.animationClip == clip)
-                                sortedEffectList.Add(eff);
+                            if (eff.bundlePrefab != null && eff.animationClip == clip)
+                                sortedEventList.Add(eff);
                         });
 
-                        if (sortedEffectList.Count == 0) continue;
+                        if (sortedEventList.Count == 0) continue;
 
-                        sortedEffectInfoSb.Clear();
-                        sortedEffectInfoSb.Append($"[{clip.name} (0 ~ {m.GetTotalFrameInt(clip)})]");
+                        sortedEventInfoSb.Clear();
+                        sortedEventInfoSb.Append($"[{clip.name} (0 ~ {m.GetTotalFrameInt(clip)})]");
 
-                        sortedEffectList.Sort((a, b) => a.spawnFrame - b.spawnFrame);
-                        sortedEffectList.ForEach(eff =>
+                        sortedEventList.Sort((a, b) => a.spawnFrame - b.spawnFrame);
+                        sortedEventList.ForEach(eff =>
                         {
-                            sortedEffectInfoSb.Append($"\n - {eff.spawnFrame:D3} : ").Append(eff.name);
+                            sortedEventInfoSb.Append($"\n - {eff.spawnFrame:D3} : ").Append(eff.name);
                         });
 
-                        EditorGUILayout.HelpBox(sortedEffectInfoSb.ToString(), MessageType.Info);
+                        EditorGUILayout.HelpBox(sortedEventInfoSb.ToString(), MessageType.Info);
                     }
 
-                    EditorGUILayout.Space(8f);
+                    Space(8f);
                 }
             }
 
             private void DrawEngHanButton()
             {
-                EditorGUILayout.Space(0f);
+                Space(0f);
                 Rect lastRect = GUILayoutUtility.GetLastRect();
                 float viewWidth = lastRect.width + 23f;
                 float buttonWidth = 60f;
@@ -663,7 +727,7 @@ namespace Rito
             {
                 m._stopAndEdit = EditorGUILayout.Toggle(EngHan("Edit Mode(Stop)", "편집 모드(정지)"), m._stopAndEdit);
 
-                EditorGUILayout.Space(8f);
+                Space(8f);
 
                 Color oldCol = GUI.color;
 
@@ -679,7 +743,7 @@ namespace Rito
 
                 if (Application.isPlaying)
                 {
-                    EditorGUILayout.Space(8f);
+                    Space(8f);
 
                     // 애니메이션 상태가 0 ~ 1개인 경우에는 굳이 애니메이션 선택 옵션 주지 않음
                     if (allStates != null && allStates.Length > 1)
@@ -735,221 +799,321 @@ namespace Rito
                     }
                 }
 
-                EditorGUILayout.Space(8f);
+                Space(8f);
 
                 if (GUILayout.Button(EngHan("Restart from Beginning", "처음부터 다시 시작")))
                 {
-                    RemoveAllCreatedEffects();
+                    RemoveAllCreatedObjects();
                     m._currentFrameInt = 0;
                     m._animator.Play(0, 0, 0);
                 }
-                if (GUILayout.Button(EngHan("Remove All Instantiated Effects", "복제된 모든 이펙트 제거")))
+                if (GUILayout.Button(EngHan("Remove All Instantiated Events", "복제된 모든 오브젝트 제거")))
                 {
-                    RemoveAllCreatedEffects();
+                    RemoveAllCreatedObjects();
                 }
 
-                void RemoveAllCreatedEffects()
+                void RemoveAllCreatedObjects()
                 {
-                    if (m._effects != null && m._effects.Count > 0)
+                    if (m._bundles != null && m._bundles.Count > 0)
                     {
-                        for (int i = 0; i < m._effects.Count; i++)
+                        for (int i = 0; i < m._bundles.Count; i++)
                         {
-                            if (m._effects[i].createdEffect != null)
-                                Destroy(m._effects[i].createdEffect.gameObject);
+                            if (m._bundles[i].createdObject != null)
+                                Destroy(m._bundles[i].createdObject.gameObject);
                         }
                     }
                 }
             }
 
-            private void DrawEffectsArray()
+            private void DrawEventsArray()
             {
-                bool oldFoldout = effectArrayFoldout;
-                effectArrayFoldout = EditorGUILayout.Foldout(effectArrayFoldout, EngHan("Effects", "이펙트 목록"), true);
+                bool oldFoldout = bundleArrayFoldout;
+                bundleArrayFoldout = EditorGUILayout.Foldout(bundleArrayFoldout, EngHan("Events", "이벤트 목록"), true);
 
-                if (oldFoldout != effectArrayFoldout)
+                if (oldFoldout != bundleArrayFoldout)
                 {
-                    EditorPrefs.SetBool(ArrayFoldoutPrefsKey, effectArrayFoldout);
+                    EditorPrefs.SetBool(ArrayFoldoutPrefsKey, bundleArrayFoldout);
                 }
 
-                if (effectArrayFoldout)
+                if (bundleArrayFoldout)
                 {
                     EditorGUI.indentLevel++;
 
                     EditorGUILayout.BeginHorizontal();
 
                     EditorGUI.BeginChangeCheck();
-                    m.edt_effectsArraySize = EditorGUILayout.IntField(EngHan("Size", "개수"), m._effects.Count);
+                    m.edt_bundlesArraySize = EditorGUILayout.IntField(EngHan("Size", "개수"), m._bundles.Count);
                     bool changed = EditorGUI.EndChangeCheck();
 
                     if (changed)
                     {
-                        if (m.edt_effectsArraySize < 0)
-                            m.edt_effectsArraySize = 0;
+                        if (m.edt_bundlesArraySize < 0)
+                            m.edt_bundlesArraySize = 0;
 
-                        ref int newSize = ref m.edt_effectsArraySize;
-                        int oldSize = m._effects.Count;
+                        ref int newSize = ref m.edt_bundlesArraySize;
+                        int oldSize = m._bundles.Count;
 
                         if (newSize < oldSize)
                         {
                             for (int i = oldSize - 1; i >= newSize; i--)
                             {
-                                m._effects.RemoveAt(i);
+                                m._bundles.RemoveAt(i);
                             }
                         }
                         else if (newSize > oldSize)
                         {
                             for (int i = oldSize; i < newSize; i++)
                             {
-                                m._effects.Add(new EffectBundle());
+                                m._bundles.Add(new EventBundle());
                             }
                         }
                     }
 
                     bool addNew = GUILayout.Button("+", GUILayout.Width(40f));
-                    if (addNew) m._effects.Add(new EffectBundle());
+                    if (addNew) m._bundles.Add(new EventBundle());
 
                     EditorGUILayout.EndHorizontal();
 
-                    for (int i = 0; i < m._effects.Count; i++)
+                    for (int i = 0; i < m._bundles.Count; i++)
                     {
-                        DrawEffectBundle(m._effects[i], i);
+                        DrawEventBundle(m._bundles[i], i);
                     }
                 }
 
 
-                EditorGUILayout.Space(8f);
+                Space(8f);
 
                 bool addNew2 = GUILayout.Button("+");
-                if (addNew2) m._effects.Add(new EffectBundle());
+                if (addNew2) m._bundles.Add(new EventBundle());
             }
 
-            private void DrawEffectBundle(EffectBundle effect, int index)
+            private void DrawEventBundle(EventBundle bundle, int index)
             {
-                EditorGUILayout.Space(8f);
+                Space(8f);
 
-                string name = string.IsNullOrWhiteSpace(effect.name) ? EngHan($"Effect {index}", $"이펙트 {index}") : effect.name;
+                string name = string.IsNullOrWhiteSpace(bundle.name) ? EngHan($"Event {index}", $"이벤트 {index}") : bundle.name;
 
                 EditorGUILayout.BeginHorizontal();
 
                 Color oldGUIColor = GUI.color;
-                GUI.color = effect.effectPrefab == null ? Color.red * 3f : Color.cyan;
-                effect.edt_foldout = EditorGUILayout.Foldout(effect.edt_foldout, name, true);
+                GUI.color = bundle.bundlePrefab == null ? Color.red * 3f : Color.cyan;
+                bundle.edt_foldout = EditorGUILayout.Foldout(bundle.edt_foldout, name, true);
                 GUI.color = oldGUIColor;
 
                 bool remove = GUILayout.Button("-", GUILayout.Width(40f));
-                if (remove) m._effects.RemoveAt(index);
+                if (remove) m._bundles.RemoveAt(index);
 
                 EditorGUILayout.EndHorizontal();
 
-                if (effect.edt_foldout)
+                if (bundle.edt_foldout)
                 {
                     EditorGUI.indentLevel++;
+
+                    // true : Spawn Axis에 위치, 회전, 크기 종속 / false : 월드 기준
+                    bool isLocalState = bundle.spawnAxis != null;
 
                     string nameStr = EngHan("Name", "이름");
                     string animationClipStr = EngHan("Animation Clip", "애니메이션");
                     string spawnFrameStr = EngHan("Spawn Frame", "생성 프레임");
-                    string prefabStr = EngHan("Effect Prefab", "이펙트 프리팹");
+                    string prefabStr = EngHan("Prefab Object", "프리팹 오브젝트");
                     string axisStr = EngHan("Spawn Axis", "부모 트랜스폼");
-                    string axisWarningMsg = EngHan("Cannot register prefab assets with Spawn Axis",
-                        "프리팹 애셋은 부모 트랜스폼으로 설정될 수 없습니다.");
-                    string createdEffectStr = EngHan("Created Effect", "생성된 이펙트");
-                    string posStr = EngHan("Position", "위치");
-                    string rotStr = EngHan("Rotation", "회전");
-                    string scaleStr = EngHan("Scale", "크기");
+                    string keepParentStr = EngHan("Keep Parent State", "부모-자식 관계 유지");
+                    string createdEventStr = EngHan("Created Object", "생성된 오브젝트");
+                    string posStr = isLocalState ? EngHan("Local Position", "로컬 위치") : EngHan("Global Position", "월드 위치");
+                    string rotStr = isLocalState ? EngHan("Local Rotation", "로컬 회전") : EngHan("Global Rotation", "월드 회전");
+                    string scaleStr = isLocalState ? EngHan("Local Scale", "로컬 크기") : EngHan("Global Scale", "월드 크기");
 
                     string buttonStr_jumpToSpawnFrame = EngHan("Jump to Spawn Frame", "생성 프레임으로 이동");
-                    string buttonStr_createNew = EngHan("Create", "이펙트 생성");
-                    string buttonStr_remove = EngHan("Remove", "이펙트 제거");
+                    string buttonStr_createNew = EngHan("Create", "오브젝트 생성");
+                    string buttonStr_remove = EngHan("Remove", "오브젝트 제거");
 
                     // Name
-                    effect.name = EditorGUILayout.TextField(nameStr, effect.name);
+                    bundle.name = EditorGUILayout.TextField(nameStr, bundle.name);
 
                     // Animation Clip - Dropdown
                     if (allClips?.Length > 0)
                     {
                         // 선택 가능한 클립이 2개 이상인 경우에만 드롭다운 제공
                         if(allClips.Length >= 2)
-                            effect.animationClipIndex = EditorGUILayout.Popup(animationClipStr, effect.animationClipIndex, allClipStrings);
+                            bundle.animationClipIndex = EditorGUILayout.Popup(animationClipStr, bundle.animationClipIndex, allClipStrings);
 
-                        if (effect.animationClipIndex >= allClips.Length)
+                        if (bundle.animationClipIndex >= allClips.Length)
                         {
-                            effect.animationClipIndex = 0;
+                            bundle.animationClipIndex = 0;
                         }
 
-                        effect.animationClip = allClips[effect.animationClipIndex];
+                        bundle.animationClip = allClips[bundle.animationClipIndex];
 
                         // Spawn Frame
-                        effect.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, effect.spawnFrame, 0, m.GetTotalFrameInt(effect.animationClip));
+                        bundle.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, bundle.spawnFrame, 0, m.GetTotalFrameInt(bundle.animationClip));
                     }
                     else
                     {
-                        effect.animationClip = null;
-                        effect.animationClipIndex = 0;
-                        effect.spawnFrame = 0;
+                        bundle.animationClip = null;
+                        bundle.animationClipIndex = 0;
+                        bundle.spawnFrame = 0;
                     }
 
 
                     // Button : Jump to Spawn Frame
-                    if (Application.isPlaying)
+                    if (Application.isPlaying && m._stopAndEdit)
                     {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField(" ", GUILayout.Width(28f));
                         if (GUILayout.Button(buttonStr_jumpToSpawnFrame))
                         {
-                            m._currentFrameInt = effect.spawnFrame;
+                            m._currentFrameInt = bundle.spawnFrame;
                         }
                         EditorGUILayout.EndHorizontal();
                     }
 
-                    EditorGUILayout.Space(8f);
+                    Space(8f);
 
-                    // Effect Prefab
+                    // Event Prefab
                     EditorGUI.BeginChangeCheck();
 
                     Color oldGUIColor2 = GUI.color;
-                    GUI.color = effect.effectPrefab == null ? Color.red * 2f : Color.cyan * 2f;
-                    effect.effectPrefab = EditorGUILayout.ObjectField(prefabStr, effect.effectPrefab, typeof(GameObject), true) as GameObject;
+                    GUI.color = bundle.bundlePrefab == null ? Color.red * 2f : Color.cyan * 2f;
+                    bundle.bundlePrefab = EditorGUILayout.ObjectField(prefabStr, bundle.bundlePrefab, typeof(GameObject), true) as GameObject;
                     GUI.color = oldGUIColor2;
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         // 프리팹 등록 또는 해제 시 자동 이름 설정
-                        if (effect.effectPrefab == null)
-                            effect.name = "";
+                        if (bundle.bundlePrefab == null)
+                            bundle.name = "";
                         else
-                            effect.name = effect.effectPrefab.name;
+                            bundle.name = bundle.bundlePrefab.name;
                     }
 
                     // Spawn Axis
-                    Transform prevAxis = effect.spawnAxis;
+                    Transform prevAxis = bundle.spawnAxis;
 
                     EditorGUI.BeginChangeCheck();
-                    effect.spawnAxis = EditorGUILayout.ObjectField(axisStr, effect.spawnAxis, typeof(Transform), true) as Transform;
+                    bundle.spawnAxis = EditorGUILayout.ObjectField(axisStr, bundle.spawnAxis, typeof(Transform), true) as Transform;
                     if (EditorGUI.EndChangeCheck())
                     {
-                        // Spawn Axis에는 프리팹 못넣게 설정
-                        if (effect.spawnAxis != null && PrefabUtility.IsPartOfPrefabAsset(effect.spawnAxis))
+                        if (bundle.spawnAxis != null)
                         {
-                            effect.spawnAxis = prevAxis;
-                            EditorUtility.DisplayDialog("Rito", axisWarningMsg, "OK");
+                            // Spawn Axis에는 프리팹 못넣게 설정
+                            if (PrefabUtility.IsPartOfPrefabAsset(bundle.spawnAxis))
+                            {
+                                string axisWarningMsg = EngHan("Cannot register prefab assets with Spawn Axis",
+                                    "프리팹 애셋은 부모 트랜스폼으로 설정될 수 없습니다.");
+
+                                bundle.spawnAxis = prevAxis;
+                                EditorUtility.DisplayDialog("Rito", axisWarningMsg, "OK");
+                            }
+                            else
+                            {
+                                // Spawn Axis에는 복제된 오브젝트 못넣게 설정
+                                bool flag = false;
+
+                                for (int i = 0; i < m._bundles.Count; i++)
+                                {
+                                    if (bundle.spawnAxis == m._bundles[i].createdObject)
+                                    {
+                                        flag = true;
+                                        break;
+                                    }
+                                }
+
+                                if (flag)
+                                {
+                                    string axisWarn2 = EngHan("Cannot register instantiated object with Spawn Axis",
+                                        "복제된 오브젝트를 부모 트랜스폼으로 설정할 수 없습니다.");
+
+                                    bundle.spawnAxis = prevAxis;
+                                    EditorUtility.DisplayDialog("Rito", axisWarn2, "OK");
+                                }
+                            }
+                        }
+
+                        // Axis가 null이었다가 새로 등록되면 keepState 기본 값은 true
+                        if (prevAxis == null && bundle.spawnAxis != null)
+                            bundle.keepParentState = true;
+
+                        ApplyPosRotSclChangesToCreatedObject();
+                    }
+
+                    // Keep Parent State
+                    if (bundle.spawnAxis == null)
+                    {
+                        bundle.keepParentState = false;
+                    }
+                    else
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        bundle.keepParentState = EditorGUILayout.Toggle(keepParentStr, bundle.keepParentState);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            ApplyPosRotSclChangesToCreatedObject();
                         }
                     }
 
-                    // Created Effect
+                    void ApplyPosRotSclChangesToCreatedObject()
+                    {
+                        if (bundle.createdObject != null)
+                        {
+                            // Spawn Axis가 존재하는 경우
+                            if (bundle.spawnAxis != null)
+                            {
+                                // 월드에 방생
+                                if (bundle.keepParentState == false)
+                                {
+                                    bundle.position = bundle.createdObject.localPosition;
+                                    bundle.rotation = bundle.createdObject.localEulerAngles;
+                                    bundle.scale = bundle.createdObject.localScale;
+
+                                    bundle.createdObject.SetParent(null);
+                                }
+                                // 로컬에 유지
+                                else
+                                {
+                                    bundle.createdObject.SetParent(bundle.spawnAxis);
+
+                                    bundle.position = bundle.createdObject.localPosition;
+                                    bundle.rotation = bundle.createdObject.localEulerAngles;
+                                    bundle.scale = bundle.createdObject.localScale;
+                                }
+                            }
+                            // Spawn Axis가 존재하지 않는 경우 - 기준을 월드로 설정
+                            else
+                            {
+                                bundle.createdObject.SetParent(null);
+
+                                bundle.position = bundle.createdObject.position;
+                                bundle.rotation = bundle.createdObject.eulerAngles;
+                                bundle.scale = bundle.createdObject.lossyScale;
+                            }
+
+                            EditorLog("Here");
+                        }
+                    }
+
+                    // Created Object
                     if (Application.isPlaying)
                     {
                         Color oldCol = GUI.color;
-                        if (effect.createdEffect != null)
+                        if (bundle.createdObject != null)
                             GUI.color = Color.cyan * 1.5f;
 
                         EditorGUI.BeginDisabledGroup(true);
-                        _ = EditorGUILayout.ObjectField(createdEffectStr, effect.createdEffect, typeof(GameObject), true) as GameObject;
+                        _ = EditorGUILayout.ObjectField(createdEventStr, bundle.createdObject, typeof(GameObject), true) as GameObject;
                         EditorGUI.EndDisabledGroup();
 
                         GUI.color = oldCol;
                     }
 
-                    EditorGUILayout.Space(2f);
+                    Space(2f);
+
+                    // 월드에 방생하는 경우, 동일 프레임 아니면 수정 불가
+                    bool axisExistsAndKeepParent =
+                    !(
+                        bundle.spawnAxis == null ||
+                        (bundle.keepParentState == true) ||
+                        (m._currentFrameInt == bundle.spawnFrame && currentClip == bundle.animationClip)
+                    );
 
                     // Buttons : Create, Remove
                     if (Application.isPlaying)
@@ -957,35 +1121,63 @@ namespace Rito
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField(" ", GUILayout.Width(28f));
 
+                        EditorGUI.BeginDisabledGroup(axisExistsAndKeepParent);
+
                         if (GUILayout.Button(buttonStr_createNew))
                         {
-                            m.SpawnEffect(effect);
+                            m.SpawnObject(bundle);
                         }
 
-                        if (GUILayout.Button(buttonStr_remove) && effect.createdEffect != null)
+                        EditorGUI.EndDisabledGroup();
+
+                        if (GUILayout.Button(buttonStr_remove) && bundle.createdObject != null)
                         {
-                            if(effect.createdEffect != null)
-                                Destroy(effect.createdEffect.gameObject);
+                            if(bundle.createdObject != null)
+                                Destroy(bundle.createdObject.gameObject);
                         }
 
                         EditorGUILayout.EndHorizontal();
                     }
 
-                    EditorGUILayout.Space(8f);
+                    Space(8f);
+
+                    EditorGUI.BeginDisabledGroup(axisExistsAndKeepParent);
 
                     // Pos, Rot, Scale
                     EditorGUI.BeginChangeCheck();
 
-                    effect.position = EditorGUILayout.Vector3Field(posStr, effect.position);
-                    effect.rotation = EditorGUILayout.Vector3Field(rotStr, effect.rotation);
-                    effect.scale    = EditorGUILayout.Vector3Field(scaleStr, effect.scale);
+                    bundle.position = EditorGUILayout.Vector3Field(posStr, bundle.position);
+                    bundle.rotation = EditorGUILayout.Vector3Field(rotStr, bundle.rotation);
+                    bundle.scale    = EditorGUILayout.Vector3Field(scaleStr, bundle.scale);
 
-                    if (EditorGUI.EndChangeCheck() && effect.createdEffect != null)
+                    if (EditorGUI.EndChangeCheck() && bundle.createdObject != null)
                     {
-                        effect.createdEffect.localPosition = effect.position;
-                        effect.createdEffect.localEulerAngles = effect.rotation;
-                        effect.createdEffect.localScale = effect.scale;
+                        if (bundle.spawnAxis != null)
+                        {
+                            if (bundle.keepParentState)
+                            {
+                                bundle.createdObject.localPosition = bundle.position;
+                                bundle.createdObject.localEulerAngles = bundle.rotation;
+                                bundle.createdObject.localScale = bundle.scale;
+                            }
+                            else
+                            {
+                                Matrix4x4 mat = bundle.spawnAxis.localToWorldMatrix;
+
+                                bundle.createdObject.position = mat.MultiplyPoint(bundle.position);
+                                bundle.createdObject.eulerAngles = mat.MultiplyVector(bundle.rotation);
+                                bundle.createdObject.localScale = mat.MultiplyVector(bundle.scale);
+                            }
+                        }
+                        else
+                        {
+                            bundle.createdObject.localPosition = bundle.position;
+                            bundle.createdObject.localEulerAngles = bundle.rotation;
+                            bundle.createdObject.localScale = bundle.scale;
+                        }
                     }
+
+                    EditorGUI.EndDisabledGroup();
 
                     EditorGUI.indentLevel--;
                 }
@@ -994,6 +1186,15 @@ namespace Rito
             private string EngHan(string eng, string han)
             {
                 return !isHangle ? eng : han;
+            }
+
+            private void Space(float width)
+            {
+#if UNITY_2019_1_OR_NEWER
+                EditorGUILayout.Space(width);
+#else
+                EditorGUILayout.Space();
+#endif
             }
 
         } // Custom Editor Class End
