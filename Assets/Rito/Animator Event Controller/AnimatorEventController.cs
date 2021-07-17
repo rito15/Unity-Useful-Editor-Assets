@@ -63,7 +63,7 @@ namespace Rito
             public AnimationClip animationClip;
 
             [Space]
-            public GameObject bundlePrefab;
+            public GameObject prefab;
             public Transform spawnAxis;  // 생성 기준 트랜스폼
             public bool keepParentState; // 생성 이후에도 Spawn Axis의 자식으로 유지
 
@@ -376,7 +376,7 @@ namespace Rito
         /// <summary> 특정 프레임에 오브젝트 생성하기 </summary>
         private void SpawnObject(EventBundle bundle)
         {
-            if (bundle.bundlePrefab == null) return;
+            if (bundle.prefab == null) return;
 
             // 기존에 생성된 오브젝트가 있었으면 지워버리기
             if (bundle.clonedObject != null)
@@ -389,7 +389,7 @@ namespace Rito
                 edt_gapCount = 0;
 #endif
 
-            Transform bundleTr = Instantiate(bundle.bundlePrefab).transform;
+            Transform bundleTr = Instantiate(bundle.prefab).transform;
 
             if (bundle.spawnAxis)
                 bundleTr.SetParent(bundle.spawnAxis);
@@ -675,7 +675,7 @@ namespace Rito
 
                         m._bundles.ForEach(eff =>
                         {
-                            if (eff.enabled && eff.bundlePrefab != null && eff.animationClip == clip)
+                            if (eff.enabled && eff.prefab != null && eff.animationClip == clip)
                                 sortedEventList.Add(eff);
                         });
 
@@ -920,7 +920,7 @@ namespace Rito
 
                 // Foldout
                 oldGUIColor = GUI.color;
-                GUI.color = bundle.bundlePrefab == null ? Color.red * 3f : Color.cyan;
+                GUI.color = bundle.prefab == null ? Color.red * 3f : Color.cyan;
 
                 bundle.edt_bundleFoldout = EditorGUILayout.Foldout(bundle.edt_bundleFoldout, name,
 #if UNITY_2019_1_OR_NEWER
@@ -962,6 +962,28 @@ namespace Rito
                 GUI.color = oldGUIColor;
                 GUI.backgroundColor = oldBgColor;
 
+                // 위, 아래 이동 버튼
+                EditorGUI.BeginDisabledGroup(index >= m._bundles.Count - 1);
+                if (GUILayout.Button("▼", GUILayout.Width(24f))) // 인덱스 + 1 (아래로 이동)
+                {
+                    EventBundle temp = m._bundles[index];
+                    m._bundles[index] = m._bundles[index + 1];
+                    m._bundles[index + 1] = temp;
+                }
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUI.BeginDisabledGroup(index <= 0);
+                if (GUILayout.Button("▲", GUILayout.Width(24f))) // 인덱스 - 1 (위로 이동)
+                {
+                    EventBundle temp = m._bundles[index];
+                    m._bundles[index] = m._bundles[index - 1];
+                    m._bundles[index - 1] = temp;
+                }
+                EditorGUI.EndDisabledGroup();
+
+                // 공백
+                EditorGUILayout.LabelField("", GUILayout.Width(8f));
+
                 // 우측 제거 버튼
                 oldBgColor = GUI.backgroundColor;
                 GUI.backgroundColor = Color.red * 1.5f;
@@ -984,7 +1006,6 @@ namespace Rito
 
                     string nameStr = EngHan("Name", "이름");
                     string animationClipStr = EngHan("Animation Clip", "애니메이션");
-                    string prefabStr = EngHan("Prefab Object", "프리팹 오브젝트");
                     string createdEventStr = EngHan("Cloned Object", "생성된 오브젝트");
 
                     // Name
@@ -1079,20 +1100,44 @@ namespace Rito
                     EditorGUI.BeginDisabledGroup(Application.isPlaying == true && m._stopAndEdit == false); // 편집 모드에서만 수정 가능 ==
 
                     // Event Prefab
+                    string prefabStr = EngHan("Prefab Object", "프리팹 오브젝트");
+                    GameObject prevPrefab = bundle.prefab;
+
                     EditorGUI.BeginChangeCheck();
 
                     Color oldGUIColor2 = GUI.color;
-                    GUI.color = bundle.bundlePrefab == null ? Color.red * 2f : Color.cyan * 2f;
-                    bundle.bundlePrefab = EditorGUILayout.ObjectField(prefabStr, bundle.bundlePrefab, typeof(GameObject), true) as GameObject;
+                    GUI.color = bundle.prefab == null ? Color.red * 2f : Color.cyan * 2f;
+                    bundle.prefab = EditorGUILayout.ObjectField(prefabStr, bundle.prefab, typeof(GameObject), true) as GameObject;
                     GUI.color = oldGUIColor2;
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         // 프리팹 등록 또는 해제 시 자동 이름 설정
-                        if (bundle.bundlePrefab == null)
+                        if (bundle.prefab == null)
                             bundle.name = "";
                         else
-                            bundle.name = bundle.bundlePrefab.name;
+                        {
+                            bundle.name = bundle.prefab.name;
+
+                            // 초기 등록 시, 해당 프리팹 트랜스폼의 정보를 곧바로 적용
+                            if (prevPrefab == null && bundle.prefab != null)
+                            {
+                                // [1] 일차적으로 월드 트랜스폼 데이터 적용
+                                bundle.position = bundle.prefab.transform.position;
+                                bundle.rotation = bundle.prefab.transform.eulerAngles;
+                                bundle.scale = bundle.prefab.transform.lossyScale;
+
+                                // [2] 부모 트랜스폼이 존재할 경우, 부모의 로컬로 공간 변환
+                                if (bundle.spawnAxis != null)
+                                {
+                                    Matrix4x4 mat = bundle.spawnAxis.worldToLocalMatrix;
+
+                                    bundle.position = mat.MultiplyPoint(bundle.position);
+                                    bundle.rotation = mat.MultiplyVector(bundle.rotation);
+                                    bundle.scale = mat.MultiplyVector(bundle.scale);
+                                }
+                            }
+                        }
                     }
 
                     // 이전 데이터 백업
@@ -1300,7 +1345,7 @@ namespace Rito
                         EditorGUI.BeginDisabledGroup(
                             currentClip != bundle.animationClip ||
                             m._currentFrameInt != bundle.spawnFrame || 
-                            bundle.bundlePrefab == null
+                            bundle.prefab == null
                         );
 
                         string buttonStr_createNew = EngHan("Clone", "오브젝트 생성");
@@ -1344,10 +1389,51 @@ namespace Rito
                     string rotStr = isLocalState ? EngHan("Local Rotation", "로컬 회전") : EngHan("Global Rotation", "월드 회전");
                     string scaleStr = isLocalState ? EngHan("Local Scale", "로컬 크기") : EngHan("Global Scale", "월드 크기");
 
+                    Color resetButtonColor = Color.magenta;
+
+                    // 위치
+                    EditorGUILayout.BeginHorizontal();
+
                     bundle.position = EditorGUILayout.Vector3Field(posStr, bundle.position);
+
+                    oldBgColor = GUI.backgroundColor;
+                    GUI.backgroundColor = resetButtonColor;
+                    if (GUILayout.Button("R", GUILayout.Width(24f)))
+                    {
+                        bundle.position = Vector3.zero;
+                    }
+                    GUI.backgroundColor = oldBgColor;
+                    EditorGUILayout.EndHorizontal();
+
+                    // 회전
+                    EditorGUILayout.BeginHorizontal();
+
                     bundle.rotation = EditorGUILayout.Vector3Field(rotStr, bundle.rotation);
+
+                    oldBgColor = GUI.backgroundColor;
+                    GUI.backgroundColor = resetButtonColor;
+                    if (GUILayout.Button("R", GUILayout.Width(24f)))
+                    {
+                        bundle.rotation = Vector3.zero;
+                    }
+                    GUI.backgroundColor = oldBgColor;
+                    EditorGUILayout.EndHorizontal();
+
+                    // 크기
+                    EditorGUILayout.BeginHorizontal();
+
                     bundle.scale = EditorGUILayout.Vector3Field(scaleStr, bundle.scale);
 
+                    oldBgColor = GUI.backgroundColor;
+                    GUI.backgroundColor = resetButtonColor;
+                    if (GUILayout.Button("R", GUILayout.Width(24f)))
+                    {
+                        bundle.scale = Vector3.one;
+                    }
+                    GUI.backgroundColor = oldBgColor;
+                    EditorGUILayout.EndHorizontal();
+
+                    // 위치, 회전, 크기 변경사항 적용
                     if (EditorGUI.EndChangeCheck() && bundle.clonedObject != null)
                     {
                         if (bundle.spawnAxis != null)
@@ -1390,6 +1476,7 @@ namespace Rito
                             bundle.rotation = Vector3.zero;
                             bundle.scale = Vector3.one;
 
+                            // 클론 오브젝트에도 변경사항 적용되도록 재생성
                             if (bundle.clonedObject != null)
                             {
                                 m.SpawnObject(bundle);

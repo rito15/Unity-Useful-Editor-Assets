@@ -153,32 +153,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9314ef1657a17f9499fd87d0655ea683, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stopAndEdit: 0
+  _stopAndEdit: 1
   _timeScale: 1
-  _timeScale_editMode: 0.111
+  _timeScale_editMode: 0.166
   _currentFrameInt: 0
   _bundles:
-  - enabled: 1
-    name: Burst_Red
-    spawnFrame: 40
-    animationClipIndex: 0
-    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
-      type: 3}
-    spawnAxis: {fileID: 886640645}
-    keepParentState: 0
-    clonedObject: {fileID: 0}
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-    scale: {x: 1, y: 1, z: 1}
-    edt_bundleFoldout: 0
-    edt_advancedFoldout: 0
   - enabled: 1
     name: Burst_White
     spawnFrame: 28
     animationClipIndex: 0
     animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
+    prefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
       type: 3}
     spawnAxis: {fileID: 886640645}
     keepParentState: 0
@@ -189,18 +174,18 @@ MonoBehaviour:
     edt_bundleFoldout: 0
     edt_advancedFoldout: 0
   - enabled: 1
-    name: Burst_Cube_Yellow - Right
-    spawnFrame: 45
-    animationClipIndex: 1
-    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
+    name: Burst_Red
+    spawnFrame: 40
+    animationClipIndex: 0
+    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
+    prefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
       type: 3}
-    spawnAxis: {fileID: 886640645}
+    spawnAxis: {fileID: 0}
     keepParentState: 0
     clonedObject: {fileID: 0}
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 270, y: 0, z: 0}
+    scale: {x: 1, y: 1.0000002, z: 1.0000002}
     edt_bundleFoldout: 0
     edt_advancedFoldout: 0
   - enabled: 1
@@ -208,7 +193,7 @@ MonoBehaviour:
     spawnFrame: 16
     animationClipIndex: 1
     animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
+    prefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
       type: 3}
     spawnAxis: {fileID: 886640645}
     keepParentState: 0
@@ -217,7 +202,22 @@ MonoBehaviour:
     rotation: {x: 0, y: 0, z: 0}
     scale: {x: 1, y: 1, z: 1}
     edt_bundleFoldout: 0
-    edt_advancedFoldout: 0
+    edt_advancedFoldout: 1
+  - enabled: 1
+    name: Burst_Cube_Yellow - Right
+    spawnFrame: 45
+    animationClipIndex: 1
+    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
+    prefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
+      type: 3}
+    spawnAxis: {fileID: 886640645}
+    keepParentState: 0
+    clonedObject: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    edt_bundleFoldout: 0
+    edt_advancedFoldout: 1
 --- !u!23 &886640643
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -734,8 +734,7 @@ MonoBehaviour:
     spawnFrame: 40
     animationClipIndex: 0
     animationClip: {fileID: 7400000, guid: e93108931cec7224fa0f9e4218194d71, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
-      type: 3}
+    prefab: {fileID: 0}
     spawnAxis: {fileID: 1545606960}
     keepParentState: 1
     clonedObject: {fileID: 0}
@@ -749,8 +748,7 @@ MonoBehaviour:
     spawnFrame: 58
     animationClipIndex: 0
     animationClip: {fileID: 7400000, guid: e93108931cec7224fa0f9e4218194d71, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
-      type: 3}
+    prefab: {fileID: 0}
     spawnAxis: {fileID: 1545606960}
     keepParentState: 0
     clonedObject: {fileID: 0}
