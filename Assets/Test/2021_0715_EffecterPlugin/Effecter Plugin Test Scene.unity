@@ -132,27 +132,92 @@ GameObject:
   - component: {fileID: 886640645}
   - component: {fileID: 886640644}
   - component: {fileID: 886640643}
+  - component: {fileID: 886640647}
   - component: {fileID: 886640642}
   m_Layer: 0
-  m_Name: Cube (1)
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!65 &886640642
-BoxCollider:
+  m_IsActive: 1
+--- !u!114 &886640642
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 886640641}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9314ef1657a17f9499fd87d0655ea683, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stopAndEdit: 0
+  _timeScale: 1
+  _timeScale_editMode: 0.111
+  _currentFrameInt: 0
+  _bundles:
+  - enabled: 1
+    name: Burst_Red
+    spawnFrame: 40
+    animationClipIndex: 0
+    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
+    bundlePrefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
+      type: 3}
+    spawnAxis: {fileID: 886640645}
+    keepParentState: 0
+    clonedObject: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    edt_bundleFoldout: 0
+    edt_advancedFoldout: 0
+  - enabled: 1
+    name: Burst_White
+    spawnFrame: 28
+    animationClipIndex: 0
+    animationClip: {fileID: 7400000, guid: 4bead55c46ceb114888ddc1076bc0dbf, type: 2}
+    bundlePrefab: {fileID: 8024358729762139448, guid: 6ca3a51842dd5d840a52adce1915f9bd,
+      type: 3}
+    spawnAxis: {fileID: 886640645}
+    keepParentState: 0
+    clonedObject: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: -90, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    edt_bundleFoldout: 0
+    edt_advancedFoldout: 0
+  - enabled: 1
+    name: Burst_Cube_Yellow - Right
+    spawnFrame: 45
+    animationClipIndex: 1
+    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
+    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
+      type: 3}
+    spawnAxis: {fileID: 886640645}
+    keepParentState: 0
+    clonedObject: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    edt_bundleFoldout: 0
+    edt_advancedFoldout: 0
+  - enabled: 1
+    name: Burst_Cube_Yellow - Left
+    spawnFrame: 16
+    animationClipIndex: 1
+    animationClip: {fileID: 7400000, guid: 821a5b41337cfe04a962814bc8852833, type: 2}
+    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
+      type: 3}
+    spawnAxis: {fileID: 886640645}
+    keepParentState: 0
+    clonedObject: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    edt_bundleFoldout: 0
+    edt_advancedFoldout: 0
 --- !u!23 &886640643
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -212,8 +277,27 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &886640647
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886640641}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 40d1afc1e8a72ba4facf7eeae65db9aa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1138514726
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,7 +488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1545606960
 Transform:
   m_ObjectHideFlags: 0
@@ -413,12 +497,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1545606959}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.47, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2032659301}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1636721342
 GameObject:
@@ -623,7 +707,7 @@ Transform:
   m_GameObject: {fileID: 2032659296}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1545606960}
   m_RootOrder: 0
@@ -661,11 +745,11 @@ MonoBehaviour:
     edt_bundleFoldout: 1
     edt_advancedFoldout: 0
   - enabled: 1
-    name: Burst_Red
+    name: Burst_Yellow
     spawnFrame: 58
     animationClipIndex: 0
     animationClip: {fileID: 7400000, guid: e93108931cec7224fa0f9e4218194d71, type: 2}
-    bundlePrefab: {fileID: 8024358729762139448, guid: 40b9506cc868c014ea8728f1ed0f9e3b,
+    bundlePrefab: {fileID: 8024358729762139448, guid: 23cb76b2f73bc274abcba50d33ae6a04,
       type: 3}
     spawnAxis: {fileID: 1545606960}
     keepParentState: 0

@@ -1,6 +1,7 @@
 ﻿
 #if UNITY_EDITOR
 #define DEBUG_ON
+#define UNITY_EDITOR_OPTION
 #endif
 
 using System;
@@ -31,6 +32,11 @@ namespace Rito
         {
             Debug.Log(msg);
         }
+
+
+#if UNITY_EDITOR_OPTION
+        private class ClonedAnimatorEventObject : MonoBehaviour { }
+#endif
 
         /***********************************************************************
         *                               Class Definition
@@ -80,6 +86,7 @@ namespace Rito
             {
                 if (clonedObject != null)
                     Destroy(clonedObject.gameObject);
+                clonedObject = null;
             }
         }
 
@@ -401,7 +408,9 @@ namespace Rito
                 bundle.clonedObject.SetParent(null);
             }
 
-            //ModifyBundleTransformInfo(bundle);
+#if UNITY_EDITOR_OPTION
+            bundle.clonedObject.gameObject.AddComponent<ClonedAnimatorEventObject>();
+#endif
         }
 
 #if UNITY_EDITOR
@@ -590,6 +599,8 @@ namespace Rito
 
             public override void OnInspectorGUI()
             {
+                DrawEngHanButton();
+
                 if (m._animator == null)
                 {
                     EditorGUILayout.HelpBox(EngHan("Animator Component Does Not Exist.", "Animator 컴포넌트가 존재하지 않습니다."),
@@ -597,7 +608,12 @@ namespace Rito
                 }
                 else if (m._animator.enabled == false)
                 {
-                    EditorGUILayout.HelpBox(EngHan("Animator Component Is Disabled.", "Animator 컴포넌트가 비활성화 상태입니다."),
+                    EditorGUILayout.HelpBox(EngHan("Animator Component is Disabled.", "Animator 컴포넌트가 비활성화 상태입니다."),
+                        MessageType.Warning);
+                }
+                else if (m._animator.runtimeAnimatorController == null)
+                {
+                    EditorGUILayout.HelpBox(EngHan("Runtime Animator Controller is Null.", "Animator 컴포넌트에 Controller가 등록되지 않았습니다."),
                         MessageType.Warning);
                 }
                 else if (m.AllAnimationClips.Length == 0)
@@ -628,7 +644,6 @@ namespace Rito
                 Undo.RecordObject(m, "Animator Event Controller");
 
 
-                DrawEngHanButton();
                 DrawAnimationEventList();
                 DrawAnimationControlPart();
 
@@ -701,14 +716,14 @@ namespace Rito
 
             private void DrawAnimationControlPart()
             {
-                m._stopAndEdit = EditorGUILayout.Toggle(EngHan("Edit Mode(Stop)", "편집 모드(정지)"), m._stopAndEdit);
+                m._stopAndEdit = EditorGUILayout.Toggle(EngHan("Edit Mode", "편집 모드"), m._stopAndEdit);
 
                 Space(8f);
 
                 Color oldCol = GUI.color;
 
                 if (!m._stopAndEdit) GUI.color = Color.cyan * 1.5f;
-                m._timeScale = EditorGUILayout.Slider(EngHan("Time Scale(Normal)", "게임 진행 속도(일반 모드)"), m._timeScale, 0f, 1f);
+                m._timeScale = EditorGUILayout.Slider(EngHan("Time Scale(Play Mode)", "게임 진행 속도(재생 모드)"), m._timeScale, 0f, 1f);
 
                 GUI.color = oldCol;
                 if (m._stopAndEdit) GUI.color = Color.cyan * 1.5f;
@@ -720,6 +735,9 @@ namespace Rito
                 if (Application.isPlaying)
                 {
                     Space(8f);
+
+                    oldCol = GUI.color;
+                    GUI.color = Color.yellow * 1.5f; // Y E L L O W
 
                     // 애니메이션 상태가 0 ~ 1개인 경우에는 굳이 애니메이션 선택 옵션 주지 않음
                     if (allStates != null && allStates.Length > 1)
@@ -761,6 +779,8 @@ namespace Rito
                     m._currentFrameInt = EditorGUILayout.IntSlider(EngHan("Current Frame", "현재 프레임"), m._currentFrameInt, 0, totalFrameInt);
                     EditorGUI.EndDisabledGroup();
 
+                    GUI.color = oldCol;
+
                     if (m._stopAndEdit)
                     {
                         EditorGUILayout.BeginHorizontal();
@@ -778,7 +798,7 @@ namespace Rito
                 {
                     Space(8f);
 
-                    if (GUILayout.Button(EngHan("Restart from Beginning", "처음부터 다시 시작")))
+                    if (GUILayout.Button(EngHan("Restart from Beginning", "처음부터 다시 재생")))
                     {
                         RemoveAllCreatedObjects();
                         m._currentFrameInt = 0;
@@ -798,6 +818,13 @@ namespace Rito
                                 m._bundles[i].DestroyClonedObject();
                             }
                         }
+#if UNITY_EDITOR_OPTION
+                        // 추가 작업 : 혹시나 남아있는 클론들 제거
+                        var clones = FindObjectsOfType<ClonedAnimatorEventObject>();
+                        if (clones != null && clones.Length > 0)
+                            for (int i = 0; i < clones.Length; i++)
+                                Destroy(clones[i].gameObject);
+#endif
                     }
                 }
             }
@@ -852,9 +879,7 @@ namespace Rito
                     bool addNew = GUILayout.Button("+", GUILayout.Width(40f));
                     if (addNew)
                     {
-                        var newBundle = new EventBundle();
-                        newBundle.spawnFrame = m._currentFrameInt;
-                        m._bundles.Add(newBundle);
+                        AddNewEventBundle();
                     }
 
                     GUI.backgroundColor = oldBg;
@@ -876,9 +901,7 @@ namespace Rito
                 bool addNew2 = GUILayout.Button("+");
                 if (addNew2)
                 {
-                    var newBundle = new EventBundle();
-                    newBundle.spawnFrame = m._currentFrameInt;
-                    m._bundles.Add(newBundle);
+                    AddNewEventBundle();
                 }
 
                 GUI.backgroundColor = oldBg2;
@@ -981,11 +1004,20 @@ namespace Rito
 
                         bundle.animationClip = allClips[bundle.animationClipIndex];
 
+                        // 편집 모드 - 애니메이션 불일치 시, 경고
+                        if (Application.isPlaying && m._stopAndEdit && currentClip != bundle.animationClip)
+                        {
+                            string notTheClipStr = EngHan("Does not Match the Current Animation.", "현재 재생 중인 애니메이션과 일치하지 않습니다.");
+                            EditorGUILayout.HelpBox(notTheClipStr, MessageType.Warning);
+                            Space(4f);
+                        }
+
+
                         // 생성 프레임
 
                         // 현재 프레임과 일치할 경우, Cyan 색상으로 강조
                         Color oldContentColor = GUI.color;
-                        if (m._currentFrameInt == bundle.spawnFrame)
+                        if (currentClip == bundle.animationClip && m._currentFrameInt == bundle.spawnFrame)
                             GUI.color = Color.cyan;
 
                         // 1프레임부터 가능하도록 제한 추가
@@ -1005,13 +1037,15 @@ namespace Rito
                     // Button 2개 : 프레임 설정
                     if (Application.isPlaying && m._stopAndEdit)
                     {
-                        EditorGUI.BeginDisabledGroup(m._currentFrameInt == bundle.spawnFrame);
+                        // 현재 애니메이션과 동일하지 않으면 비활성화
+                        // 현재 프레임과 생성 프레임 일치한 경우 비활성화
+                        EditorGUI.BeginDisabledGroup(currentClip != bundle.animationClip || m._currentFrameInt == bundle.spawnFrame); // 냥 -- begin
                         EditorGUILayout.BeginHorizontal();
 
                         EditorGUILayout.LabelField(" ", GUILayout.Width(28f));
 
                         oldBgColor = GUI.backgroundColor;
-                        if (m._currentFrameInt != bundle.spawnFrame)
+                        if (currentClip == bundle.animationClip && m._currentFrameInt != bundle.spawnFrame)
                             GUI.backgroundColor = Color.blue * 2f + Color.white * 0.8f;
 
                         string buttonStr_jumpToSpawnFrame = EngHan("Jump to Spawn Frame", "생성 프레임으로 이동");
@@ -1029,10 +1063,20 @@ namespace Rito
                         }
 
                         EditorGUILayout.EndHorizontal();
-                        EditorGUI.EndDisabledGroup();
+                        EditorGUI.EndDisabledGroup(); // 냥 -- end
                     }
 
                     Space(8f);
+
+
+                    // 재생 모드 - 수정 불가
+                    if (Application.isPlaying && !m._stopAndEdit)
+                    {
+                        string notEditable = EngHan("Can Only Be Edited in Edit Mode.", "편집 모드에서만 수정할 수 있습니다.");
+                        EditorGUILayout.HelpBox(notEditable, MessageType.Warning);
+                        Space(4f);
+                    }
+                    EditorGUI.BeginDisabledGroup(Application.isPlaying == true && m._stopAndEdit == false); // 편집 모드에서만 수정 가능 ==
 
                     // Event Prefab
                     EditorGUI.BeginChangeCheck();
@@ -1054,7 +1098,6 @@ namespace Rito
                     // 이전 데이터 백업
                     Transform prevAxis = bundle.spawnAxis;
 
-                    EditorGUI.BeginDisabledGroup(Application.isPlaying == true && m._stopAndEdit == false);
                     EditorGUILayout.BeginHorizontal(); // Horizontal Begin - SpawnAxis ========================
 
                     string axisStr = EngHan("Spawn Axis", "부모 트랜스폼");
@@ -1253,8 +1296,12 @@ namespace Rito
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField(" ", GUILayout.Width(28f));
 
-                        // 해당 생성 프레임에서만 생성 가능
-                        EditorGUI.BeginDisabledGroup(m._currentFrameInt != bundle.spawnFrame);
+                        // 해당 애니메이션 및 생성 프레임에서만 생성 가능, 프리팹이 존재해야만 생성 가능
+                        EditorGUI.BeginDisabledGroup(
+                            currentClip != bundle.animationClip ||
+                            m._currentFrameInt != bundle.spawnFrame || 
+                            bundle.bundlePrefab == null
+                        );
 
                         string buttonStr_createNew = EngHan("Clone", "오브젝트 생성");
                         if (GUILayout.Button(buttonStr_createNew))
@@ -1280,7 +1327,7 @@ namespace Rito
 
                     Space(8f);
 
-                    // 월드에 방생하는 경우, 동일 프레임 아니면 수정 불가
+                    // 월드에 방생하는 경우, 동일 애니메이션, 동일 프레임 아니면 수정 불가
                     bool axisExistsAndKeepParent =
                     !(
                         bundle.spawnAxis == null ||
@@ -1383,6 +1430,15 @@ namespace Rito
 
                     EditorGUI.indentLevel--;
                 }
+            }
+
+            private void AddNewEventBundle()
+            {
+                var newBundle = new EventBundle();
+                newBundle.spawnFrame = m._currentFrameInt;
+                newBundle.animationClip = currentClip;
+                newBundle.animationClipIndex = Array.FindIndex(allClips, x => x == currentClip);
+                m._bundles.Add(newBundle);
             }
 
             private string EngHan(string eng, string han)
