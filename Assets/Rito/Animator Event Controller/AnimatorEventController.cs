@@ -842,6 +842,10 @@ namespace Rito
                 if (bundleArrayFoldout)
                 {
                     EditorGUI.indentLevel++;
+#if !UNITY_2019_1_OR_NEWER
+                    // Foldout 좌측 체크박스 - 투명 버튼 생성 위해 인덴트 미적용
+                    EditorGUI.indentLevel--;
+#endif
 
                     EditorGUILayout.BeginHorizontal();
 
@@ -911,17 +915,30 @@ namespace Rito
             {
                 Space(8f);
 
-                Color oldGUIColor;
-                Color oldBgColor;
+                Color oldGUIColor = GUI.color;
+                Color oldBgColor = GUI.backgroundColor;
 
                 string name = string.IsNullOrWhiteSpace(bundle.name) ? EngHan($"Event {index}", $"이벤트 {index}") : bundle.name;
 
                 EditorGUILayout.BeginHorizontal();
 
-                // Foldout
-                oldGUIColor = GUI.color;
-                GUI.color = bundle.prefab == null ? Color.red * 3f : Color.cyan;
+#if !UNITY_2019_1_OR_NEWER
+                float foldoutLeftMargin = 12f;
 
+                // 투명 버튼 - enabled 상태 변경
+                GUI.color = Color.clear;
+                if (GUILayout.Button(" ", GUILayout.Width(foldoutLeftMargin)))
+                    bundle.enabled = !bundle.enabled;
+#endif
+                // Foldout
+                if (bundle.enabled == false)
+                {
+                    GUI.color = Color.gray;
+                }
+                else
+                {
+                    GUI.color = bundle.prefab == null ? Color.red * 3f : Color.cyan;
+                }
                 bundle.edt_bundleFoldout = EditorGUILayout.Foldout(bundle.edt_bundleFoldout, name,
 #if UNITY_2019_1_OR_NEWER
                     false
@@ -933,34 +950,31 @@ namespace Rito
                 GUI.color = oldGUIColor;
 
                 // enabled 체크박스
-                Rect lastRect = GUILayoutUtility.GetLastRect();
+                Rect foldoutRect = GUILayoutUtility.GetLastRect();
                 float W = 32f;
-#if UNITY_2019_1_OR_NEWER
                 float H = 20f;
-#else
-                float H = 40f;
-#endif
-                float Y = lastRect.yMin;
-                float X = lastRect.x - 28f;
+                float Y = foldoutRect.yMin;
+                float X = foldoutRect.x - 28f;
+                Rect toggleRect = new Rect(X, Y, W, H);
 
-                bundle.enabled = EditorGUI.Toggle(new Rect(X, Y, W, H), bundle.enabled);
+                bundle.enabled = EditorGUI.Toggle(toggleRect, bundle.enabled);
                 if (bundle.enabled == false /*&& bundle.clonedObject != null*/)
                 {
                     bundle.DestroyClonedObject();
                 }
 
-                oldGUIColor = GUI.color;
-                oldBgColor = GUI.backgroundColor;
-
+#if UNITY_2019_1_OR_NEWER
                 // Foldout 영역 투명 버튼
                 GUI.color = Color.clear;
                 GUI.backgroundColor = Color.clear;
-                if (GUI.Button(lastRect, " "))
+                if (GUI.Button(foldoutRect, " "))
                 {
                     bundle.edt_bundleFoldout = !bundle.edt_bundleFoldout;
                 }
+
                 GUI.color = oldGUIColor;
                 GUI.backgroundColor = oldBgColor;
+#endif
 
                 // 위, 아래 이동 버튼
                 EditorGUI.BeginDisabledGroup(index >= m._bundles.Count - 1);
@@ -985,7 +999,6 @@ namespace Rito
                 EditorGUILayout.LabelField("", GUILayout.Width(8f));
 
                 // 우측 제거 버튼
-                oldBgColor = GUI.backgroundColor;
                 GUI.backgroundColor = Color.red * 1.5f;
 
                 bool remove = GUILayout.Button("-", GUILayout.Width(40f));
@@ -998,6 +1011,9 @@ namespace Rito
                 if (bundle.edt_bundleFoldout)
                 {
                     EditorGUI.indentLevel++;
+#if !UNITY_2019_1_OR_NEWER
+                    EditorGUI.indentLevel++;
+#endif
 
                     EditorGUI.BeginDisabledGroup(bundle.enabled == false); // E N A B L E D =====================
 
@@ -1018,7 +1034,7 @@ namespace Rito
                         if (allClips.Length >= 2)
                             bundle.animationClipIndex = EditorGUILayout.Popup(animationClipStr, bundle.animationClipIndex, allClipStrings);
 
-                        if (bundle.animationClipIndex >= allClips.Length)
+                        if (bundle.animationClipIndex < 0 || bundle.animationClipIndex >= allClips.Length)
                         {
                             bundle.animationClipIndex = 0;
                         }
@@ -1065,7 +1081,6 @@ namespace Rito
 
                         EditorGUILayout.LabelField(" ", GUILayout.Width(28f));
 
-                        oldBgColor = GUI.backgroundColor;
                         if (currentClip == bundle.animationClip && m._currentFrameInt != bundle.spawnFrame)
                             GUI.backgroundColor = Color.blue * 2f + Color.white * 0.8f;
 
@@ -1105,10 +1120,9 @@ namespace Rito
 
                     EditorGUI.BeginChangeCheck();
 
-                    Color oldGUIColor2 = GUI.color;
                     GUI.color = bundle.prefab == null ? Color.red * 2f : Color.cyan * 2f;
                     bundle.prefab = EditorGUILayout.ObjectField(prefabStr, bundle.prefab, typeof(GameObject), true) as GameObject;
-                    GUI.color = oldGUIColor2;
+                    GUI.color = oldGUIColor;
 
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -1197,7 +1211,6 @@ namespace Rito
                     // Spawn Axis - [X] 버튼 달아주기
                     if (bundle.spawnAxis != null)
                     {
-                        oldBgColor = GUI.backgroundColor;
                         GUI.backgroundColor = Color.red * 1.5f;
 
                         bool setAxisNull = GUILayout.Button("X", GUILayout.Width(24f));
@@ -1212,7 +1225,6 @@ namespace Rito
                     // Spawn Axis - 내 트랜스폼 설정
                     else
                     {
-                        oldBgColor = GUI.backgroundColor;
                         GUI.backgroundColor = Color.blue * 1.5f;
 
                         bool setAxisMyTransform = GUILayout.Button("M", GUILayout.Width(24f));
@@ -1322,7 +1334,6 @@ namespace Rito
                     // Created Object
                     if (Application.isPlaying)
                     {
-                        Color oldCol = GUI.color;
                         if (bundle.clonedObject != null)
                             GUI.color = Color.cyan * 1.5f;
 
@@ -1330,7 +1341,7 @@ namespace Rito
                         _ = EditorGUILayout.ObjectField(createdEventStr, bundle.clonedObject, typeof(GameObject), true) as GameObject;
                         EditorGUI.EndDisabledGroup();
 
-                        GUI.color = oldCol;
+                        GUI.color = oldGUIColor;
                     }
 
                     Space(2f);
@@ -1344,7 +1355,7 @@ namespace Rito
                         // 해당 애니메이션 및 생성 프레임에서만 생성 가능, 프리팹이 존재해야만 생성 가능
                         EditorGUI.BeginDisabledGroup(
                             currentClip != bundle.animationClip ||
-                            m._currentFrameInt != bundle.spawnFrame || 
+                            m._currentFrameInt != bundle.spawnFrame ||
                             bundle.prefab == null
                         );
 
@@ -1396,7 +1407,6 @@ namespace Rito
 
                     bundle.position = EditorGUILayout.Vector3Field(posStr, bundle.position);
 
-                    oldBgColor = GUI.backgroundColor;
                     GUI.backgroundColor = resetButtonColor;
                     if (GUILayout.Button("R", GUILayout.Width(24f)))
                     {
@@ -1410,7 +1420,6 @@ namespace Rito
 
                     bundle.rotation = EditorGUILayout.Vector3Field(rotStr, bundle.rotation);
 
-                    oldBgColor = GUI.backgroundColor;
                     GUI.backgroundColor = resetButtonColor;
                     if (GUILayout.Button("R", GUILayout.Width(24f)))
                     {
@@ -1424,7 +1433,6 @@ namespace Rito
 
                     bundle.scale = EditorGUILayout.Vector3Field(scaleStr, bundle.scale);
 
-                    oldBgColor = GUI.backgroundColor;
                     GUI.backgroundColor = resetButtonColor;
                     if (GUILayout.Button("R", GUILayout.Width(24f)))
                     {
@@ -1516,6 +1524,9 @@ namespace Rito
                     EditorGUI.EndDisabledGroup(); // E N A B L E D =====================
 
                     EditorGUI.indentLevel--;
+#if !UNITY_2019_1_OR_NEWER
+                    EditorGUI.indentLevel--;
+#endif
                 }
             }
 
