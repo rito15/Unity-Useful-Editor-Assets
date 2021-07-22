@@ -1,4 +1,4 @@
-﻿
+
 #if UNITY_EDITOR
 #define DEBUG_ON
 #define UNITY_EDITOR_OPTION
@@ -841,11 +841,8 @@ namespace Rito
 
                 if (bundleArrayFoldout)
                 {
-                    EditorGUI.indentLevel++;
-#if !UNITY_2019_1_OR_NEWER
-                    // Foldout 좌측 체크박스 - 투명 버튼 생성 위해 인덴트 미적용
-                    EditorGUI.indentLevel--;
-#endif
+                    //EditorGUI.indentLevel++;
+                    //EditorGUI.indentLevel--;
 
                     EditorGUILayout.BeginHorizontal();
 
@@ -922,14 +919,11 @@ namespace Rito
 
                 EditorGUILayout.BeginHorizontal();
 
-#if !UNITY_2019_1_OR_NEWER
-                float foldoutLeftMargin = 12f;
-
-                // 투명 버튼 - enabled 상태 변경
+                // Foldout 좌측 투명 레이블
                 GUI.color = Color.clear;
-                if (GUILayout.Button(" ", GUILayout.Width(foldoutLeftMargin)))
-                    bundle.enabled = !bundle.enabled;
-#endif
+                float foldoutLeftMargin = 12;
+                EditorGUILayout.LabelField(" ", GUILayout.Width(foldoutLeftMargin));
+
                 // Foldout
                 if (bundle.enabled == false)
                 {
@@ -940,18 +934,14 @@ namespace Rito
                     GUI.color = bundle.prefab == null ? Color.red * 3f : Color.cyan;
                 }
                 bundle.edt_bundleFoldout = EditorGUILayout.Foldout(bundle.edt_bundleFoldout, name,
-#if UNITY_2019_1_OR_NEWER
-                    false
-#else
                     true
-#endif
                 );
 
                 GUI.color = oldGUIColor;
 
                 // enabled 체크박스
                 Rect foldoutRect = GUILayoutUtility.GetLastRect();
-                float W = 32f;
+                float W = 16f;
                 float H = 20f;
                 float Y = foldoutRect.yMin;
                 float X = foldoutRect.x - 28f;
@@ -962,19 +952,6 @@ namespace Rito
                 {
                     bundle.DestroyClonedObject();
                 }
-
-#if UNITY_2019_1_OR_NEWER
-                // Foldout 영역 투명 버튼
-                GUI.color = Color.clear;
-                GUI.backgroundColor = Color.clear;
-                if (GUI.Button(foldoutRect, " "))
-                {
-                    bundle.edt_bundleFoldout = !bundle.edt_bundleFoldout;
-                }
-
-                GUI.color = oldGUIColor;
-                GUI.backgroundColor = oldBgColor;
-#endif
 
                 // 위, 아래 이동 버튼
                 EditorGUI.BeginDisabledGroup(index >= m._bundles.Count - 1);
@@ -1011,9 +988,7 @@ namespace Rito
                 if (bundle.edt_bundleFoldout)
                 {
                     EditorGUI.indentLevel++;
-#if !UNITY_2019_1_OR_NEWER
                     EditorGUI.indentLevel++;
-#endif
 
                     EditorGUI.BeginDisabledGroup(bundle.enabled == false); // E N A B L E D =====================
 
@@ -1120,7 +1095,14 @@ namespace Rito
 
                     EditorGUI.BeginChangeCheck();
 
-                    GUI.color = bundle.prefab == null ? Color.red * 2f : Color.cyan * 2f;
+                    if (bundle.enabled == false)
+                    {
+                        GUI.color = Color.gray;
+                    }
+                    else
+                    {
+                        GUI.color = bundle.prefab == null ? Color.red * 2f : Color.cyan * 2f;
+                    }
                     bundle.prefab = EditorGUILayout.ObjectField(prefabStr, bundle.prefab, typeof(GameObject), true) as GameObject;
                     GUI.color = oldGUIColor;
 
@@ -1524,9 +1506,7 @@ namespace Rito
                     EditorGUI.EndDisabledGroup(); // E N A B L E D =====================
 
                     EditorGUI.indentLevel--;
-#if !UNITY_2019_1_OR_NEWER
                     EditorGUI.indentLevel--;
-#endif
                 }
             }
 
@@ -1546,7 +1526,7 @@ namespace Rito
 
             private void Space(float width)
             {
-#if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_3_OR_NEWER
                 EditorGUILayout.Space(width);
 #else
                 EditorGUILayout.Space();
