@@ -41,7 +41,7 @@ namespace Rito
             if (controller == null)
                 controller = ScreenEffectController.I;
 
-            if(controller != null)
+            if (controller != null)
                 controller.AddEffect(this);
 
             if (Application.isPlaying && lifespan > 0f)
@@ -164,9 +164,15 @@ namespace Rito
             iconRect.x = Pos;
             iconRect.width = 16f;
 
-            if(goActive && matIsNotNull)
+            if (goActive && matIsNotNull)
+            {
+#if UNITY_2019_3_OR_NEWER
                 GUI.DrawTexture(iconRect, iconTexture);
-
+#else
+                iconRect.x = 0f;
+                GUI.Label(iconRect, iconTexture);
+#endif
+            }
             // 2. Right Rects
             float xEnd = fullRect.xMax + 10f;
 
@@ -192,6 +198,9 @@ namespace Rito
             matNameRect.xMax = priorityLabelRect.xMin - 4f;
             matNameRect.xMin = matNameRect.xMax - 160f;
 
+#if !UNITY_2019_3_OR_NEWER
+            EditorGUI.BeginDisabledGroup(!goActive);
+#endif
             // Labels
             Color c = GUI.color;
             GUI.color = goActive ? Color.cyan : Color.gray;
@@ -204,6 +213,10 @@ namespace Rito
                     GUI.Label(matNameRect, effect.effectMaterial.name);
             }
             GUI.color = c;
+
+#if !UNITY_2019_3_OR_NEWER
+            EditorGUI.EndDisabledGroup();
+#endif
 
             // Buttons
             EditorGUI.BeginDisabledGroup(go.activeSelf);

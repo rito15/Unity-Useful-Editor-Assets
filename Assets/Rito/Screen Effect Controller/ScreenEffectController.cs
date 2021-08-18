@@ -306,7 +306,12 @@ namespace Rito
             iconRect.x = Pos;
             iconRect.width = 16f;
 
+#if UNITY_2019_3_OR_NEWER
             GUI.DrawTexture(iconRect, iconTexture);
+#else
+            iconRect.x = 0f;
+            GUI.Label(iconRect, iconTexture);
+#endif
 
             // 2. Right Buttons
             float xEnd = fullRect.xMax + 10f;
@@ -323,12 +328,19 @@ namespace Rito
             labelRect.xMax = leftButtonRect.xMin - 4f;
             labelRect.xMin = labelRect.xMax - 80f;
 
+#if !UNITY_2019_3_OR_NEWER
+            EditorGUI.BeginDisabledGroup(!active);
+#endif
             Color c = GUI.color;
             GUI.color = active ? Color.yellow : Color.gray;
             {
                 GUI.Label(labelRect, "Screen Effect");
             }
             GUI.color = c;
+
+#if !UNITY_2019_3_OR_NEWER
+            EditorGUI.EndDisabledGroup();
+#endif
 
             EditorGUI.BeginDisabledGroup(target.enabled);
             if (GUI.Button(leftButtonRect, "ON"))
@@ -357,7 +369,7 @@ namespace Rito
         private static void MenuItem()
         {
             var selected = Selection.activeGameObject;
-            if(selected.GetComponent<ScreenEffectController>() == null)
+            if (selected.GetComponent<ScreenEffectController>() == null)
                 selected.AddComponent<ScreenEffectController>();
         }
 
