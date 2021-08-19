@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using System;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,11 +32,13 @@ namespace Rito
     public class ScreenEffect : MonoBehaviour
     {
         public Material effectMaterial;
-        public int priority = 0;
-        public float lifespan = 0;
         public bool showMaterialNameInHierarchy = true;
+        public int priority = 0;
+        public float lifespan = 0f;
 
         private static ScreenEffectController controller;
+
+        private float currentLifespan = 0f;
 
         private void OnEnable()
         {
@@ -43,11 +47,6 @@ namespace Rito
 
             if (controller != null)
                 controller.AddEffect(this);
-
-            if (Application.isPlaying && lifespan > 0f)
-            {
-                Invoke(nameof(DestroyThisGameObject), lifespan);
-            }
         }
         private void OnDisable()
         {
@@ -56,24 +55,84 @@ namespace Rito
 
             if (controller != null)
                 controller.RemoveEffect(this);
-
-            CancelInvoke(nameof(DestroyThisGameObject));
         }
 
-        private void DestroyThisGameObject()
+        private void Update()
         {
-            Destroy(gameObject);
+            if (Application.isPlaying == false) return;
+            if (lifespan <= 0f) return;
+
+            currentLifespan += Time.deltaTime;
+            if (currentLifespan >= lifespan)
+                Destroy(gameObject);
         }
 
         /***********************************************************************
         *                               Custom Editor
         ***********************************************************************/
         #region .
+        // 커스텀 에디터가 아니라 컴포넌트 자체에 마테리얼 프로퍼티 정보, 이벤트 정보 보관
+
+        // 쉐이더 프로퍼티 타입별 값은 각각 개수에 맞게 타이트하게
+
 #if UNITY_EDITOR
+
         [CustomEditor(typeof(ScreenEffect))]
         private class CE : UnityEditor.Editor
         {
+            private readonly struct MaterialPropertyInfo
+            {
+                public readonly string name;
+                public readonly string displayName;
+                public readonly ShaderPropertyType type;
+                public readonly int propIndex;
+                public readonly int valueIndex;
+
+                public MaterialPropertyInfo(string name, string displayName, ShaderPropertyType type, int propIndex, int valueIndex)
+                {
+                    this.name = name;
+                    this.displayName = displayName;
+                    this.type = type;
+                    this.propIndex = propIndex;
+                    this.valueIndex = valueIndex;
+                }
+            }
+            private struct RangeValue
+            {
+                public float value;
+                public float min;
+                public float max;
+            }
+            private struct ColorValue
+            {
+                public Vector4 vector;
+                public Color color;
+
+                public void CopyVectorToColor()
+                {
+                    color = vector.RefVector4ToColor();
+                }
+                public void CopyColorToVector()
+                {
+                    vector = color.ColorToVector4();
+                }
+            }
+
+
             private ScreenEffect m;
+            private Material material;
+            private Shader shader;
+
+            private List<MaterialPropertyInfo> matPropertyList = new List<MaterialPropertyInfo>(20);
+            private int matPropertyCount;
+
+            private string[] matPropertyNameArray;
+            private int selectedDropdownIndex = 0;
+
+            private float[] floatValues;
+            private RangeValue[] rangeValues;
+            private Vector4[] vectorValues;
+            private ColorValue[] colorValues;
 
             private void OnEnable()
             {
@@ -84,19 +143,99 @@ namespace Rito
             {
                 Undo.RecordObject(m, "Screen Effect Component");
 
-                if (m.lifespan < 0f)
-                    m.lifespan = 0f;
-
                 EditorGUI.BeginChangeCheck();
+                {
+                    DrawDefaultVariables();
+                    InitVariables();
 
+                    if (material != null)
+                    {
+                        InitMaterialProperties();
+                        DrawMaterialPropertyListDropdown();
+                    }
+                }
+                if (EditorGUI.EndChangeCheck())
+                    EditorApplication.RepaintHierarchyWindow();
+            }
+
+            private void DrawDefaultVariables()
+            {
                 m.effectMaterial = EditorGUILayout.ObjectField("Effect Material", m.effectMaterial, typeof(Material), false) as Material;
-                m.priority = EditorGUILayout.IntSlider("Priority", m.priority, -10, 10);
-                m.lifespan = EditorGUILayout.FloatField("Lifespan", m.lifespan);
+
                 m.showMaterialNameInHierarchy = EditorGUILayout.Toggle("Show Material Name", m.showMaterialNameInHierarchy);
 
-                bool changed = EditorGUI.EndChangeCheck();
-                if (changed)
-                    EditorApplication.RepaintHierarchyWindow();
+                m.priority = EditorGUILayout.IntSlider("Priority", m.priority, -10, 10);
+
+                m.lifespan = EditorGUILayout.FloatField("Lifespan", m.lifespan);
+                if (m.lifespan < 0f) m.lifespan = 0f;
+            }
+            private void InitVariables()
+            {
+                material = m.effectMaterial;
+                shader = material != null ? material.shader : null;
+            }
+            private void InitMaterialProperties()
+            {
+                int propertyCount = shader.GetPropertyCount();
+                matPropertyList.Clear();
+
+                // Note : 메모리를 희생해서 간결하게 코딩
+                if (floatValues == null || floatValues.Length < propertyCount)
+                {
+                    floatValues  = new float[propertyCount];
+                    rangeValues  = new RangeValue[propertyCount];
+                    vectorValues = new Vector4[propertyCount];
+                    colorValues  = new ColorValue[propertyCount];
+                }
+
+                // 쉐이더, 마테리얼 프로퍼티 목록 순회하면서 데이터 가져오기
+                int index = 0;
+                for (int i = 0; i < propertyCount; i++)
+                {
+                    ShaderPropertyType propType = shader.GetPropertyType(i);
+                    if (propType != ShaderPropertyType.Texture)
+                    {
+                        string propName = shader.GetPropertyName(i);
+                        int propIndex = shader.FindPropertyIndex(propName);
+                        string dispName = shader.GetPropertyDescription(propIndex);
+
+                        switch (propType)
+                        {
+                            case ShaderPropertyType.Float:
+                                floatValues[index] = material.GetFloat(propName);
+                                break;
+
+                            case ShaderPropertyType.Range:
+                                rangeValues[index].value = material.GetFloat(propName);
+                                Vector2 minMax = shader.GetPropertyRangeLimits(propIndex);
+                                rangeValues[index].min = minMax.x;
+                                rangeValues[index].max = minMax.y;
+                                break;
+
+                            case ShaderPropertyType.Vector:
+                                vectorValues[index] = material.GetVector(propName);
+                                break;
+
+                            case ShaderPropertyType.Color:
+                                colorValues[index].color = material.GetColor(propName);
+                                colorValues[index].CopyColorToVector();
+                                break;
+                        }
+
+                        matPropertyList.Add(new MaterialPropertyInfo(propName, dispName, propType, propIndex, index++));
+                    }
+                }
+
+                matPropertyCount = matPropertyList.Count;
+
+                // 프로퍼티 이름 배열 생성
+                matPropertyNameArray = matPropertyList // TODO : Where로 현재 이벤트 생성된 프로퍼티는 제외
+                    .Select(pInfo => pInfo.displayName)
+                    .ToArray();
+            }
+            private void DrawMaterialPropertyListDropdown()
+            {
+                selectedDropdownIndex = EditorGUILayout.Popup("Material Properties", selectedDropdownIndex, matPropertyNameArray);
             }
         }
 #endif
@@ -151,6 +290,8 @@ namespace Rito
             }
         }
 
+        private static GUIStyle matNameLabelStyle;
+        private static GUIStyle priorityLabelStyle;
         private static void DrawHierarchyGUI(in Rect fullRect, ScreenEffect effect)
         {
             GameObject go = effect.gameObject;
@@ -158,21 +299,20 @@ namespace Rito
             bool matIsNotNull = effect.effectMaterial != null;
 
             // 1. Left Icon
-            const float Pos = 32f;
-
             Rect iconRect = new Rect(fullRect);
-            iconRect.x = Pos;
             iconRect.width = 16f;
 
+#if UNITY_2019_3_OR_NEWER
+            iconRect.x = 32f;
+#else
+            iconRect.x = 0f;
+#endif
             if (goActive && matIsNotNull)
             {
-#if UNITY_2019_3_OR_NEWER
                 GUI.DrawTexture(iconRect, iconTexture);
-#else
-                iconRect.x = 0f;
-                GUI.Label(iconRect, iconTexture);
-#endif
             }
+
+
             // 2. Right Rects
             float xEnd = fullRect.xMax + 10f;
 
@@ -198,25 +338,27 @@ namespace Rito
             matNameRect.xMax = priorityLabelRect.xMin - 4f;
             matNameRect.xMin = matNameRect.xMax - 160f;
 
-#if !UNITY_2019_3_OR_NEWER
-            EditorGUI.BeginDisabledGroup(!goActive);
-#endif
-            // Labels
-            Color c = GUI.color;
-            GUI.color = goActive ? Color.cyan : Color.gray;
-            {
-                GUI.Label(priorityLabelRect, effect.priority.ToString());
-            }
-            GUI.color = goActive ? Color.magenta * 1.5f : Color.gray;
-            {
-                if (effect.showMaterialNameInHierarchy && matIsNotNull)
-                    GUI.Label(matNameRect, effect.effectMaterial.name);
-            }
-            GUI.color = c;
 
-#if !UNITY_2019_3_OR_NEWER
+            // Labels
+            if (priorityLabelStyle == null)
+                priorityLabelStyle = new GUIStyle(EditorStyles.label);
+            if (matNameLabelStyle == null)
+                matNameLabelStyle = new GUIStyle(EditorStyles.label);
+
+            priorityLabelStyle.normal.textColor = goActive ? Color.cyan : Color.gray;
+            matNameLabelStyle.normal.textColor  = goActive ? Color.magenta * 1.5f : Color.gray;
+
+            EditorGUI.BeginDisabledGroup(!goActive);
+            {
+                // Priority Label
+                GUI.Label(priorityLabelRect, effect.priority.ToString(), priorityLabelStyle);
+
+                // Material Name Label
+                if (effect.showMaterialNameInHierarchy && matIsNotNull)
+                    GUI.Label(matNameRect, effect.effectMaterial.name, matNameLabelStyle);
+            }
             EditorGUI.EndDisabledGroup();
-#endif
+
 
             // Buttons
             EditorGUI.BeginDisabledGroup(go.activeSelf);
@@ -234,31 +376,31 @@ namespace Rito
             EditorGUI.EndDisabledGroup();
         }
 #endif
-        #endregion
+            #endregion
         /***********************************************************************
         *                               Context Menu
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
-        private const string HierarchyMenuItemTitle = "GameObject/Effects/Add Screen Effect";
+    private const string HierarchyMenuItemTitle = "GameObject/Effects/Screen Effect";
 
-        [MenuItem(HierarchyMenuItemTitle, false, 501)]
-        private static void MenuItem()
+    [MenuItem(HierarchyMenuItemTitle, false, 501)]
+    private static void MenuItem()
+    {
+        if (Selection.activeGameObject == null)
         {
-            if (Selection.activeGameObject == null)
-            {
-                GameObject go = new GameObject("Screen Effect");
-                go.AddComponent<ScreenEffect>();
-            }
+            GameObject go = new GameObject("Screen Effect");
+            go.AddComponent<ScreenEffect>();
         }
+    }
 
-        [MenuItem(HierarchyMenuItemTitle, true)] // Validation
-        private static bool MenuItem_Validate()
-        {
-            return Selection.activeGameObject == null;
-        }
+    [MenuItem(HierarchyMenuItemTitle, true)] // Validation
+    private static bool MenuItem_Validate()
+    {
+        return Selection.activeGameObject == null;
+    }
 #endif
-        #endregion
+    #endregion
         /***********************************************************************
         *                               Save Playmode Changes
         ***********************************************************************/
@@ -300,4 +442,34 @@ namespace Rito
 #endif
         #endregion
     }
+    /***********************************************************************
+    *                               Editor Only Extensions
+    ***********************************************************************/
+    #region .
+#if UNITY_EDITOR
+    internal static class EditorOnlyExtensions
+    {
+        public static void RefNotAllowMinus(ref this float @this)
+        {
+            if (@this < 0f) @this = 0f;
+        }
+        public static void RefNotAllowMinus(ref this Vector4 @this)
+        {
+            @this.x.RefNotAllowMinus();
+            @this.y.RefNotAllowMinus();
+            @this.z.RefNotAllowMinus();
+            @this.w.RefNotAllowMinus();
+        }
+        public static Color RefVector4ToColor(ref this Vector4 @this)
+        {
+            @this.RefNotAllowMinus();
+            return new Color(@this.x, @this.y, @this.z, @this.w);
+        }
+        public static Vector4 ColorToVector4(in this Color @this)
+        {
+            return new Vector4(@this.r, @this.g, @this.b, @this.a);
+        }
+    }
+#endif
+    #endregion
 }

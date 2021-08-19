@@ -13,7 +13,7 @@ using UnityEditor;
 namespace Rito
 {
     /// <summary> 
-    /// 스크린 이미지 이펙트 적용
+    /// 스크린 이미지 이펙트 관리 및 적용 컴포넌트
     /// </summary>
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
@@ -295,23 +295,22 @@ namespace Rito
             }
         }
 
+        private static GUIStyle labelStyle;
         private static void DrawHierarchyGUI(in Rect fullRect, ScreenEffectController target)
         {
             bool active = target.isActiveAndEnabled;
 
             // 1. Left Icon
-            const float Pos = 32f;
-
             Rect iconRect = new Rect(fullRect);
-            iconRect.x = Pos;
             iconRect.width = 16f;
 
 #if UNITY_2019_3_OR_NEWER
-            GUI.DrawTexture(iconRect, iconTexture);
+            iconRect.x = 32f;
 #else
             iconRect.x = 0f;
-            GUI.Label(iconRect, iconTexture);
 #endif
+            if (active)
+                GUI.DrawTexture(iconRect, iconTexture);
 
             // 2. Right Buttons
             float xEnd = fullRect.xMax + 10f;
@@ -328,19 +327,20 @@ namespace Rito
             labelRect.xMax = leftButtonRect.xMin - 4f;
             labelRect.xMin = labelRect.xMax - 80f;
 
-#if !UNITY_2019_3_OR_NEWER
-            EditorGUI.BeginDisabledGroup(!active);
-#endif
-            Color c = GUI.color;
-            GUI.color = active ? Color.yellow : Color.gray;
-            {
-                GUI.Label(labelRect, "Screen Effect");
-            }
-            GUI.color = c;
 
-#if !UNITY_2019_3_OR_NEWER
+
+            // Label : "Screen Effect"
+            if (labelStyle == null)
+                labelStyle = new GUIStyle(EditorStyles.label);
+            labelStyle.normal.textColor = active ? Color.yellow : Color.gray;
+
+            EditorGUI.BeginDisabledGroup(!active);
+            {
+                GUI.Label(labelRect, "Screen Effect", labelStyle);
+            }
             EditorGUI.EndDisabledGroup();
-#endif
+
+
 
             EditorGUI.BeginDisabledGroup(target.enabled);
             if (GUI.Button(leftButtonRect, "ON"))
@@ -363,7 +363,7 @@ namespace Rito
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
-        private const string HierarchyMenuItemTitle = "GameObject/Effects/Add Screen Effect Controller";
+        private const string HierarchyMenuItemTitle = "GameObject/Effects/Screen Effect Controller";
 
         [MenuItem(HierarchyMenuItemTitle, false, 500)]
         private static void MenuItem()
