@@ -63,7 +63,8 @@ crashlytics-build.properties
 *.cmd
 *.cmd.meta
 _*
-# /[Aa]ssets/AssetStore
+
+/[Aa]ssets/AssetStore
 
 Packages
 ProjectSettings
