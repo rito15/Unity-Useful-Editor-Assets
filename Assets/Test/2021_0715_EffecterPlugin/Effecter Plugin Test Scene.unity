@@ -154,6 +154,120 @@ MonoBehaviour:
   showMaterialNameInHierarchy: 1
   priority: 0
   lifespan: 2
+  stopAction: 0
+  matPropertyList:
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _Color
+    displayName: Color
+    propType: 0
+    propIndex: 1
+    edt_foldout: 1
+    eventList:
+    - time: 0
+      floatValue: 1
+      range: {x: 0.79, y: 0.508}
+      min: 0.79
+      max: 0.508
+      color: {r: 1, g: 0.79, b: 0.508, a: 0}
+      vector4: {x: 1, y: 0.79, z: 0.508, w: 0}
+    - time: 0.63
+      floatValue: 0.17600001
+      range: {x: 0.6, y: 1}
+      min: 0.6
+      max: 1
+      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
+      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
+    - time: 2
+      floatValue: 0.193
+      range: {x: 0.193, y: 1}
+      min: 0.193
+      max: 1
+      color: {r: 0.193, g: 0.193, b: 1, a: 0}
+      vector4: {x: 0.193, y: 0.193, z: 1, w: 0}
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _Distortion
+    displayName: Distortion
+    propType: 2
+    propIndex: 2
+    edt_foldout: 1
+    eventList:
+    - time: 0
+      floatValue: -1
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: -1, g: 0, b: 0, a: 0}
+      vector4: {x: -1, y: 0, z: 0, w: 0}
+    - time: 1.122
+      floatValue: -1
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: -1, g: 0, b: 0, a: 0}
+      vector4: {x: -1, y: 0, z: 0, w: 0}
+    - time: 2
+      floatValue: -1
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: -1, g: 0, b: 0, a: 0}
+      vector4: {x: -1, y: 0, z: 0, w: 0}
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _AreaRange
+    displayName: Area Range
+    propType: 3
+    propIndex: 3
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _AreaPower
+    displayName: Area Power
+    propType: 3
+    propIndex: 4
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _CircleNoiseScale
+    displayName: Circle Noise Scale
+    propType: 2
+    propIndex: 5
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _CircleSpreadSpeed
+    displayName: Circle Spread Speed
+    propType: 3
+    propIndex: 6
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _PatternSpeed
+    displayName: Pattern Speed
+    propType: 3
+    propIndex: 7
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _PatternBorderOpacity
+    displayName: Pattern Border Opacity
+    propType: 3
+    propIndex: 8
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _PatternColorOpacity
+    displayName: Pattern Color Opacity
+    propType: 3
+    propIndex: 9
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    propName: _PatternAreaRange
+    displayName: Pattern Area Range
+    propType: 3
+    propIndex: 10
+    edt_foldout: 0
+    eventList: []
 --- !u!4 &127338338
 Transform:
   m_ObjectHideFlags: 0
@@ -201,6 +315,22 @@ MonoBehaviour:
   showMaterialNameInHierarchy: 1
   priority: 0
   lifespan: 0
+  stopAction: 0
+  matPropertyList:
+  - material: {fileID: 2100000, guid: c1ed080a5dc249a498635ebcfe9421e3, type: 2}
+    propName: _Power
+    displayName: Power
+    propType: 3
+    propIndex: 1
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: c1ed080a5dc249a498635ebcfe9421e3, type: 2}
+    propName: _Speed
+    displayName: Speed
+    propType: 3
+    propIndex: 2
+    edt_foldout: 0
+    eventList: []
 --- !u!4 &428262898
 Transform:
   m_ObjectHideFlags: 0
@@ -248,6 +378,29 @@ MonoBehaviour:
   showMaterialNameInHierarchy: 1
   priority: 0
   lifespan: 0.5
+  stopAction: 0
+  matPropertyList:
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _ShakeIntensity
+    displayName: Shake Intensity
+    propType: 3
+    propIndex: 0
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _HorizontalShakeSpeed
+    displayName: Horizontal Shake Speed
+    propType: 3
+    propIndex: 1
+    edt_foldout: 0
+    eventList: []
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _VerticalShakeSpeed
+    displayName: Vertical Shake Speed
+    propType: 3
+    propIndex: 2
+    edt_foldout: 0
+    eventList: []
 --- !u!4 &649687436
 Transform:
   m_ObjectHideFlags: 0
@@ -261,6 +414,90 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &669391147
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 669391149}
+  - component: {fileID: 669391148}
+  m_Layer: 0
+  m_Name: Screen Effect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &669391148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669391147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectMaterial: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  showMaterialNameInHierarchy: 1
+  priority: 0
+  lifespan: 3
+  stopAction: 0
+  matPropertyList:
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _ShakeIntensity
+    displayName: Shake Intensity
+    propType: 3
+    propIndex: 0
+    edt_foldout: 1
+    eventList: []
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _HorizontalShakeSpeed
+    displayName: Horizontal Shake Speed
+    propType: 3
+    propIndex: 1
+    edt_foldout: 1
+    eventList:
+    - time: 0
+      floatValue: 34.8
+      range: {x: 0, y: 100}
+      min: 0
+      max: 100
+      color: {r: 34.8, g: 0, b: 100, a: 0}
+      vector4: {x: 34.8, y: 0, z: 100, w: 0}
+    - time: 3
+      floatValue: 61.8
+      range: {x: 0, y: 100}
+      min: 0
+      max: 100
+      color: {r: 61.8, g: 0, b: 100, a: 0}
+      vector4: {x: 61.8, y: 0, z: 100, w: 0}
+  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    propName: _VerticalShakeSpeed
+    displayName: Vertical Shake Speed
+    propType: 3
+    propIndex: 2
+    edt_foldout: 1
+    eventList: []
+--- !u!4 &669391149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669391147}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &886640641
 GameObject:
@@ -656,7 +893,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1545606960
 Transform:
   m_ObjectHideFlags: 0

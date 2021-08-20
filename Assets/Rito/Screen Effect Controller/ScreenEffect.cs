@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,10 +32,16 @@ namespace Rito
     [ExecuteInEditMode]
     public class ScreenEffect : MonoBehaviour
     {
+        public enum StopAction
+        {
+            Destroy, Disable
+        }
+
         public Material effectMaterial;
         public bool showMaterialNameInHierarchy = true;
         public int priority = 0;
         public float lifespan = 0f;
+        public StopAction stopAction;
 
         private static ScreenEffectController controller;
 
@@ -47,6 +54,8 @@ namespace Rito
 
             if (controller != null)
                 controller.AddEffect(this);
+
+            currentLifespan = 0f;
         }
         private void OnDisable()
         {
@@ -64,15 +73,140 @@ namespace Rito
 
             currentLifespan += Time.deltaTime;
             if (currentLifespan >= lifespan)
-                Destroy(gameObject);
+            {
+                if (stopAction == StopAction.Destroy)
+                    Destroy(gameObject);
+                else
+                    gameObject.SetActive(false);
+            }
         }
 
+        /***********************************************************************
+        *                           Material Property Events
+        ***********************************************************************/
+        #region .
+        [System.Serializable]
+        private class MaterialPropertyInfo
+        {
+            public Material material;
+            public string propName;
+            public string displayName;
+            public ShaderPropertyType propType;
+            public int propIndex;
+
+#if UNITY_EDITOR
+            public bool edt_foldout = false;
+#endif
+
+            public List<MaterialPropertyEvent> eventList = new List<MaterialPropertyEvent>(10);
+
+            public bool HasEvents => eventList != null && eventList.Count > 0;
+
+            public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
+            {
+                this.material = material;
+                this.propName = name;
+                this.displayName = displayName;
+                this.propType = type;
+                this.propIndex = propIndex;
+            }
+
+            /// <summary> 이벤트가 아예 없었던 경우, 초기 이벤트 2개(시작, 끝) 추가 </summary>
+            public void AddInitialEvents(float lifespan)
+            {
+                switch (propType)
+                {
+                    case ShaderPropertyType.Float:
+                        {
+                            float value = material.GetFloat(propName);
+                            eventList.Add(new MaterialPropertyEvent() { time = 0f, floatValue = value });
+                            eventList.Add(new MaterialPropertyEvent() { time = lifespan, floatValue = value });
+                        }
+                        break;
+                    case ShaderPropertyType.Range:
+                        {
+                            float value = material.GetFloat(propName);
+                            Vector2 range = material.shader.GetPropertyRangeLimits(propIndex);
+                            eventList.Add(new MaterialPropertyEvent() { time = 0f, floatValue = value, range = range });
+                            eventList.Add(new MaterialPropertyEvent() { time = lifespan, floatValue = value, range = range });
+                        }
+                        break;
+                    case ShaderPropertyType.Color:
+                        {
+                            Color value = material.GetColor(propName);
+                            eventList.Add(new MaterialPropertyEvent() { time = 0f, color = value });
+                            eventList.Add(new MaterialPropertyEvent() { time = lifespan, color = value });
+                        }
+                        break;
+                    case ShaderPropertyType.Vector:
+                        {
+                            Vector4 value = material.GetVector(propName);
+                            eventList.Add(new MaterialPropertyEvent() { time = 0f, vector4 = value });
+                            eventList.Add(new MaterialPropertyEvent() { time = lifespan, vector4 = value });
+                        }
+                        break;
+                }
+            }
+
+            /// <summary> 해당 인덱스의 바로 뒤에 새로운 이벤트 추가 </summary>
+            public void AddNewEvent(int index)
+            {
+                MaterialPropertyEvent prevEvent = eventList[index];
+
+                switch (propType)
+                {
+                    case ShaderPropertyType.Float:
+                        {
+                            eventList.Add(new MaterialPropertyEvent() 
+                                { time = prevEvent.time, floatValue = prevEvent.floatValue }
+                            );
+                        }
+                        break;
+                    case ShaderPropertyType.Range:
+                        {
+                            eventList.Add(new MaterialPropertyEvent() 
+                                { time = prevEvent.time, floatValue = prevEvent.floatValue, range = prevEvent.range }
+                            );
+                        }
+                        break;
+                    case ShaderPropertyType.Color:
+                        {
+                            eventList.Add(new MaterialPropertyEvent() { time = prevEvent.time, color = prevEvent.color });
+                        }
+                        break;
+                    case ShaderPropertyType.Vector:
+                        {
+                            eventList.Add(new MaterialPropertyEvent() { time = prevEvent.time, vector4 = prevEvent.vector4 });
+                        }
+                        break;
+                }
+            }
+        }
+        [System.Serializable]
+        [StructLayout(LayoutKind.Explicit)]
+        private class MaterialPropertyEvent
+        {
+            [FieldOffset(0)] public float time;
+
+            [FieldOffset(4)] public float floatValue;
+
+            [FieldOffset(8)] public Vector2 range;
+            [FieldOffset(8)] public float min;
+            [FieldOffset(12)] public float max;
+
+            [FieldOffset(4)] public Color color;
+
+            [FieldOffset(4)] public Vector4 vector4;
+        }
+
+        [SerializeField]
+        private List<MaterialPropertyInfo> matPropertyList = new List<MaterialPropertyInfo>(20);
+
+        #endregion
         /***********************************************************************
         *                               Custom Editor
         ***********************************************************************/
         #region .
-        // 커스텀 에디터가 아니라 컴포넌트 자체에 마테리얼 프로퍼티 정보, 이벤트 정보 보관
-
         // 쉐이더 프로퍼티 타입별 값은 각각 개수에 맞게 타이트하게
 
 #if UNITY_EDITOR
@@ -80,59 +214,21 @@ namespace Rito
         [CustomEditor(typeof(ScreenEffect))]
         private class CE : UnityEditor.Editor
         {
-            private readonly struct MaterialPropertyInfo
-            {
-                public readonly string name;
-                public readonly string displayName;
-                public readonly ShaderPropertyType type;
-                public readonly int propIndex;
-                public readonly int valueIndex;
-
-                public MaterialPropertyInfo(string name, string displayName, ShaderPropertyType type, int propIndex, int valueIndex)
-                {
-                    this.name = name;
-                    this.displayName = displayName;
-                    this.type = type;
-                    this.propIndex = propIndex;
-                    this.valueIndex = valueIndex;
-                }
-            }
-            private struct RangeValue
-            {
-                public float value;
-                public float min;
-                public float max;
-            }
-            private struct ColorValue
-            {
-                public Vector4 vector;
-                public Color color;
-
-                public void CopyVectorToColor()
-                {
-                    color = vector.RefVector4ToColor();
-                }
-                public void CopyColorToVector()
-                {
-                    vector = color.ColorToVector4();
-                }
-            }
-
-
             private ScreenEffect m;
+
             private Material material;
             private Shader shader;
 
-            private List<MaterialPropertyInfo> matPropertyList = new List<MaterialPropertyInfo>(20);
-            private int matPropertyCount;
+            private bool isMaterialChanged;
 
             private string[] matPropertyNameArray;
             private int selectedDropdownIndex = 0;
 
-            private float[] floatValues;
-            private RangeValue[] rangeValues;
-            private Vector4[] vectorValues;
-            private ColorValue[] colorValues;
+            private static readonly Color PlusButtonColor = Color.green * 1.5f;
+            private static readonly Color MinusButtonColor = Color.red * 1.5f;
+            private static readonly Color MinusButtonColor2 = new Color(1.5f, 0.3f, 0.7f, 1f);
+
+            private static GUIStyle bigMinusButtonStyle;
 
             private void OnEnable()
             {
@@ -141,55 +237,74 @@ namespace Rito
 
             public override void OnInspectorGUI()
             {
+                isMaterialChanged = CheckMaterialChanged();
+                InitVariables();
+                InitStyles();
+
                 Undo.RecordObject(m, "Screen Effect Component");
 
                 EditorGUI.BeginChangeCheck();
                 {
-                    DrawDefaultVariables();
-                    InitVariables();
+                    DrawDefaultFields();
 
-                    if (material != null)
+                    if (m.effectMaterial == null)
                     {
-                        InitMaterialProperties();
+                        m.matPropertyList.Clear();
+                        Debug.Log("NULL Material");
+                    }
+                    else
+                    {
+                        // 마테리얼 정보가 변한 경우, 전체 마테리얼 프로퍼티 및 이벤트 목록 초기화
+                        if (isMaterialChanged)
+                        {
+                            InitVariables(); 
+                            InitMaterialProperties();
+                            //Debug.Log("Material Changed");
+                        }
+
+                        EditorGUILayout.Space();
                         DrawMaterialPropertyListDropdown();
+
+                        EditorGUILayout.Space();
+                        DrawMaterialPropertyList();
                     }
                 }
                 if (EditorGUI.EndChangeCheck())
                     EditorApplication.RepaintHierarchyWindow();
             }
 
-            private void DrawDefaultVariables()
+            /************************************************************************
+             *                          Tiny Methods, Init Methods
+             ************************************************************************/
+            #region .
+            private bool CheckMaterialChanged()
             {
-                m.effectMaterial = EditorGUILayout.ObjectField("Effect Material", m.effectMaterial, typeof(Material), false) as Material;
 
-                m.showMaterialNameInHierarchy = EditorGUILayout.Toggle("Show Material Name", m.showMaterialNameInHierarchy);
 
-                m.priority = EditorGUILayout.IntSlider("Priority", m.priority, -10, 10);
-
-                m.lifespan = EditorGUILayout.FloatField("Lifespan", m.lifespan);
-                if (m.lifespan < 0f) m.lifespan = 0f;
+                return false;
             }
             private void InitVariables()
             {
                 material = m.effectMaterial;
                 shader = material != null ? material.shader : null;
             }
+            private void InitStyles()
+            {
+                if (bigMinusButtonStyle == null)
+                {
+                    bigMinusButtonStyle = new GUIStyle("button")
+                    {
+                        fontSize = 20,
+                        fontStyle = FontStyle.Bold
+                    };
+                }
+            }
             private void InitMaterialProperties()
             {
                 int propertyCount = shader.GetPropertyCount();
-                matPropertyList.Clear();
-
-                // Note : 메모리를 희생해서 간결하게 코딩
-                if (floatValues == null || floatValues.Length < propertyCount)
-                {
-                    floatValues  = new float[propertyCount];
-                    rangeValues  = new RangeValue[propertyCount];
-                    vectorValues = new Vector4[propertyCount];
-                    colorValues  = new ColorValue[propertyCount];
-                }
+                m.matPropertyList.Clear();
 
                 // 쉐이더, 마테리얼 프로퍼티 목록 순회하면서 데이터 가져오기
-                int index = 0;
                 for (int i = 0; i < propertyCount; i++)
                 {
                     ShaderPropertyType propType = shader.GetPropertyType(i);
@@ -199,44 +314,246 @@ namespace Rito
                         int propIndex = shader.FindPropertyIndex(propName);
                         string dispName = shader.GetPropertyDescription(propIndex);
 
-                        switch (propType)
-                        {
-                            case ShaderPropertyType.Float:
-                                floatValues[index] = material.GetFloat(propName);
-                                break;
-
-                            case ShaderPropertyType.Range:
-                                rangeValues[index].value = material.GetFloat(propName);
-                                Vector2 minMax = shader.GetPropertyRangeLimits(propIndex);
-                                rangeValues[index].min = minMax.x;
-                                rangeValues[index].max = minMax.y;
-                                break;
-
-                            case ShaderPropertyType.Vector:
-                                vectorValues[index] = material.GetVector(propName);
-                                break;
-
-                            case ShaderPropertyType.Color:
-                                colorValues[index].color = material.GetColor(propName);
-                                colorValues[index].CopyColorToVector();
-                                break;
-                        }
-
-                        matPropertyList.Add(new MaterialPropertyInfo(propName, dispName, propType, propIndex, index++));
+                        m.matPropertyList.Add(new MaterialPropertyInfo(material, propName, dispName, propType, propIndex));
                     }
                 }
-
-                matPropertyCount = matPropertyList.Count;
-
-                // 프로퍼티 이름 배열 생성
-                matPropertyNameArray = matPropertyList // TODO : Where로 현재 이벤트 생성된 프로퍼티는 제외
-                    .Select(pInfo => pInfo.displayName)
-                    .ToArray();
             }
+            #endregion
+            /***********************************************************************
+            *                             Tiny Drawing Methods
+            ***********************************************************************/
+            #region .
+            private bool DrawButtonLayout(string label, in Color buttonColor, in float width)
+            {
+                Color bCol = GUI.backgroundColor;
+                GUI.backgroundColor = buttonColor;
+
+                bool pressed = GUILayout.Button(label, GUILayout.Width(width));
+
+                GUI.backgroundColor = bCol;
+                return pressed;
+            }
+            private bool DrawButton(in Rect rect, string label, in Color buttonColor, GUIStyle style = null)
+            {
+                Color bCol = GUI.backgroundColor;
+                GUI.backgroundColor = buttonColor;
+
+                bool pressed = style != null ? GUI.Button(rect, label, style) : GUI.Button(rect, label);
+
+                GUI.backgroundColor = bCol;
+                return pressed;
+            }
+            private void DrawHorizontalSpace(float width)
+            {
+                EditorGUILayout.LabelField("", GUILayout.Width(width));
+            }
+            private bool DrawPlusButton(in float width = 40f)
+            {
+                return DrawButtonLayout("+", PlusButtonColor, width);
+            }
+            private bool DrawMinusButton(in float width = 40f)
+            {
+                return DrawButtonLayout("-", MinusButtonColor, width);
+            }
+            #endregion
+            /************************************************************************
+             *                               Drawing Methods
+             ************************************************************************/
+            #region .
+
+            private void DrawDefaultFields()
+            {
+                EditorGUI.BeginChangeCheck();
+                m.effectMaterial = EditorGUILayout.ObjectField("Effect Material", m.effectMaterial, typeof(Material), false) as Material;
+                if (EditorGUI.EndChangeCheck())
+                    isMaterialChanged = true;
+
+                m.showMaterialNameInHierarchy = EditorGUILayout.Toggle("Show Material Name", m.showMaterialNameInHierarchy);
+
+                m.priority = EditorGUILayout.IntSlider("Priority", m.priority, -10, 10);
+
+                m.lifespan = EditorGUILayout.FloatField("Lifespan", m.lifespan);
+                if (m.lifespan < 0f) m.lifespan = 0f;
+
+                m.stopAction = (StopAction)EditorGUILayout.EnumPopup("Stop Action", m.stopAction);
+            }
+
             private void DrawMaterialPropertyListDropdown()
             {
+                // 프로퍼티 이름 배열 생성
+                matPropertyNameArray = m.matPropertyList
+                    .Where(mpi => mpi.eventList == null || mpi.eventList.Count == 0) // 생성된 이벤트가 존재하지 않는 경우만 대상
+                    .Select(pInfo => pInfo.displayName)
+                    .ToArray();
+
+                // 생성할 수 있는 프로퍼티가 없을 경우, 드롭다운 미표시
+                if (matPropertyNameArray.Length == 0)
+                    return;
+
+                EditorGUILayout.BeginHorizontal();
+
                 selectedDropdownIndex = EditorGUILayout.Popup("Material Properties", selectedDropdownIndex, matPropertyNameArray);
+
+                // 드롭다운에 지정된 프로퍼티에 대해 이벤트 추가
+                if (DrawPlusButton())
+                {
+                    int found = m.matPropertyList.FindIndex(mp => mp.displayName == matPropertyNameArray[selectedDropdownIndex]);
+                    m.matPropertyList[found].AddInitialEvents(m.lifespan);
+                }
+
+                EditorGUILayout.EndHorizontal();
             }
+
+            /// <summary> 프로퍼티들 모두 그리기 </summary>
+            private void DrawMaterialPropertyList()
+            {
+                EditorGUILayout.LabelField("Material Property Events", EditorStyles.boldLabel);
+
+                EditorGUILayout.Space();
+
+                for (int i = 0; i < m.matPropertyList.Count; i++)
+                {
+                    if (m.matPropertyList[i].HasEvents)
+                    {
+                        DrawPropertyEvents(m.matPropertyList[i], () =>
+                            {
+                                // [-] 버튼 클릭하면 해당 프로퍼티에서 이벤트들 싹 제거
+                                m.matPropertyList[i].eventList.Clear();
+                            }
+                        );
+
+                        EditorGUILayout.Space();
+                    }
+                }
+            }
+
+            /// <summary> 프로퍼티 하나의 이벤트 모두 그리기 </summary>
+            private void DrawPropertyEvents(in MaterialPropertyInfo matProp, Action removeAction)
+            {
+                EditorGUILayout.BeginHorizontal();
+
+                matProp.edt_foldout = EditorGUILayout.Foldout(matProp.edt_foldout, $"{matProp.displayName} [{matProp.propType}]");;
+                if (DrawMinusButton())
+                {
+                    removeAction();
+                    return;
+                }
+
+                EditorGUILayout.EndHorizontal();
+
+                if (matProp.edt_foldout)
+                {
+                    EditorGUI.indentLevel++;
+
+                    int addNewEvent = -1;
+
+                    var eventList = matProp.eventList;
+                    for (int i = 0; i < eventList.Count; i++)
+                    {
+                        // 이벤트 항목 한개 그리기
+                        DrawEachEvent(matProp, eventList[i], i);
+
+                        // 이벤틑 사이사이 [+] 버튼 : 새로운 이벤트 추가
+                        if (i < eventList.Count - 1)
+                        {
+                            EditorGUILayout.BeginHorizontal();
+
+                            const float ButtonWidth = 24f;
+
+                            // 버튼 중앙 정렬
+                            DrawHorizontalSpace((EditorGUIUtility.currentViewWidth) * 0.5f - ButtonWidth);
+                            if (DrawPlusButton(ButtonWidth)) addNewEvent = i;
+
+                            EditorGUILayout.EndHorizontal();
+                        }
+                    }
+
+                    if(addNewEvent > -1)
+                        matProp.AddNewEvent(addNewEvent);
+
+                    EditorGUI.indentLevel--;
+                }
+            }
+
+            /// <summary> 프로퍼티의 이벤트 하나 그리기 </summary>
+            private void DrawEachEvent(MaterialPropertyInfo mp, MaterialPropertyEvent mpEvent, int index)
+            {
+                bool isFirstOrLast = index == 0 || index == mp.eventList.Count - 1;
+
+                if (index == 0) mpEvent.time = 0f;
+                else if (index == mp.eventList.Count - 1) mpEvent.time = m.lifespan;
+                else
+                {
+                    MaterialPropertyEvent prevEvent = mp.eventList[index - 1];
+                    MaterialPropertyEvent nextEvent = mp.eventList[index + 1];
+
+                    if (prevEvent.time > mpEvent.time)
+                        mpEvent.time = prevEvent.time;
+                    else if (mpEvent.time > nextEvent.time)
+                        mpEvent.time = nextEvent.time;
+                }
+
+                // 1. Time 슬라이더
+                if (isFirstOrLast) EditorGUI.BeginDisabledGroup(true);
+
+                const float MinusButtonWidth = 40f;
+
+                EditorGUILayout.BeginHorizontal();
+                {
+                    EditorGUILayout.LabelField("Time", GUILayout.Width(60f));
+                    mpEvent.time = EditorGUILayout.Slider(mpEvent.time, 0f, m.lifespan);
+
+                    // 여백 생성
+                    DrawHorizontalSpace(MinusButtonWidth);
+                    Rect minusButtonRect = GUILayoutUtility.GetLastRect();
+                    minusButtonRect.height *= mp.propType == ShaderPropertyType.Color ? 3f : 2f;
+
+                    // 이 이벤트 제거 버튼
+                    if (isFirstOrLast == false)
+                    {
+                        if (DrawButton(minusButtonRect, "-", MinusButtonColor2, bigMinusButtonStyle))
+                            mp.eventList.RemoveAt(index);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                if (isFirstOrLast) EditorGUI.EndDisabledGroup();
+
+
+                // 2. 값 그리기
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Value", GUILayout.Width(60f));
+                switch (mp.propType)
+                {
+                    case ShaderPropertyType.Float:
+                        mpEvent.floatValue = EditorGUILayout.FloatField(mpEvent.floatValue);
+                        break;
+
+                    case ShaderPropertyType.Range:
+                        mpEvent.floatValue = EditorGUILayout.Slider(mpEvent.floatValue, mpEvent.min, mpEvent.max);
+                        break;
+
+                    case ShaderPropertyType.Vector:
+                        mpEvent.vector4 = EditorGUILayout.Vector4Field("", mpEvent.vector4);
+                        break;
+
+                    case ShaderPropertyType.Color:
+                        EditorGUILayout.BeginVertical();
+
+                        mpEvent.vector4.RefClamp_000();
+
+                        mpEvent.color = EditorGUILayout.ColorField(mpEvent.color);
+                        mpEvent.vector4 = EditorGUILayout.Vector4Field("", mpEvent.vector4);
+
+                        EditorGUILayout.EndVertical();
+                        break;
+                }
+
+                DrawHorizontalSpace(MinusButtonWidth);
+
+                EditorGUILayout.EndHorizontal();
+            }
+            #endregion
         }
 #endif
         #endregion
@@ -453,21 +770,17 @@ namespace Rito
         {
             if (@this < 0f) @this = 0f;
         }
-        public static void RefNotAllowMinus(ref this Vector4 @this)
+        public static void RefClamp_000(ref this float @this)
         {
-            @this.x.RefNotAllowMinus();
-            @this.y.RefNotAllowMinus();
-            @this.z.RefNotAllowMinus();
-            @this.w.RefNotAllowMinus();
+            @this *= 1000f;
+            @this = (int)@this * 0.001f;
         }
-        public static Color RefVector4ToColor(ref this Vector4 @this)
+        public static void RefClamp_000(ref this Vector4 @this)
         {
-            @this.RefNotAllowMinus();
-            return new Color(@this.x, @this.y, @this.z, @this.w);
-        }
-        public static Vector4 ColorToVector4(in this Color @this)
-        {
-            return new Vector4(@this.r, @this.g, @this.b, @this.a);
+            RefClamp_000(ref @this.x);
+            RefClamp_000(ref @this.y);
+            RefClamp_000(ref @this.z);
+            RefClamp_000(ref @this.w);
         }
     }
 #endif
