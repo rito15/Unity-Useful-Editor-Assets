@@ -34,10 +34,11 @@ namespace Rito
     {
         public enum StopAction
         {
-            Destroy, Disable
+            Destroy, Disable, Repeat
         }
 
         public Material effectMaterial;
+
         public bool showMaterialNameInHierarchy = true;
         public int priority = 0;
         public float lifespan = 0f;
@@ -45,7 +46,16 @@ namespace Rito
 
         private static ScreenEffectController controller;
 
-        private float currentLifespan = 0f;
+        private float currentTime = 0f;
+
+#if UNITY_EDITOR
+        /// <summary> 플레이 모드 중 Current Time 직접 수정 가능 모드 </summary>
+        public bool __editMode = false;
+
+        public bool __matPropListFoldout = true;
+
+        private Action __OnEditorUpdate;
+#endif
 
         private void OnEnable()
         {
@@ -55,7 +65,7 @@ namespace Rito
             if (controller != null)
                 controller.AddEffect(this);
 
-            currentLifespan = 0f;
+            currentTime = 0f;
         }
         private void OnDisable()
         {
@@ -69,15 +79,90 @@ namespace Rito
         private void Update()
         {
             if (Application.isPlaying == false) return;
+
+            UpdateMaterialProperties();
+
+#if UNITY_EDITOR
+            if (__editMode) return;
+            else __OnEditorUpdate?.Invoke();
+#endif
+            UpdateLifeSpan();
+        }
+
+        private void UpdateMaterialProperties()
+        {
+            if (lifespan <= 0f)
+                return;
+
+            for(int i = 0; i < matPropertyList.Count; i++)
+            {
+                var mp = matPropertyList[i];
+                if (mp == null || mp.eventList == null || mp.eventList.Count == 0)
+                    continue;
+#if UNITY_EDITOR
+                if (mp.__enabled == false)
+                    continue;
+#endif
+
+                var eventList = mp.eventList;
+                int eventCount = eventList.Count - 1;
+
+                switch (mp.propType)
+                {
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        for (int j = 0; j < eventCount; j++)
+                        {
+                            var prevEvent = eventList[j];
+                            var nextEvent = eventList[j + 1];
+
+                            float prevTime = prevEvent.time;
+                            float nextTime = nextEvent.time;
+
+                            // 해당하는 시간 구간이 아닐 경우, 판정하지 않음
+                            if (currentTime < prevTime || nextTime <= currentTime)
+                            {
+                                continue;
+                            }
+
+                            float prevValue = prevEvent.floatValue;
+                            float nextValue = nextEvent.floatValue;
+
+                            // REMAP
+                            float t = (currentTime - prevTime) / (nextTime - prevTime);
+                            float curValue = Mathf.Lerp(prevValue, nextValue, t);
+
+                            effectMaterial.SetFloat(mp.propName, curValue);
+                        }
+                        break;
+
+                    case ShaderPropertyType.Color:
+                        break;
+                    case ShaderPropertyType.Vector:
+                        break;
+                }
+            }
+        }
+
+        private void UpdateLifeSpan()
+        {
             if (lifespan <= 0f) return;
 
-            currentLifespan += Time.deltaTime;
-            if (currentLifespan >= lifespan)
+            currentTime += Time.deltaTime;
+            if (currentTime >= lifespan)
             {
-                if (stopAction == StopAction.Destroy)
-                    Destroy(gameObject);
-                else
-                    gameObject.SetActive(false);
+                switch (stopAction)
+                {
+                    case StopAction.Destroy:
+                        Destroy(gameObject);
+                        break;
+                    case StopAction.Disable:
+                        gameObject.SetActive(false);
+                        break;
+                    case StopAction.Repeat:
+                        currentTime = 0f;
+                        break;
+                }
             }
         }
 
@@ -95,7 +180,8 @@ namespace Rito
             public int propIndex;
 
 #if UNITY_EDITOR
-            public bool edt_foldout = false;
+            public bool __foldout = false;
+            public bool __enabled = true;
 #endif
 
             public List<MaterialPropertyEvent> eventList = new List<MaterialPropertyEvent>(10);
@@ -227,12 +313,18 @@ namespace Rito
             private static readonly Color PlusButtonColor = Color.green * 1.5f;
             private static readonly Color MinusButtonColor = Color.red * 1.5f;
             private static readonly Color MinusButtonColor2 = new Color(1.5f, 0.3f, 0.7f, 1f);
+            private static readonly Color propertyEventTimeLabelColor = new Color(1.2f, 1.2f, 0.2f, 1f);
 
             private static GUIStyle bigMinusButtonStyle;
+            private static GUIStyle boldFoldoutStyle;
+            private static GUIStyle propertyEventTimeLabelStyle;
 
             private void OnEnable()
             {
                 m = target as ScreenEffect;
+
+                m.__OnEditorUpdate -= Repaint;
+                m.__OnEditorUpdate += Repaint;
             }
 
             public override void OnInspectorGUI()
@@ -250,7 +342,7 @@ namespace Rito
                     if (m.effectMaterial == null)
                     {
                         m.matPropertyList.Clear();
-                        Debug.Log("NULL Material");
+                        //Debug.Log("NULL Material");
                     }
                     else
                     {
@@ -263,10 +355,21 @@ namespace Rito
                         }
 
                         EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+                        DrawCurrentTime();
+
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+                        DrawCopiedMaterialProperties();
+
+                        EditorGUILayout.Space();
+                        EditorGUILayout.Space();
+
+                        EditorGUILayout.LabelField("Material Property Events", EditorStyles.boldLabel);
                         DrawMaterialPropertyListDropdown();
 
                         EditorGUILayout.Space();
-                        DrawMaterialPropertyList();
+                        DrawMaterialPropertyEventList();
                     }
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -297,6 +400,18 @@ namespace Rito
                         fontSize = 20,
                         fontStyle = FontStyle.Bold
                     };
+                }
+                if (boldFoldoutStyle == null)
+                {
+                    boldFoldoutStyle = new GUIStyle(EditorStyles.foldout)
+                    {
+                        fontStyle = FontStyle.Bold
+                    };
+                }
+                if (propertyEventTimeLabelStyle == null)
+                {
+                    propertyEventTimeLabelStyle = new GUIStyle(EditorStyles.label);
+                    propertyEventTimeLabelStyle.normal.textColor = propertyEventTimeLabelColor;
                 }
             }
             private void InitMaterialProperties()
@@ -333,6 +448,19 @@ namespace Rito
                 GUI.backgroundColor = bCol;
                 return pressed;
             }
+            private bool DrawButtonLayout(string label, in Color textColor, in Color buttonColor, in float width)
+            {
+                Color bCol = GUI.backgroundColor;
+                GUI.backgroundColor = buttonColor;
+
+                GUIStyle buttonStyle = new GUIStyle("button");
+                buttonStyle.normal.textColor = textColor;
+
+                bool pressed = GUILayout.Button(label, buttonStyle, GUILayout.Width(width));
+
+                GUI.backgroundColor = bCol;
+                return pressed;
+            }
             private bool DrawButton(in Rect rect, string label, in Color buttonColor, GUIStyle style = null)
             {
                 Color bCol = GUI.backgroundColor;
@@ -347,11 +475,11 @@ namespace Rito
             {
                 EditorGUILayout.LabelField("", GUILayout.Width(width));
             }
-            private bool DrawPlusButton(in float width = 40f)
+            private bool DrawPlusButtonLayout(in float width = 40f)
             {
                 return DrawButtonLayout("+", PlusButtonColor, width);
             }
-            private bool DrawMinusButton(in float width = 40f)
+            private bool DrawMinusButtonLayout(in float width = 40f)
             {
                 return DrawButtonLayout("-", MinusButtonColor, width);
             }
@@ -366,7 +494,14 @@ namespace Rito
                 EditorGUI.BeginChangeCheck();
                 m.effectMaterial = EditorGUILayout.ObjectField("Effect Material", m.effectMaterial, typeof(Material), false) as Material;
                 if (EditorGUI.EndChangeCheck())
+                {
                     isMaterialChanged = true;
+
+                    Debug.Log("Material Changed");
+                    
+                    // 복제
+                    m.effectMaterial = new Material(m.effectMaterial);
+                }
 
                 m.showMaterialNameInHierarchy = EditorGUILayout.Toggle("Show Material Name", m.showMaterialNameInHierarchy);
 
@@ -378,6 +513,80 @@ namespace Rito
                 m.stopAction = (StopAction)EditorGUILayout.EnumPopup("Stop Action", m.stopAction);
             }
 
+            private void DrawCurrentTime()
+            {
+                m.__editMode = EditorGUILayout.Toggle("Edit Mode", m.__editMode);
+
+                EditorGUI.BeginDisabledGroup(!m.__editMode);
+                m.currentTime = EditorGUILayout.Slider("Current Time", m.currentTime, 0f, m.lifespan);
+                EditorGUI.EndDisabledGroup();
+            }
+
+            /// <summary> 현재 복제된 마테리얼의 수정 가능한 프로퍼티 목록 표시하기 </summary>
+            private void DrawCopiedMaterialProperties()
+            {
+                //EditorGUILayout.LabelField("Material Properties", EditorStyles.boldLabel);
+                //m.__matPropListFoldout = EditorGUILayout.Foldout(m.__matPropListFoldout, "Material Properties", true, boldFoldoutStyle);
+
+                RitoEditorGUI.FoldoutHeaderBox(ref m.__matPropListFoldout, "Material Properties", m.matPropertyList.Count);
+
+                if (!m.__matPropListFoldout)
+                    return;
+
+                EditorGUI.BeginDisabledGroup(Application.isPlaying && !m.__editMode);
+
+                for (int i = 0; i < m.matPropertyList.Count; i++)
+                {
+                    var mp = m.matPropertyList[i];
+
+                    EditorGUILayout.BeginHorizontal();
+
+                    DrawHorizontalSpace(10f);
+
+                    Color guiColor = GUI.color;
+                    if (mp.__enabled)
+                        GUI.color = Color.cyan * 1.5f;
+
+                    switch (mp.propType)
+                    {
+                        case ShaderPropertyType.Float:
+                            {
+                                float value = EditorGUILayout.FloatField(mp.displayName, material.GetFloat(mp.propName));
+                                material.SetFloat(mp.propName, value);
+                            }
+                            break;
+                        case ShaderPropertyType.Range:
+                            {
+                                Vector2 minMax = shader.GetPropertyRangeLimits(mp.propIndex);
+                                float value = EditorGUILayout.Slider(mp.displayName, material.GetFloat(mp.propName), minMax.x, minMax.y);
+                                material.SetFloat(mp.propName, value);
+                            }
+                            break;
+                        case ShaderPropertyType.Vector:
+                            {
+                                Vector4 value = EditorGUILayout.Vector4Field(mp.displayName, material.GetVector(mp.propName));
+                                material.SetVector(mp.propName, value);
+                            }
+                            break;
+                        case ShaderPropertyType.Color:
+                            {
+                                Color value = EditorGUILayout.ColorField(mp.displayName, material.GetColor(mp.propName));
+                                material.SetColor(mp.propName, value);
+                            }
+                            break;
+                    }
+
+                    GUI.color = guiColor;
+
+                    DrawHorizontalSpace(10f);
+
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                EditorGUI.EndDisabledGroup();
+            }
+
+            /// <summary> 이벤트를 추가할 수 있는 프로퍼티 목록 드롭다운 그리기 </summary>
             private void DrawMaterialPropertyListDropdown()
             {
                 // 프로퍼티 이름 배열 생성
@@ -395,22 +604,21 @@ namespace Rito
                 selectedDropdownIndex = EditorGUILayout.Popup("Material Properties", selectedDropdownIndex, matPropertyNameArray);
 
                 // 드롭다운에 지정된 프로퍼티에 대해 이벤트 추가
-                if (DrawPlusButton())
+                if (DrawPlusButtonLayout())
                 {
                     int found = m.matPropertyList.FindIndex(mp => mp.displayName == matPropertyNameArray[selectedDropdownIndex]);
                     m.matPropertyList[found].AddInitialEvents(m.lifespan);
+
+                    // 선택은 다시 0번으로
+                    selectedDropdownIndex = 0;
                 }
 
                 EditorGUILayout.EndHorizontal();
             }
 
-            /// <summary> 프로퍼티들 모두 그리기 </summary>
-            private void DrawMaterialPropertyList()
+            /// <summary> 프로퍼티 이벤트들 모두 그리기 </summary>
+            private void DrawMaterialPropertyEventList()
             {
-                EditorGUILayout.LabelField("Material Property Events", EditorStyles.boldLabel);
-
-                EditorGUILayout.Space();
-
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
                     if (m.matPropertyList[i].HasEvents)
@@ -430,18 +638,34 @@ namespace Rito
             /// <summary> 프로퍼티 하나의 이벤트 모두 그리기 </summary>
             private void DrawPropertyEvents(in MaterialPropertyInfo matProp, Action removeAction)
             {
-                EditorGUILayout.BeginHorizontal();
+                ref bool enabled = ref matProp.__enabled;
 
-                matProp.edt_foldout = EditorGUILayout.Foldout(matProp.edt_foldout, $"{matProp.displayName} [{matProp.propType}]");;
-                if (DrawMinusButton())
+                GUIStyle propertyEventFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+                propertyEventFoldoutStyle.normal.textColor   = 
+                propertyEventFoldoutStyle.onNormal.textColor = enabled ? Color.cyan : Color.gray;
+
+                EditorGUILayout.BeginHorizontal(); // ============ H o r i z o n t a l ================= <
+
+                // Foldout : Property Events
+                matProp.__foldout = EditorGUILayout.Foldout(matProp.__foldout, $"{matProp.displayName} [{matProp.propType}]", true, propertyEventFoldoutStyle);
+
+                string enableButtonLabel    = enabled ? "Enabled" : "Disabled";
+                Color enableButtonTextColor = enabled ? Color.black : Color.white;
+                Color enableButtonBgColor   = enabled ? Color.cyan * 2f : Color.gray;
+                if (DrawButtonLayout(enableButtonLabel, enableButtonTextColor, enableButtonBgColor, 60f))
+                {
+                    enabled = !enabled;
+                }
+
+                if (DrawMinusButtonLayout())
                 {
                     removeAction();
                     return;
                 }
 
-                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndHorizontal(); // ============ H o r i z o n t a l ================= >
 
-                if (matProp.edt_foldout)
+                if (matProp.__foldout)
                 {
                     EditorGUI.indentLevel++;
 
@@ -462,7 +686,7 @@ namespace Rito
 
                             // 버튼 중앙 정렬
                             DrawHorizontalSpace((EditorGUIUtility.currentViewWidth) * 0.5f - ButtonWidth);
-                            if (DrawPlusButton(ButtonWidth)) addNewEvent = i;
+                            if (DrawPlusButtonLayout(ButtonWidth)) addNewEvent = i;
 
                             EditorGUILayout.EndHorizontal();
                         }
@@ -500,8 +724,13 @@ namespace Rito
 
                 EditorGUILayout.BeginHorizontal();
                 {
-                    EditorGUILayout.LabelField("Time", GUILayout.Width(60f));
-                    mpEvent.time = EditorGUILayout.Slider(mpEvent.time, 0f, m.lifespan);
+                    Color guiColor = GUI.color;
+                    GUI.color = Color.yellow * 1.5f;
+                    {
+                        EditorGUILayout.LabelField("Time", GUILayout.Width(60f));
+                        mpEvent.time = EditorGUILayout.Slider(mpEvent.time, 0f, m.lifespan);
+                    }
+                    GUI.color = guiColor;
 
                     // 여백 생성
                     DrawHorizontalSpace(MinusButtonWidth);
@@ -557,7 +786,84 @@ namespace Rito
         }
 #endif
         #endregion
+        /***********************************************************************
+        *                               Custom EditorGUI
+        ***********************************************************************/
+        #region .
+        private static class RitoEditorGUI
+        {
+            public static Color HeaderBoxColor { get; set; } = new Color(0.1f, 0.1f, 0.1f);
+            public static Color ContentBoxColor { get; set; } = new Color(0.25f, 0.25f, 0.25f);
+            public static Color OutlineColor { get; set; } = Color.black;
+            public static Color HeaderTextColor { get; set; } = Color.white;
 
+            public static void FoldoutHeaderBox(ref bool foldout, string headerText, int contentCount, float oneHeight = 20f)
+            {
+                const float OutWidth = 2f;
+                const float HeaderHeight = 20f;
+                const float HeaderLeftPadding = 4f; // 헤더 박스 내 좌측 패딩(레이블 왼쪽 여백)
+                const float ContentTopPadding = 4f; // 내용 박스 내 상단 패딩
+                const float ContentBotPadding = 4f; // 내용 박스 내 하단 패딩
+                float contentHeight = !foldout ? 0f : (ContentTopPadding + oneHeight * contentCount + ContentBotPadding);
+                float totalHeight   = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
+
+                Rect H = GUILayoutUtility.GetRect(1, HeaderHeight); // Header
+                GUILayoutUtility.GetRect(1f, ContentTopPadding); // Content Top Padding
+
+                // Note : 가로 외곽선이 꼭짓점을 덮는다.
+
+                Rect T = new Rect(); // Top
+                T.y = H.y - OutWidth;
+                T.height = OutWidth;
+                T.xMin = H.xMin - OutWidth;
+                T.xMax = H.xMax + OutWidth;
+
+                Rect BH = new Rect(T); // Bottom of Header
+                BH.y = H.yMax;
+
+                Rect L = new Rect(); // Left
+                L.x = H.x - OutWidth;
+                L.y = H.y;
+                L.width = OutWidth;
+                L.height = totalHeight;
+
+                Rect R = new Rect(L); // Right
+                R.x = H.xMax;
+
+                EditorGUI.DrawRect(T, OutlineColor);
+                EditorGUI.DrawRect(BH, OutlineColor);
+                EditorGUI.DrawRect(L, OutlineColor);
+                EditorGUI.DrawRect(R, OutlineColor);
+
+                var col = GUI.color;
+                GUI.color = Color.clear;
+                {
+                    if (GUI.Button(H, " "))
+                        foldout = !foldout;
+                }
+                GUI.color = col;
+
+                EditorGUI.DrawRect(H, HeaderBoxColor);
+
+                Rect HL = new Rect(H);
+                HL.xMin = H.x + HeaderLeftPadding;
+                EditorGUI.LabelField(HL, headerText);
+
+                if (foldout)
+                {
+                    Rect C = new Rect(H); // Content
+                    C.y = BH.yMax;
+                    C.height = contentHeight;
+
+                    Rect BC = new Rect(BH); // Bottom of Content
+                    BC.y += contentHeight;
+
+                    EditorGUI.DrawRect(C, ContentBoxColor);
+                    EditorGUI.DrawRect(BC, OutlineColor);
+                }
+            }
+        }
+        #endregion
         /***********************************************************************
         *                               Hierarchy Icon
         ***********************************************************************/
@@ -735,7 +1041,8 @@ namespace Rito
                     switch (state)
                     {
                         case UnityEditor.PlayModeStateChange.ExitingPlayMode:
-                            var targets = FindObjectsOfType(typeof(Inner_PlayModeSave).DeclaringType);
+                            //var targets = FindObjectsOfType(typeof(Inner_PlayModeSave).DeclaringType);
+                            var targets = Resources.FindObjectsOfTypeAll(typeof(Inner_PlayModeSave).DeclaringType); // 비활성 오브젝트 포함
                             targetSoArr = new UnityEditor.SerializedObject[targets.Length];
                             for (int i = 0; i < targets.Length; i++)
                                 targetSoArr[i] = new UnityEditor.SerializedObject(targets[i]);
@@ -766,10 +1073,6 @@ namespace Rito
 #if UNITY_EDITOR
     internal static class EditorOnlyExtensions
     {
-        public static void RefNotAllowMinus(ref this float @this)
-        {
-            if (@this < 0f) @this = 0f;
-        }
         public static void RefClamp_000(ref this float @this)
         {
             @this *= 1000f;

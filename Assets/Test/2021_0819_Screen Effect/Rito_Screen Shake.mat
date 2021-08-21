@@ -25,7 +25,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _HorizontalShakeSpeed: 40
-    - _ShakeIntensity: 0.051
+    - _ShakeIntensity: 0.05
     - _ShakeRange: 0
     - _ShakeRange1: 0.2
     - _ShakeSpeed1: 40.3

@@ -121,6 +121,40 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!21 &113906118
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Shake
+  m_Shader: {fileID: 4800000, guid: cdaf41aea4d92e945829f51361de8377, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _HorizontalShakeSpeed: 40
+    - _ShakeIntensity: 0.05
+    - _ShakeRange: 0
+    - _ShakeRange1: 0.2
+    - _ShakeSpeed1: 40.3
+    - _ShakeSpeed2: 35.9
+    - _VerticalShakeSpeed: 25
+    m_Colors:
+    - _ShakeDirection1: {r: 1, g: 0, b: 0, a: 0}
+    - _ShakeDirection2: {r: 0, g: 1, b: 0, a: 0}
 --- !u!1 &127338336
 GameObject:
   m_ObjectHideFlags: 0
@@ -137,7 +171,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &127338337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,123 +184,135 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  effectMaterial: {fileID: 811842819}
   showMaterialNameInHierarchy: 1
-  priority: 0
-  lifespan: 2
-  stopAction: 0
+  priority: 1
+  lifespan: 10
+  stopAction: 2
+  __editMode: 1
+  __matPropListFoldout: 1
   matPropertyList:
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _Color
     displayName: Color
     propType: 0
     propIndex: 1
-    edt_foldout: 1
-    eventList:
-    - time: 0
-      floatValue: 1
-      range: {x: 0.79, y: 0.508}
-      min: 0.79
-      max: 0.508
-      color: {r: 1, g: 0.79, b: 0.508, a: 0}
-      vector4: {x: 1, y: 0.79, z: 0.508, w: 0}
-    - time: 0.63
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 2
-      floatValue: 0.193
-      range: {x: 0.193, y: 1}
-      min: 0.193
-      max: 1
-      color: {r: 0.193, g: 0.193, b: 1, a: 0}
-      vector4: {x: 0.193, y: 0.193, z: 1, w: 0}
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    __foldout: 0
+    __enabled: 0
+    eventList: []
+  - material: {fileID: 811842819}
     propName: _Distortion
     displayName: Distortion
     propType: 2
     propIndex: 2
-    edt_foldout: 1
-    eventList:
-    - time: 0
-      floatValue: -1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: -1, g: 0, b: 0, a: 0}
-      vector4: {x: -1, y: 0, z: 0, w: 0}
-    - time: 1.122
-      floatValue: -1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: -1, g: 0, b: 0, a: 0}
-      vector4: {x: -1, y: 0, z: 0, w: 0}
-    - time: 2
-      floatValue: -1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: -1, g: 0, b: 0, a: 0}
-      vector4: {x: -1, y: 0, z: 0, w: 0}
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    __foldout: 0
+    __enabled: 0
+    eventList: []
+  - material: {fileID: 811842819}
     propName: _AreaRange
     displayName: Area Range
     propType: 3
     propIndex: 3
-    edt_foldout: 0
-    eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    __foldout: 1
+    __enabled: 0
+    eventList:
+    - time: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 10
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+  - material: {fileID: 811842819}
     propName: _AreaPower
     displayName: Area Power
     propType: 3
     propIndex: 4
-    edt_foldout: 0
-    eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+    __foldout: 0
+    __enabled: 0
+    eventList:
+    - time: 0
+      floatValue: 6
+      range: {x: 1, y: 10}
+      min: 1
+      max: 10
+      color: {r: 6, g: 1, b: 10, a: 0}
+      vector4: {x: 6, y: 1, z: 10, w: 0}
+    - time: 8
+      floatValue: 6
+      range: {x: 1, y: 10}
+      min: 1
+      max: 10
+      color: {r: 6, g: 1, b: 10, a: 0}
+      vector4: {x: 6, y: 1, z: 10, w: 0}
+    - time: 9
+      floatValue: 2
+      range: {x: 1, y: 10}
+      min: 1
+      max: 10
+      color: {r: 2, g: 1, b: 10, a: 0}
+      vector4: {x: 2, y: 1, z: 10, w: 0}
+    - time: 10
+      floatValue: 6
+      range: {x: 1, y: 10}
+      min: 1
+      max: 10
+      color: {r: 6, g: 1, b: 10, a: 0}
+      vector4: {x: 6, y: 1, z: 10, w: 0}
+  - material: {fileID: 811842819}
     propName: _CircleNoiseScale
     displayName: Circle Noise Scale
     propType: 2
     propIndex: 5
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _CircleSpreadSpeed
     displayName: Circle Spread Speed
     propType: 3
     propIndex: 6
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _PatternSpeed
     displayName: Pattern Speed
     propType: 3
     propIndex: 7
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _PatternBorderOpacity
     displayName: Pattern Border Opacity
     propType: 3
     propIndex: 8
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _PatternColorOpacity
     displayName: Pattern Color Opacity
     propType: 3
     propIndex: 9
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: 2cfb6c0ca609d6f41a0d31d3cd9177f2, type: 2}
+  - material: {fileID: 811842819}
     propName: _PatternAreaRange
     displayName: Pattern Area Range
     propType: 3
     propIndex: 10
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
 --- !u!4 &127338338
 Transform:
@@ -311,25 +357,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 2100000, guid: c1ed080a5dc249a498635ebcfe9421e3, type: 2}
+  effectMaterial: {fileID: 1456668557}
   showMaterialNameInHierarchy: 1
   priority: 0
   lifespan: 0
   stopAction: 0
+  __editMode: 0
+  __matPropListFoldout: 1
   matPropertyList:
-  - material: {fileID: 2100000, guid: c1ed080a5dc249a498635ebcfe9421e3, type: 2}
+  - material: {fileID: 1456668557}
     propName: _Power
     displayName: Power
     propType: 3
     propIndex: 1
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: c1ed080a5dc249a498635ebcfe9421e3, type: 2}
+  - material: {fileID: 1456668557}
     propName: _Speed
     displayName: Speed
     propType: 3
     propIndex: 2
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
 --- !u!4 &428262898
 Transform:
@@ -374,32 +424,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  effectMaterial: {fileID: 939036497}
   showMaterialNameInHierarchy: 1
   priority: 0
   lifespan: 0.5
   stopAction: 0
+  __editMode: 0
+  __matPropListFoldout: 1
   matPropertyList:
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  - material: {fileID: 939036497}
     propName: _ShakeIntensity
     displayName: Shake Intensity
     propType: 3
     propIndex: 0
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  - material: {fileID: 939036497}
     propName: _HorizontalShakeSpeed
     displayName: Horizontal Shake Speed
     propType: 3
     propIndex: 1
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  - material: {fileID: 939036497}
     propName: _VerticalShakeSpeed
     displayName: Vertical Shake Speed
     propType: 3
     propIndex: 2
-    edt_foldout: 0
+    __foldout: 0
+    __enabled: 0
     eventList: []
 --- !u!4 &649687436
 Transform:
@@ -444,46 +499,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  effectMaterial: {fileID: 113906118}
   showMaterialNameInHierarchy: 1
   priority: 0
-  lifespan: 3
-  stopAction: 0
+  lifespan: 2
+  stopAction: 2
+  __editMode: 1
+  __matPropListFoldout: 1
   matPropertyList:
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+  - material: {fileID: 113906118}
     propName: _ShakeIntensity
     displayName: Shake Intensity
     propType: 3
     propIndex: 0
-    edt_foldout: 1
-    eventList: []
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    __foldout: 0
+    __enabled: 0
+    eventList:
+    - time: 0
+      floatValue: 0.05
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.05, g: 0, b: 1, a: 0}
+      vector4: {x: 0.05, y: 0, z: 1, w: 0}
+    - time: 0.916
+      floatValue: 0.37
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.37, g: 0, b: 1, a: 0}
+      vector4: {x: 0.37, y: 0, z: 1, w: 0}
+    - time: 2
+      floatValue: 0.05
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.05, g: 0, b: 1, a: 0}
+      vector4: {x: 0.05, y: 0, z: 1, w: 0}
+  - material: {fileID: 113906118}
     propName: _HorizontalShakeSpeed
     displayName: Horizontal Shake Speed
     propType: 3
     propIndex: 1
-    edt_foldout: 1
-    eventList:
-    - time: 0
-      floatValue: 34.8
-      range: {x: 0, y: 100}
-      min: 0
-      max: 100
-      color: {r: 34.8, g: 0, b: 100, a: 0}
-      vector4: {x: 34.8, y: 0, z: 100, w: 0}
-    - time: 3
-      floatValue: 61.8
-      range: {x: 0, y: 100}
-      min: 0
-      max: 100
-      color: {r: 61.8, g: 0, b: 100, a: 0}
-      vector4: {x: 61.8, y: 0, z: 100, w: 0}
-  - material: {fileID: 2100000, guid: c38773cb29f13fb4a92f4707f8cd1835, type: 2}
+    __foldout: 0
+    __enabled: 0
+    eventList: []
+  - material: {fileID: 113906118}
     propName: _VerticalShakeSpeed
     displayName: Vertical Shake Speed
     propType: 3
     propIndex: 2
-    edt_foldout: 1
+    __foldout: 0
+    __enabled: 0
     eventList: []
 --- !u!4 &669391149
 Transform:
@@ -499,6 +566,47 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &811842819
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Hexagons
+  m_Shader: {fileID: 4800000, guid: ad77b2c49703d534bab4ebf159fb31b9, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseMap:
+        m_Texture: {fileID: 2800000, guid: 252f65d340993244c8efae9768c0d417, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AreaPower: 2
+    - _AreaRange: 0.15
+    - _CircleNoiseScale: 3
+    - _CircleSpreadSpeed: 0.2
+    - _ColorIntensity: 3.18
+    - _Distortion: -1
+    - _PatternAreaRange: 0.1
+    - _PatternBorderOpacity: 20
+    - _PatternColorOpacity: 15
+    - _PatternRange: 1
+    - _PatternSpeed: 2
+    m_Colors:
+    - _Color: {r: 0.1764706, g: 0.6, b: 1, a: 0}
 --- !u!1 &886640641
 GameObject:
   m_ObjectHideFlags: 0
@@ -690,6 +798,40 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!21 &939036497
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Shake
+  m_Shader: {fileID: 4800000, guid: cdaf41aea4d92e945829f51361de8377, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _HorizontalShakeSpeed: 40
+    - _ShakeIntensity: 0.05
+    - _ShakeRange: 0
+    - _ShakeRange1: 0.2
+    - _ShakeSpeed1: 40.3
+    - _ShakeSpeed2: 35.9
+    - _VerticalShakeSpeed: 25
+    m_Colors:
+    - _ShakeDirection1: {r: 1, g: 0, b: 0, a: 0}
+    - _ShakeDirection2: {r: 0, g: 1, b: 0, a: 0}
 --- !u!1 &1138514726
 GameObject:
   m_ObjectHideFlags: 0
@@ -786,6 +928,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6c76023c6dc8124ebd2fda6b972eb92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!21 &1456668557
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Damage
+  m_Shader: {fileID: 4800000, guid: 9878513ac956b744d870113fa964351a, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Power: 0.29
+    - _Speed: 1
+    - _T: 0.33
+    m_Colors: []
 --- !u!1 &1487534092
 GameObject:
   m_ObjectHideFlags: 0
