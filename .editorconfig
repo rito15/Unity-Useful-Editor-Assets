@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# IDE0090: 'new(...)' 사용
+dotnet_diagnostic.IDE0090.severity = none
