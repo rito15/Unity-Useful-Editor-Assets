@@ -251,7 +251,7 @@ MonoBehaviour:
     propIndex: 1
     enabled: 1
     __foldout: 0
-    __playingIndex: 1
+    __playingIndex: 0
     eventList:
     - time: 0
       frame: 0
@@ -301,7 +301,7 @@ MonoBehaviour:
     propIndex: 3
     enabled: 1
     __foldout: 0
-    __playingIndex: 1
+    __playingIndex: 0
     eventList:
     - time: 0
       frame: 0
@@ -350,7 +350,7 @@ MonoBehaviour:
     propIndex: 4
     enabled: 1
     __foldout: 0
-    __playingIndex: 1
+    __playingIndex: 0
     eventList:
     - time: 0
       frame: 0
@@ -500,8 +500,24 @@ MonoBehaviour:
   __optionFoldout2: 1
   __optionFoldout3: 1
   __matPropListFoldout: 1
-  __propCount: 0
-  __materialDefaultValues: []
+  __propCount: 4
+  __materialDefaultValues:
+  - time: 0
+    frame: 0
+    floatValue: 0.29
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0.29, g: 0, b: 0, a: 0}
+    vector4: {x: 0.29, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 1, g: 0, b: 0, a: 0}
+    vector4: {x: 1, y: 0, z: 0, w: 0}
   matPropertyList:
   - material: {fileID: 1456668557}
     propName: _Power
@@ -509,7 +525,7 @@ MonoBehaviour:
     propType: 3
     propIndex: 1
     enabled: 0
-    __foldout: 0
+    __foldout: 1
     __playingIndex: 0
     eventList: []
   - material: {fileID: 1456668557}
@@ -518,7 +534,7 @@ MonoBehaviour:
     propType: 3
     propIndex: 2
     enabled: 0
-    __foldout: 0
+    __foldout: 1
     __playingIndex: 0
     eventList: []
 --- !u!4 &428262898
@@ -551,7 +567,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &649687435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -567,33 +583,97 @@ MonoBehaviour:
   effectMaterial: {fileID: 939036497}
   priority: 0
   showMaterialNameInHierarchy: 1
-  stopAction: 0
+  stopAction: 2
   isTimeModeSeconds: 1
-  durationSeconds: 0
+  durationSeconds: 4
   durationFrame: 0
   __optionFoldout1: 1
   __optionFoldout2: 1
   __optionFoldout3: 1
   __matPropListFoldout: 1
-  __propCount: 0
-  __materialDefaultValues: []
+  __propCount: 4
+  __materialDefaultValues:
+  - time: 0
+    frame: 0
+    floatValue: 0.05
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0.05, g: 0, b: 0, a: 0}
+    vector4: {x: 0.05, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 40
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 40, g: 0, b: 0, a: 0}
+    vector4: {x: 40, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 25
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 25, g: 0, b: 0, a: 0}
+    vector4: {x: 25, y: 0, z: 0, w: 0}
   matPropertyList:
   - material: {fileID: 939036497}
     propName: _ShakeIntensity
     displayName: Shake Intensity
     propType: 3
     propIndex: 0
-    enabled: 0
-    __foldout: 0
+    enabled: 1
+    __foldout: 1
     __playingIndex: 0
-    eventList: []
+    eventList:
+    - time: 0
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 0.5
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 2.5
+      frame: 0
+      floatValue: 0.2
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.2, g: 0, b: 1, a: 0}
+      vector4: {x: 0.2, y: 0, z: 1, w: 0}
+    - time: 3
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 4
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
   - material: {fileID: 939036497}
     propName: _HorizontalShakeSpeed
     displayName: Horizontal Shake Speed
     propType: 3
     propIndex: 1
     enabled: 0
-    __foldout: 0
+    __foldout: 1
     __playingIndex: 0
     eventList: []
   - material: {fileID: 939036497}
@@ -602,7 +682,7 @@ MonoBehaviour:
     propType: 3
     propIndex: 2
     enabled: 0
-    __foldout: 0
+    __foldout: 1
     __playingIndex: 0
     eventList: []
 --- !u!4 &649687436
@@ -1032,7 +1112,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _HorizontalShakeSpeed: 40
-    - _ShakeIntensity: 0.05
+    - _ShakeIntensity: 0.2
     - _ShakeRange: 0
     - _ShakeRange1: 0.2
     - _ShakeSpeed1: 40.3

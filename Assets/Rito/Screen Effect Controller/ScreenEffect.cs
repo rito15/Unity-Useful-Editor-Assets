@@ -1461,6 +1461,7 @@ namespace Rito
         *                               Custom EditorGUI
         ***********************************************************************/
         #region .
+#if UNITY_EDITOR
         private static class RitoEditorGUI
         {
             public static readonly Color defaultHeaderBoxColor = new Color(0.1f, 0.1f, 0.1f);
@@ -1745,6 +1746,7 @@ namespace Rito
                 }
             }
         }
+#endif
         #endregion
         /***********************************************************************
         *                               Hierarchy Icon
