@@ -508,6 +508,7 @@ namespace Rito
             private static GUIStyle bigMinusButtonStyle;
             private static GUIStyle boldFoldoutStyle;
             private static GUIStyle propertyEventTimeLabelStyle;
+            private static GUIStyle whiteBoldLabelStyle;
 
             private void OnEnable()
             {
@@ -660,6 +661,11 @@ namespace Rito
                 {
                     propertyEventTimeLabelStyle = new GUIStyle(EditorStyles.label);
                     propertyEventTimeLabelStyle.normal.textColor = TimeColor;
+                }
+                if (whiteBoldLabelStyle == null)
+                {
+                    whiteBoldLabelStyle = new GUIStyle(EditorStyles.boldLabel);
+                    whiteBoldLabelStyle.normal.textColor = Color.white;
                 }
             }
             private void InitMaterialProperties()
@@ -853,7 +859,7 @@ namespace Rito
                     {
                         EditorGUI.BeginChangeCheck();
 
-                        m.durationSeconds.RefClamp_00();
+                        m.durationSeconds.RefClamp_000();
                         float prevDuration = m.durationSeconds;
 
                         m.durationSeconds = EditorGUILayout.FloatField(m.durationSeconds);
@@ -1189,7 +1195,7 @@ namespace Rito
             }
 
             private static readonly Color HighlightBasic = new Color(0.3f, 0.3f, 0.3f);
-            private static readonly Color HighlightPlaying = new Color(0.0f, 0.6f, 0.7f);
+            private static readonly Color HighlightPlaying = new Color(0.0f, 0.4f, 0.5f);
 
             /// <summary> 프로퍼티의 이벤트 하나 그리기 (시간, 값) </summary>
             private void DrawEachEvent(MaterialPropertyInfo mp, MaterialPropertyValue mpEvent, int index)
@@ -1211,18 +1217,38 @@ namespace Rito
                     (index == mp.__playingIndex || index - 1 == mp.__playingIndex);
 
                 // 추가된 이벤트마다 배경 하이라이트
-                if (currentPlaying || isFirstOrLast == false)
+                Rect highlightRight = GUILayoutUtility.GetRect(1f, 0f);
+#if UNITY_2019_3_OR_NEWER
+                highlightRight.height = mp.propType == ShaderPropertyType.Color ? 62f : 42f;
+#else
+                highlightRight.height = mp.propType == ShaderPropertyType.Color ? 56f : 38f;
+#endif
+                highlightRight.xMin += 4f;
+                highlightRight.xMax -= 4f;
+
+                Rect highlightLeft = new Rect(highlightRight);
+                highlightLeft.xMax = 40f;
+                highlightRight.xMin += 24f;
+
+                if (currentPlaying)
                 {
-                    Rect highlightRect = GUILayoutUtility.GetRect(1f, 0f);
-                    highlightRect.height = mp.propType == ShaderPropertyType.Color ? 62f : 42f;
-                    highlightRect.xMin += 4f;
-                    highlightRect.xMax -= 4f;
-                    EditorGUI.DrawRect(highlightRect, currentPlaying ? HighlightPlaying : HighlightBasic);
+                    EditorGUI.DrawRect(highlightLeft, currentPlaying ? HighlightPlaying : HighlightBasic);
+                    EditorGUI.DrawRect(highlightRight, currentPlaying ? HighlightPlaying : HighlightBasic);
+                }
+                else
+                {
+                    if (isFirstOrLast == false)
+                    {
+                        EditorGUI.DrawRect(highlightLeft, HighlightBasic);
+                        EditorGUI.DrawRect(highlightRight, HighlightBasic);
+                    }
                 }
 
 
-                const float MinusButtonWidth = 40f;
+                const float LeftMargin = 6f;
+                const float IndexLabelWidth = 20f;
                 const float LabelWidth = 80f;
+                const float MinusButtonWidth = 40f;
                 const float RightButtonMargin = 6f;
 
                 // 1. Time 슬라이더
@@ -1230,7 +1256,22 @@ namespace Rito
 
                 EditorGUILayout.BeginHorizontal();
                 {
-                    RitoEditorGUI.DrawHorizontalSpace(4f);
+#if UNITY_2019_3_OR_NEWER
+                    float LM = index > 9 ? 4f : 0f;
+#else
+                    float LM = index > 9 ? 6f : 0f;
+#endif
+                    RitoEditorGUI.DrawHorizontalSpace(LeftMargin - LM);
+
+                    Rect indexRect = GUILayoutUtility.GetRect(IndexLabelWidth + LM, 18f, whiteBoldLabelStyle);
+#if UNITY_2019_3_OR_NEWER
+                    indexRect.y += 10f;
+#else
+                    indexRect.y += 6f;
+#endif
+
+                    // 좌측 인덱스
+                    EditorGUI.LabelField(indexRect, index.ToString(), whiteBoldLabelStyle);
 
                     // 시간 레이블
                     string timeLabel;
@@ -1258,39 +1299,62 @@ namespace Rito
                     // [1] 시간 계산 방식 : 초
                     if (m.isTimeModeSeconds)
                     {
-                        mpEvent.time.RefClamp_00();
+                        mpEvent.time.RefClamp_000();
+
+                        EditorGUI.BeginChangeCheck();
                         mpEvent.time = EditorGUILayout.Slider(mpEvent.time, 0f, m.durationSeconds);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            MaterialPropertyValue prevEvent = mp.eventList[index - 1];
+                            MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+
+                            if (mpEvent.time < prevEvent.time)
+                                mpEvent.time = prevEvent.time;
+                            if (mpEvent.time > nextEvent.time)
+                                mpEvent.time = nextEvent.time;
+                        }
                     }
                     // [2] 시간 계산 방식 : 프레임
                     else
                     {
+                        EditorGUI.BeginChangeCheck();
                         mpEvent.frame = EditorGUILayout.IntSlider(mpEvent.frame, 0, m.durationFrame);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            MaterialPropertyValue prevEvent = mp.eventList[index - 1];
+                            MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+
+                            if (mpEvent.frame < prevEvent.frame)
+                                mpEvent.frame = prevEvent.frame;
+                            if (mpEvent.frame > nextEvent.frame)
+                                mpEvent.frame = nextEvent.frame;
+                        }
                     }
 
                     GUI.color = guiColor;
 
 
                     // 값 변경 시, 전후값의 경계에서 전후값 변경
-                    if (isFirstOrLast == false)
-                    {
-                        MaterialPropertyValue prevEvent = mp.eventList[index - 1];
-                        MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+                    //if (isFirstOrLast == false)
+                    //{
+                    //    MaterialPropertyValue prevEvent = mp.eventList[index - 1];
+                    //    MaterialPropertyValue nextEvent = mp.eventList[index + 1];
 
-                        if (m.isTimeModeSeconds)
-                        {
-                            if (prevEvent.time > mpEvent.time)
-                                prevEvent.time = mpEvent.time;
-                            if (nextEvent.time < mpEvent.time)
-                                nextEvent.time = mpEvent.time;
-                        }
-                        else
-                        {
-                            if (prevEvent.frame > mpEvent.frame)
-                                prevEvent.frame = mpEvent.frame;
-                            if (nextEvent.frame < mpEvent.frame)
-                                nextEvent.frame = mpEvent.frame;
-                        }
-                    }
+                    //    if (m.isTimeModeSeconds)
+                    //    {
+                    //        if (prevEvent.time > mpEvent.time)
+                    //            prevEvent.time = mpEvent.time;
+                    //        if (nextEvent.time < mpEvent.time)
+                    //            nextEvent.time = mpEvent.time;
+                    //    }
+                    //    else
+                    //    {
+                    //        if (prevEvent.frame > mpEvent.frame)
+                    //            prevEvent.frame = mpEvent.frame;
+                    //        if (nextEvent.frame < mpEvent.frame)
+                    //            nextEvent.frame = mpEvent.frame;
+                    //    }
+                    //}
 
                     // 여백 생성
                     RitoEditorGUI.DrawHorizontalSpace(MinusButtonWidth);
@@ -1312,7 +1376,10 @@ namespace Rito
                 // 2. 값 그리기
                 EditorGUILayout.BeginHorizontal();
 
-                RitoEditorGUI.DrawHorizontalSpace(4f);
+                RitoEditorGUI.DrawHorizontalSpace(LeftMargin);
+
+                RitoEditorGUI.DrawHorizontalSpace(IndexLabelWidth);
+
                 RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Value", "값"), Color.white, LabelWidth, true);
 
                 switch (mp.propType)
