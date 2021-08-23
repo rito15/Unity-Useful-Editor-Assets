@@ -78,6 +78,10 @@ namespace Rito
         [SerializeField]
         private MaterialPropertyValue[] __materialDefaultValues;
 
+        /// <summary> 복제된 마테리얼 현재 값 기억 (Undo 용도)</summary>
+        [SerializeField]
+        private MaterialPropertyValue[] __materialCurrentValues;
+
         private Action __OnEditorUpdate;
 #endif
 
@@ -542,7 +546,6 @@ namespace Rito
                     if (m.effectMaterial == null)
                     {
                         m.matPropertyList.Clear();
-                        //Debug.Log("NULL Material");
                     }
                     else
                     {
@@ -562,23 +565,6 @@ namespace Rito
                         EditorGUILayout.Space();
                         EditorGUILayout.Space();
                         DrawCopiedMaterialProperties();
-                        //try
-                        //{
-                        //    DrawCopiedMaterialProperties();
-                        //}
-                        //catch // 쉐이더 프로퍼티 변경 시 정보 다시 로드
-                        //{
-                        //    if (m.effectMaterial != null)
-                        //        LoadMaterialInfo();
-                        //    else
-                        //        m.effectMaterial = null;
-                        //}
-
-                        //try
-                        //{
-                        //    EditorGUILayout.Space();
-                        //}
-                        //catch { } // 쉐이더 프로퍼티 리로드 시 발생하는 예외 무시
 
                         EditorGUILayout.Space();
                         EditorGUILayout.Space();
@@ -700,10 +686,12 @@ namespace Rito
                     }
                 }
 
+                int validPropCount = m.matPropertyList.Count;
+
                 // 동일 쉐이더일 경우, 백업된 이벤트들에서 동일하게 존재하는 프로퍼티에 이벤트 복제
-                if (m.matPropertyList.Count > 0 && m.matPropertyList[0].material.shader == shader)
+                if (validPropCount > 0 && m.matPropertyList[0].material.shader == shader)
                 {
-                    for (int i = 0; i < m.matPropertyList.Count; i++)
+                    for (int i = 0; i < validPropCount; i++)
                     {
                         MaterialPropertyInfo cur = m.matPropertyList[i];
                         MaterialPropertyInfo found = backup.Find(x =>
@@ -721,28 +709,40 @@ namespace Rito
                     }
                 }
 
-                // 마테리얼 기본 값들 기억
-                m.__materialDefaultValues = new MaterialPropertyValue[m.matPropertyList.Count];
-                for (int i = 0; i < m.__materialDefaultValues.Length; i++)
+                // 마테리얼 기본 값들 기억, 현재 값들 저장
+                m.__materialDefaultValues = new MaterialPropertyValue[validPropCount];
+                m.__materialCurrentValues = new MaterialPropertyValue[validPropCount];
+                for (int i = 0; i < validPropCount; i++)
                 {
                     var currentInfo = m.matPropertyList[i];
-                    var currentValue = m.__materialDefaultValues[i] = new MaterialPropertyValue();
+                    var backupValue  = m.__materialDefaultValues[i] = new MaterialPropertyValue();
+                    var currentValue = m.__materialCurrentValues[i] = new MaterialPropertyValue();
 
                     switch (currentInfo.propType)
                     {
                         case ShaderPropertyType.Float:
+                            backupValue.floatValue = currentValue.floatValue =
+                                material.GetFloat(currentInfo.propName);
+                            break;
+
                         case ShaderPropertyType.Range:
-                            currentValue.floatValue = material.GetFloat(currentInfo.propName);
+                            backupValue.floatValue = currentValue.floatValue = 
+                                material.GetFloat(currentInfo.propName);
+
+                            currentValue.range = shader.GetPropertyRangeLimits(m.matPropertyList[i].propIndex);
                             break;
+
                         case ShaderPropertyType.Vector:
-                            currentValue.vector4 = material.GetVector(currentInfo.propName);
+                            backupValue.vector4 = currentValue.vector4 = 
+                                material.GetVector(currentInfo.propName);
                             break;
+
                         case ShaderPropertyType.Color:
-                            currentValue.color = material.GetColor(currentInfo.propName);
+                            backupValue.color = currentValue.color = 
+                                material.GetColor(currentInfo.propName);
                             break;
                     }
                 }
-
             }
             #endregion
             /************************************************************************
@@ -874,7 +874,7 @@ namespace Rito
                         Color col = GUI.color;
                         if (m.durationSeconds <= 0f)
                         {
-                            GUI.color = Color.red;
+                            GUI.color = Color.red * 2f;
                             isDurationZero = true;
                         }
                         m.durationSeconds = EditorGUILayout.FloatField(m.durationSeconds);
@@ -910,7 +910,7 @@ namespace Rito
                         Color col = GUI.color;
                         if (m.durationFrame == 0)
                         {
-                            GUI.color = Color.red;
+                            GUI.color = Color.red * 2f;
                             isDurationZero = true;
                         }
                         m.durationFrame = EditorGUILayout.IntField(m.durationFrame);
@@ -1015,6 +1015,8 @@ namespace Rito
                     if ((int)mp.propType == 4) // 4 : Texture
                         continue;
 
+                    MaterialPropertyValue currentMatValue = m.__materialCurrentValues[i];
+
                     Color currentColor = mp.enabled ? EnabledColor : Color.gray;
                     bool hasEvents = mp.HasEvents;
 
@@ -1033,27 +1035,49 @@ namespace Rito
                     {
                         case ShaderPropertyType.Float:
                             {
-                                float value = EditorGUILayout.FloatField(material.GetFloat(mp.propName));
-                                material.SetFloat(mp.propName, value);
+                                EditorGUI.BeginChangeCheck();
+
+                                currentMatValue.floatValue = material.GetFloat(mp.propName);
+                                currentMatValue.floatValue = EditorGUILayout.FloatField(currentMatValue.floatValue);
+
+                                if(EditorGUI.EndChangeCheck())
+                                    material.SetFloat(mp.propName, currentMatValue.floatValue);
                             }
                             break;
                         case ShaderPropertyType.Range:
                             {
-                                Vector2 minMax = shader.GetPropertyRangeLimits(mp.propIndex);
-                                float value = EditorGUILayout.Slider(material.GetFloat(mp.propName), minMax.x, minMax.y);
-                                material.SetFloat(mp.propName, value);
+                                EditorGUI.BeginChangeCheck();
+
+                                currentMatValue.floatValue = material.GetFloat(mp.propName);
+                                currentMatValue.floatValue = 
+                                    EditorGUILayout.Slider(currentMatValue.floatValue, currentMatValue.min, currentMatValue.max);
+
+                                if (EditorGUI.EndChangeCheck())
+                                    material.SetFloat(mp.propName, currentMatValue.floatValue);
                             }
                             break;
                         case ShaderPropertyType.Vector:
                             {
-                                Vector4 value = EditorGUILayout.Vector4Field("", material.GetVector(mp.propName));
-                                material.SetVector(mp.propName, value);
+                                EditorGUI.BeginChangeCheck();
+
+                                currentMatValue.vector4 = material.GetVector(mp.propName);
+                                currentMatValue.vector4 = 
+                                    EditorGUILayout.Vector4Field("", currentMatValue.vector4);
+
+                                if (EditorGUI.EndChangeCheck())
+                                    material.SetVector(mp.propName, currentMatValue.vector4);
                             }
                             break;
                         case ShaderPropertyType.Color:
                             {
-                                Color value = EditorGUILayout.ColorField(material.GetColor(mp.propName));
-                                material.SetColor(mp.propName, value);
+                                EditorGUI.BeginChangeCheck();
+
+                                currentMatValue.color = material.GetColor(mp.propName);
+                                currentMatValue.color = 
+                                    EditorGUILayout.ColorField(currentMatValue.color);
+
+                                if (EditorGUI.EndChangeCheck())
+                                    material.SetColor(mp.propName, currentMatValue.color);
                             }
                             break;
                     }
@@ -1069,12 +1093,17 @@ namespace Rito
                         {
                             case ShaderPropertyType.Float:
                             case ShaderPropertyType.Range:
+                                m.__materialCurrentValues[i].floatValue = m.__materialDefaultValues[i].floatValue;
                                 material.SetFloat(mp.propName, m.__materialDefaultValues[i].floatValue);
                                 break;
+
                             case ShaderPropertyType.Vector:
+                                m.__materialCurrentValues[i].vector4 = m.__materialDefaultValues[i].vector4;
                                 material.SetVector(mp.propName, m.__materialDefaultValues[i].vector4);
                                 break;
+
                             case ShaderPropertyType.Color:
+                                m.__materialCurrentValues[i].color = m.__materialDefaultValues[i].color;
                                 material.SetColor(mp.propName, m.__materialDefaultValues[i].color);
                                 break;
                         }
@@ -1121,8 +1150,10 @@ namespace Rito
             {
                 if (isDurationZero)
                 {
-                    EditorStyles.helpBox.fontSize = 14;
-                    EditorGUILayout.HelpBox(EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."), MessageType.Error);
+                    EditorStyles.helpBox.fontSize = 12;
+                    EditorGUILayout.HelpBox(
+                        EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."), 
+                        MessageType.Warning);
                     return;
                 }
 
@@ -1914,6 +1945,7 @@ namespace Rito
             {
                 GameObject go = new GameObject("Screen Effect");
                 go.AddComponent<ScreenEffect>();
+                Selection.activeGameObject = go; // 선택
             }
         }
 
