@@ -19,13 +19,10 @@ using ShaderPropertyType = UnityEditor.ShaderUtil.ShaderPropertyType;
 // 작성자 : Rito
 
 /*
- *          T            O                 D               O
- * 
- *  - 에디터 버전 2018, 2019.1, 2020 호환 테스트
- *  
  *  - 2018.3.14f1 테스트 완료
- *  - 2019.4.9f1 테스트 완료
- * 
+ *  - 2019.4.9f1  테스트 완료
+ *  - 2020.3.14f1 테스트 완료
+ *  - 2021 : TODO
  */
 
 namespace Rito

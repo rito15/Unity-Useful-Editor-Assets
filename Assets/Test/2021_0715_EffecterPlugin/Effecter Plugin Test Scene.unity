@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &127338337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,7 +331,7 @@ MonoBehaviour:
     propIndex: 1
     enabled: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -381,7 +381,7 @@ MonoBehaviour:
     propIndex: 3
     enabled: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -430,7 +430,7 @@ MonoBehaviour:
     propIndex: 4
     enabled: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -737,7 +737,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &649687435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -909,7 +909,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &669391148
 MonoBehaviour:
   m_ObjectHideFlags: 0
