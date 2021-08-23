@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
+
+#if UNITY_2019_3_OR_NEWER
+using ShaderPropertyType = UnityEngine.Rendering.ShaderPropertyType;
+#elif UNITY_EDITOR
+using ShaderPropertyType = UnityEditor.ShaderUtil.ShaderPropertyType;
 #endif
 
 // 날짜 : 2021-08-18 PM 10:48:56
@@ -17,6 +22,9 @@ using UnityEditor;
  *          T            O                 D               O
  * 
  *  - 에디터 버전 2018, 2019.1, 2020 호환 테스트
+ *  
+ *  - 2018.3.14f1 테스트 완료
+ *  - 2019.4.9f1 테스트 완료
  * 
  */
 
@@ -112,7 +120,7 @@ namespace Rito
             if (durationSeconds <= 0f)
                 return;
 
-            for(int i = 0; i < matPropertyList.Count; i++)
+            for (int i = 0; i < matPropertyList.Count; i++)
             {
                 var mp = matPropertyList[i];
                 if (mp == null || mp.eventList == null || mp.eventList.Count == 0)
@@ -124,6 +132,9 @@ namespace Rito
 
                 var eventList = mp.eventList;
                 int eventCount = eventList.Count - 1;
+
+                // 최적화를 위해 추가 : 처리 완료 확인
+                bool handled = false;
 
                 // 1. 시간 계산 방식 : 초
                 if (isTimeModeSeconds)
@@ -145,6 +156,8 @@ namespace Rito
                         case ShaderPropertyType.Range:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -156,12 +169,15 @@ namespace Rito
                                 float curValue = Mathf.Lerp(prevEvent.floatValue, nextEvent.floatValue, t);
 
                                 effectMaterial.SetFloat(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
 
                         case ShaderPropertyType.Color:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -170,12 +186,15 @@ namespace Rito
                                 Color curValue = Color.Lerp(prevEvent.color, nextEvent.color, t);
 
                                 effectMaterial.SetColor(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
 
                         case ShaderPropertyType.Vector:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -184,6 +203,7 @@ namespace Rito
                                 Vector4 curValue = Vector4.Lerp(prevEvent.vector4, nextEvent.vector4, t);
 
                                 effectMaterial.SetVector(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
                     }
@@ -208,6 +228,8 @@ namespace Rito
                         case ShaderPropertyType.Range:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -216,12 +238,15 @@ namespace Rito
                                 float curValue = Mathf.Lerp(prevEvent.floatValue, nextEvent.floatValue, t);
 
                                 effectMaterial.SetFloat(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
 
                         case ShaderPropertyType.Color:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -230,12 +255,15 @@ namespace Rito
                                 Color curValue = Color.Lerp(prevEvent.color, nextEvent.color, t);
 
                                 effectMaterial.SetColor(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
 
                         case ShaderPropertyType.Vector:
                             for (int j = 0; j < eventCount; j++)
                             {
+                                if (handled) break;
+
                                 var prevEvent = eventList[j];
                                 var nextEvent = eventList[j + 1];
 
@@ -244,6 +272,7 @@ namespace Rito
                                 Vector4 curValue = Vector4.Lerp(prevEvent.vector4, nextEvent.vector4, t);
 
                                 effectMaterial.SetVector(mp.propName, curValue);
+                                handled = true;
                             }
                             break;
                     }
@@ -274,9 +303,9 @@ namespace Rito
                     case StopAction.Disable:
                         gameObject.SetActive(false);
                         break;
-                    //case StopAction.Repeat:
-                    //    currentSeconds = 0f;
-                    //    break;
+                        //case StopAction.Repeat:
+                        //    currentSeconds = 0f;
+                        //    break;
                 }
 
                 currentSeconds = 0f;
@@ -351,9 +380,9 @@ namespace Rito
 
                 begin.time = 0;
 
-                if (isTimeModeSeconds) 
+                if (isTimeModeSeconds)
                     end.time = duration;
-                else 
+                else
                     end.frame = (int)duration;
 
                 switch (propType)
@@ -429,6 +458,7 @@ namespace Rito
                 this.enabled = false;
             }
         }
+
         [System.Serializable]
         [StructLayout(LayoutKind.Explicit)]
         private class MaterialPropertyValue
@@ -514,7 +544,7 @@ namespace Rito
                         // 마테리얼 정보가 변한 경우, 전체 마테리얼 프로퍼티 및 이벤트 목록 초기화
                         if (isMaterialChanged)
                         {
-                            LoadMaterialInfo(); 
+                            LoadMaterialInfo();
                         }
 
                         if (Application.isPlaying)
@@ -566,7 +596,7 @@ namespace Rito
                 Rect rect = GUILayoutUtility.GetRect(1f, 20f);
                 const float buttonWidth = 44f;
                 rect.xMin = rect.width - buttonWidth - 4f;
-                
+
                 if (GUI.Button(rect, "Eng/한글"))
                 {
                     isHangle = !isHangle;
@@ -644,10 +674,14 @@ namespace Rito
                 for (int i = 0; i < propertyCount; i++)
                 {
                     ShaderPropertyType propType = shader.GetPropertyType(i);
-                    if (propType != ShaderPropertyType.Texture)
+                    if ((int)propType != 4) // 4 : Texture
                     {
                         string propName = shader.GetPropertyName(i);
+#if UNITY_2019_3_OR_NEWER
                         int propIndex = shader.FindPropertyIndex(propName);
+#else
+                        int propIndex = i;
+#endif
                         string dispName = shader.GetPropertyDescription(propIndex);
 
                         m.matPropertyList.Add(new MaterialPropertyInfo(material, propName, dispName, propType, propIndex));
@@ -660,9 +694,9 @@ namespace Rito
                     for (int i = 0; i < m.matPropertyList.Count; i++)
                     {
                         MaterialPropertyInfo cur = m.matPropertyList[i];
-                        MaterialPropertyInfo found = backup.Find(x => 
+                        MaterialPropertyInfo found = backup.Find(x =>
                             x.HasEvents &&
-                            x.propName == cur.propName && 
+                            x.propName == cur.propName &&
                             x.propType == cur.propType
                         );
 
@@ -696,7 +730,7 @@ namespace Rito
                             break;
                     }
                 }
-                
+
             }
             #endregion
             /************************************************************************
@@ -709,7 +743,7 @@ namespace Rito
             };
             private static readonly string[] TimeModesEng = new string[]
             {
-                "Time(Second)", "Frame"
+                "Time(Seconds)", "Frame"
             };
             private static readonly string[] TimeModesHan = new string[]
             {
@@ -734,7 +768,7 @@ namespace Rito
                         //Debug.Log("Material Changed");
 
                         // 복제
-                        if(m.effectMaterial != null)
+                        if (m.effectMaterial != null)
                             m.effectMaterial = new Material(m.effectMaterial);
                     }
 
@@ -867,7 +901,7 @@ namespace Rito
                                 for (int j = 0; j < eventList.Count; j++)
                                 {
                                     // 시작 이벤트 : 0프레임
-                                    if (j == 0) 
+                                    if (j == 0)
                                         continue;
                                     // 종료 이벤트 : 마지막 프레임
                                     else if (j == eventList.Count - 1)
@@ -893,6 +927,10 @@ namespace Rito
                         m.stopAction = (StopAction)EditorGUILayout.EnumPopup(m.stopAction);
                     }
                 }
+
+#if !UNITY_2019_3_OR_NEWER
+                EditorGUILayout.Space();
+#endif
             }
 
             private void DrawEditorOptions()
@@ -910,7 +948,7 @@ namespace Rito
                 EditorGUI.BeginDisabledGroup(!m.__editMode);
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
-                    if(m.isTimeModeSeconds)
+                    if (m.isTimeModeSeconds)
                         RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Current Time", "경과 시간"), m.__editMode ? TimeColor : Color.white);
                     else
                         RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Current Frane", "경과 프레임"), m.__editMode ? TimeColor : Color.white);
@@ -940,152 +978,10 @@ namespace Rito
 
                 EditorGUI.BeginDisabledGroup(Application.isPlaying && !m.__editMode);
 
-
-                EditorGUILayout.BeginHorizontal();
-
-                // LEFT
-                EditorGUILayout.BeginVertical();
-                {
-                    for (int i = 0; i < m.matPropertyList.Count; i++)
-                    {
-                        var mp = m.matPropertyList[i];
-                        if (mp.propType == ShaderPropertyType.Texture)
-                            continue;
-
-                        Color currentColor = mp.enabled ? EnabledColor : Color.gray;
-                        bool hasEvents = mp.HasEvents;
-
-                        EditorGUILayout.BeginHorizontal(); // ================= Horizontal Begin ===============
-
-                        RitoEditorGUI.DrawHorizontalSpace(4f);
-
-                        // Draw Label
-                        RitoEditorGUI.DrawPrefixLabelLayout(mp.displayName,
-                            hasEvents ? currentColor : Color.white, 0.25f);
-
-                        Color guiColor = GUI.color;
-                        if (hasEvents)
-                            GUI.color = currentColor;
-                        {
-                            // Draw Property
-                            switch (mp.propType)
-                            {
-                                case ShaderPropertyType.Float:
-                                    {
-                                        float value = EditorGUILayout.FloatField(material.GetFloat(mp.propName));
-                                        material.SetFloat(mp.propName, value);
-                                    }
-                                    break;
-                                case ShaderPropertyType.Range:
-                                    {
-                                        Vector2 minMax = shader.GetPropertyRangeLimits(mp.propIndex);
-                                        float value = EditorGUILayout.Slider(material.GetFloat(mp.propName), minMax.x, minMax.y);
-                                        material.SetFloat(mp.propName, value);
-                                    }
-                                    break;
-                                case ShaderPropertyType.Vector:
-                                    {
-                                        Vector4 value = EditorGUILayout.Vector4Field("", material.GetVector(mp.propName));
-                                        material.SetVector(mp.propName, value);
-                                    }
-                                    break;
-                                case ShaderPropertyType.Color:
-                                    {
-                                        Color value = EditorGUILayout.ColorField(material.GetColor(mp.propName));
-                                        material.SetColor(mp.propName, value);
-                                    }
-                                    break;
-                            }
-                        }
-                        GUI.color = guiColor;
-
-                        RitoEditorGUI.DrawHorizontalSpace(4f);
-
-                        EditorGUILayout.EndHorizontal(); // ================= Horizontal End ===============
-                    }
-                }
-                EditorGUILayout.EndVertical();
-
-                // RIGHT
-                EditorGUILayout.BeginVertical();
-                {
-                    for (int i = 0; i < m.matPropertyList.Count; i++)
-                    {
-                        var mp = m.matPropertyList[i];
-                        if (mp.propType == ShaderPropertyType.Texture)
-                            continue;
-
-                        Color currentColor = mp.enabled ? EnabledColor : Color.gray;
-                        bool hasEvents = mp.HasEvents;
-
-                        EditorGUILayout.BeginHorizontal();
-
-                        // 각 프로퍼티마다 리셋 버튼 - 클릭 시 백업된 기본값으로 마테리얼 프로퍼티 값 변경
-                        if (RitoEditorGUI.DrawButtonLayout("R", Color.magenta, 20f, 18f))
-                        {
-                            switch (mp.propType)
-                            {
-                                case ShaderPropertyType.Float:
-                                case ShaderPropertyType.Range:
-                                    material.SetFloat(mp.propName, m.__materialDefaultValues[i].floatValue);
-                                    break;
-                                case ShaderPropertyType.Vector:
-                                    material.SetVector(mp.propName, m.__materialDefaultValues[i].vector4);
-                                    break;
-                                case ShaderPropertyType.Color:
-                                    material.SetColor(mp.propName, m.__materialDefaultValues[i].color);
-                                    break;
-                            }
-                        }
-
-                        RitoEditorGUI.DrawHorizontalSpace(4f);
-
-                        // 프로퍼티에 이벤트 존재할 경우 : 활성화, 제거 버튼
-                        if (hasEvents)
-                        {
-                            string enableButtonString = mp.enabled ? "E" : "D";
-
-                            if (RitoEditorGUI.DrawButtonLayout(enableButtonString, currentColor, 20f, 18f))
-                                mp.enabled = !mp.enabled;
-
-                            if (RitoEditorGUI.DrawButtonLayout("-", Color.red * 1.5f, 20f, 18f))
-                                mp.RemoveAllEvents();
-                        }
-                        // 이벤트 없을 경우 : 추가 버튼
-                        else
-                        {
-                            bool addButton = RitoEditorGUI.DrawButtonLayout("+", Color.green * 1.5f, 42f, 18f);
-                            if (addButton)
-                            {
-                                mp.AddInitialEvents(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
-                            }
-                        }
-
-                        RitoEditorGUI.DrawHorizontalSpace(4f);
-
-                        EditorGUILayout.EndHorizontal();
-                    }
-                }
-                EditorGUILayout.EndVertical();
-
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUI.EndDisabledGroup();
-            }
-            private void DrawCopiedMaterialProperties___BACKUP_____()
-            {
-                RitoEditorGUI.FoldoutHeaderBox(ref m.__matPropListFoldout, EngHan("Material Properties", "마테리얼 프로퍼티 목록"),
-                    m.matPropertyList.Count);
-
-                if (!m.__matPropListFoldout)
-                    return;
-
-                EditorGUI.BeginDisabledGroup(Application.isPlaying && !m.__editMode);
-
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
                     var mp = m.matPropertyList[i];
-                    if (mp.propType == ShaderPropertyType.Texture)
+                    if ((int)mp.propType == 4) // 4 : Texture
                         continue;
 
                     Color currentColor = mp.enabled ? EnabledColor : Color.gray;
@@ -1096,7 +992,7 @@ namespace Rito
                     RitoEditorGUI.DrawHorizontalSpace(4f);
 
                     RitoEditorGUI.DrawPrefixLabelLayout(mp.displayName,
-                        hasEvents ? currentColor : Color.white);
+                        hasEvents ? currentColor : Color.white, 0.25f);
 
                     Color guiColor = GUI.color;
                     if (hasEvents)
@@ -1192,10 +1088,10 @@ namespace Rito
                     if (m.matPropertyList[i].HasEvents)
                     {
                         DrawPropertyEvents(m.matPropertyList[i], () =>
-                            {
-                                // [-] 버튼 클릭하면 해당 프로퍼티에서 이벤트들 싹 제거
-                                m.matPropertyList[i].RemoveAllEvents();
-                            }
+                        {
+                            // [-] 버튼 클릭하면 해당 프로퍼티에서 이벤트들 싹 제거
+                            m.matPropertyList[i].RemoveAllEvents();
+                        }
                         );
 
                         EditorGUILayout.Space();
@@ -1214,13 +1110,29 @@ namespace Rito
             private void DrawPropertyEvents(in MaterialPropertyInfo matProp, Action removeAction)
             {
                 ref bool enabled = ref matProp.enabled;
+                bool isColorType = matProp.propType == ShaderPropertyType.Color;
+                bool isVectorType = matProp.propType == ShaderPropertyType.Vector;
 
-                int eventCount = matProp.eventList.Count;
-                int contentCount = eventCount * 3 - 1;
-                if (matProp.propType == ShaderPropertyType.Color)
-                    contentCount += eventCount;
+                // 이벤트 하나당 요소 개수
+                int countPerEvent = isColorType ? 3 : 2;
 
-                float heightAdj = matProp.propType == ShaderPropertyType.Color ? eventCount : 0f;
+                // 전체 이벤트의 요소 개수
+                int contentCount = countPerEvent * matProp.eventList.Count;
+
+                // 전체 이벤트의 + 버튼 개수
+                int plusButtonCount = matProp.eventList.Count - 1;
+
+#if UNITY_2019_3_OR_NEWER
+                float heightPerElement = isVectorType ? 22f : 21f;
+                float heightPerButton = isColorType ? 23f : 22f;
+#else
+                float heightPerElement = isVectorType ? 20f : 20f;
+                float heightPerButton = isColorType ? 18f : 20f;
+#endif
+
+                float foldoutContHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
+
+                //float heightAdj = matProp.propType == ShaderPropertyType.Color ? eventCount : 0f;
 
                 if (eventFoldoutHeaderStyle == null)
                     eventFoldoutHeaderStyle = new GUIStyle(EditorStyles.label);
@@ -1235,7 +1147,7 @@ namespace Rito
                 Color enableButtonBgColor = enabled ? Color.black : Color.gray;
                 Color removeButtonColor = Color.red * 1.8f;
 
-                RitoEditorGUI.EventFoldoutHeaderBox(ref matProp.__foldout, headerText, contentCount, heightAdj, eventFoldoutHeaderStyle,
+                RitoEditorGUI.EventFoldoutHeaderBox(ref matProp.__foldout, headerText, foldoutContHeight, eventFoldoutHeaderStyle,
                     headerBgColor, enableButtonBgColor, enableButtonTextColor, removeButtonColor,
                     ref matProp.enabled, out bool removePressed);
 
@@ -1276,8 +1188,8 @@ namespace Rito
                 }
             }
 
-            private static readonly Color HighlightBasic = new Color(0.28f, 0.28f, 0.28f);
-            private static readonly Color HighlightPlaying = new Color(0f, 0.6f, 0.8f);
+            private static readonly Color HighlightBasic = new Color(0.3f, 0.3f, 0.3f);
+            private static readonly Color HighlightPlaying = new Color(0.0f, 0.6f, 0.7f);
 
             /// <summary> 프로퍼티의 이벤트 하나 그리기 (시간, 값) </summary>
             private void DrawEachEvent(MaterialPropertyInfo mp, MaterialPropertyValue mpEvent, int index)
@@ -1292,9 +1204,10 @@ namespace Rito
 
 
                 // 현재 재생, 보간되는 두 이벤트 배경 하이라이트
-                bool currentPlaying = 
-                    Application.isPlaying && 
-                    m.isActiveAndEnabled && 
+                bool currentPlaying =
+                    Application.isPlaying &&
+                    m.isActiveAndEnabled &&
+                    mp.enabled &&
                     (index == mp.__playingIndex || index - 1 == mp.__playingIndex);
 
                 // 추가된 이벤트마다 배경 하이라이트
@@ -1339,7 +1252,7 @@ namespace Rito
 
                     // 시간 슬라이더
                     Color guiColor = GUI.color;
-                    if(isFirstOrLast == false)
+                    if (isFirstOrLast == false)
                         GUI.color = TimeColor;
 
                     // [1] 시간 계산 방식 : 초
@@ -1356,8 +1269,9 @@ namespace Rito
 
                     GUI.color = guiColor;
 
+
                     // 값 변경 시, 전후값의 경계에서 전후값 변경
-                    if(isFirstOrLast == false)
+                    if (isFirstOrLast == false)
                     {
                         MaterialPropertyValue prevEvent = mp.eventList[index - 1];
                         MaterialPropertyValue nextEvent = mp.eventList[index + 1];
@@ -1381,8 +1295,6 @@ namespace Rito
                     // 여백 생성
                     RitoEditorGUI.DrawHorizontalSpace(MinusButtonWidth);
                     Rect minusButtonRect = GUILayoutUtility.GetLastRect();
-                    minusButtonRect.height *= mp.propType == ShaderPropertyType.Color ? 2f : 1f;
-                    minusButtonRect.height += mp.propType == ShaderPropertyType.Color ? 4f : 1f;
                     minusButtonRect.xMax -= RightButtonMargin;
 
                     // 이 이벤트 제거 버튼
@@ -1485,7 +1397,7 @@ namespace Rito
                     prefixLabelStyle = new GUIStyle(EditorStyles.label);
                 prefixLabelStyle.normal.textColor = color == default ? PrefixLabelColor : color;
 
-                if(!fixedWidth)
+                if (!fixedWidth)
                     width = EditorGUIUtility.currentViewWidth * width;
 
                 EditorGUILayout.LabelField(label, prefixLabelStyle, GUILayout.Width(width));
@@ -1554,7 +1466,7 @@ namespace Rito
                 const float ContentTopPadding = 4f; // 내용 박스 내 상단 패딩
                 const float ContentBotPadding = 4f; // 내용 박스 내 하단 패딩
                 float contentHeight = !foldout ? 0f : (ContentTopPadding + OneHeight * contentCount + ContentBotPadding);
-                float totalHeight   = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
+                float totalHeight = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
 
                 Rect H = GUILayoutUtility.GetRect(1, HeaderHeight); // Header
                 GUILayoutUtility.GetRect(1f, ContentTopPadding); // Content Top Padding
@@ -1619,20 +1531,19 @@ namespace Rito
             }
 
             private static GUIStyle enableButtonStyle;
-            public static void EventFoldoutHeaderBox(ref bool foldout, string headerText, int contentCount, float heightAdjust, GUIStyle headerTextStyle,
-                in Color enabledHeaderColor, in Color enabledButtonColor, in Color enabledButtonTextColor, in Color removeButtonColor, 
+            public static void EventFoldoutHeaderBox(ref bool foldout, string headerText, float contentHeight, GUIStyle headerTextStyle,
+                in Color enabledHeaderColor, in Color enabledButtonColor, in Color enabledButtonTextColor, in Color removeButtonColor,
                 ref bool enabled, out bool removePressed)
             {
                 const float OutWidth = 2f;
                 const float HeaderHeight = 20f;
-                const float OneHeight = 21f;
                 const float HeaderLeftPadding = 4f; // 헤더 박스 내 좌측 패딩(레이블 왼쪽 여백)
                 const float ContentTopPadding = 4f; // 내용 박스 내 상단 패딩
                 const float ContentBotPadding = 4f; // 내용 박스 내 하단 패딩
-                float contentHeight = !foldout ? 0f : (ContentTopPadding + OneHeight * contentCount + ContentBotPadding);
-                contentHeight += heightAdjust;
 
-                float totalHeight   = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
+                contentHeight = !foldout ? 0f : (ContentTopPadding + contentHeight + ContentBotPadding);
+
+                float totalHeight = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
 
                 Rect H = GUILayoutUtility.GetRect(1, HeaderHeight); // Header
                 GUILayoutUtility.GetRect(1f, ContentTopPadding); // Content Top Padding
@@ -1853,7 +1764,7 @@ namespace Rito
                 matNameLabelStyle = new GUIStyle(EditorStyles.label);
 
             priorityLabelStyle.normal.textColor = goActive ? Color.cyan : Color.gray;
-            matNameLabelStyle.normal.textColor  = goActive ? Color.magenta * 1.5f : Color.gray;
+            matNameLabelStyle.normal.textColor = goActive ? Color.magenta * 1.5f : Color.gray;
 
             EditorGUI.BeginDisabledGroup(!goActive);
             {
@@ -1862,7 +1773,7 @@ namespace Rito
 
                 // Material Name Label
                 if (effect.showMaterialNameInHierarchy && matIsNotNull)
-                    GUI.Label(matNameRect, effect.effectMaterial.name, matNameLabelStyle);
+                    GUI.Label(matNameRect, effect.effectMaterial.shader.name, matNameLabelStyle);
             }
             EditorGUI.EndDisabledGroup();
 
@@ -1883,31 +1794,31 @@ namespace Rito
             EditorGUI.EndDisabledGroup();
         }
 #endif
-            #endregion
+        #endregion
         /***********************************************************************
         *                               Context Menu
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
-    private const string HierarchyMenuItemTitle = "GameObject/Effects/Screen Effect";
+        private const string HierarchyMenuItemTitle = "GameObject/Effects/Screen Effect";
 
-    [MenuItem(HierarchyMenuItemTitle, false, 501)]
-    private static void MenuItem()
-    {
-        if (Selection.activeGameObject == null)
+        [MenuItem(HierarchyMenuItemTitle, false, 501)]
+        private static void MenuItem()
         {
-            GameObject go = new GameObject("Screen Effect");
-            go.AddComponent<ScreenEffect>();
+            if (Selection.activeGameObject == null)
+            {
+                GameObject go = new GameObject("Screen Effect");
+                go.AddComponent<ScreenEffect>();
+            }
         }
-    }
 
-    [MenuItem(HierarchyMenuItemTitle, true)] // Validation
-    private static bool MenuItem_Validate()
-    {
-        return Selection.activeGameObject == null;
-    }
+        [MenuItem(HierarchyMenuItemTitle, true)] // Validation
+        private static bool MenuItem_Validate()
+        {
+            return Selection.activeGameObject == null;
+        }
 #endif
-    #endregion
+        #endregion
         /***********************************************************************
         *                               Save Playmode Changes
         ***********************************************************************/
@@ -1976,6 +1887,31 @@ namespace Rito
             RefClamp_000(ref @this.z);
             RefClamp_000(ref @this.w);
         }
+#if !UNITY_2019_3_OR_NEWER
+        public static int GetPropertyCount(this Shader shader)
+        {
+            return ShaderUtil.GetPropertyCount(shader);
+        }
+        public static Vector2 GetPropertyRangeLimits(this Shader shader, int index)
+        {
+            Vector2 ret = new Vector2();
+            ret.x = ShaderUtil.GetRangeLimits(shader, index, 1);
+            ret.y = ShaderUtil.GetRangeLimits(shader, index, 2);
+            return ret;
+        }
+        public static string GetPropertyName(this Shader shader, int index)
+        {
+            return ShaderUtil.GetPropertyName(shader, index);
+        }
+        public static string GetPropertyDescription(this Shader shader, int index)
+        {
+            return ShaderUtil.GetPropertyDescription(shader, index);
+        }
+        public static ShaderPropertyType GetPropertyType(this Shader shader, int index)
+        {
+            return ShaderUtil.GetPropertyType(shader, index);
+        }
+#endif
     }
 #endif
     #endregion
