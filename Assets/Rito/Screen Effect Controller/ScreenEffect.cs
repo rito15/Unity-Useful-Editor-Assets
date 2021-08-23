@@ -70,7 +70,6 @@ namespace Rito
 
         [SerializeField] private bool __optionFoldout1 = true;
         [SerializeField] private bool __optionFoldout2 = true;
-        [SerializeField] private bool __optionFoldout3 = true;
         [SerializeField] private bool __matPropListFoldout = true;
 
         [SerializeField] private int __propCount; // 마테리얼 프로퍼티 개수 기억(변화 감지용)
@@ -139,6 +138,7 @@ namespace Rito
                 // 1. 시간 계산 방식 : 초
                 if (isTimeModeSeconds)
                 {
+                    if (durationSeconds <= 0f) break;
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
                     for (int j = 0; j < eventCount; j++)
@@ -211,6 +211,7 @@ namespace Rito
                 // 2. 시간 계산 방식 : 프레임
                 else
                 {
+                    if (durationFrame == 0) break;
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
                     for (int j = 0; j < eventCount; j++)
@@ -499,7 +500,10 @@ namespace Rito
             private Material material;
             private Shader shader;
 
-            private bool isMaterialChanged; // 제거 예정
+            private bool isMaterialChanged;
+
+            /// <summary> Duration Time 또는 Frame 값이 0 </summary>
+            private bool isDurationZero;
 
             private static readonly Color MinusButtonColor = Color.red * 1.5f;
             private static readonly Color TimeColor = new Color(1.5f, 1.5f, 0.2f, 1f);  // Yellow
@@ -557,24 +561,26 @@ namespace Rito
 
                         EditorGUILayout.Space();
                         EditorGUILayout.Space();
-                        try
-                        {
-                            DrawCopiedMaterialProperties();
-                        }
-                        catch // 쉐이더 프로퍼티 변경 시 정보 다시 로드
-                        {
-                            if (m.effectMaterial != null)
-                                LoadMaterialInfo();
-                            else
-                                m.effectMaterial = null;
-                        }
+                        DrawCopiedMaterialProperties();
+                        //try
+                        //{
+                        //    DrawCopiedMaterialProperties();
+                        //}
+                        //catch // 쉐이더 프로퍼티 변경 시 정보 다시 로드
+                        //{
+                        //    if (m.effectMaterial != null)
+                        //        LoadMaterialInfo();
+                        //    else
+                        //        m.effectMaterial = null;
+                        //}
 
-                        try
-                        {
-                            EditorGUILayout.Space();
-                        }
-                        catch { } // 쉐이더 프로퍼티 리로드 시 발생하는 예외 무시
+                        //try
+                        //{
+                        //    EditorGUILayout.Space();
+                        //}
+                        //catch { } // 쉐이더 프로퍼티 리로드 시 발생하는 예외 무시
 
+                        EditorGUILayout.Space();
                         EditorGUILayout.Space();
                         DrawMaterialPropertyEventList();
                     }
@@ -850,9 +856,12 @@ namespace Rito
                     }
                 }
 
+                isDurationZero = false;
+
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
-                    RitoEditorGUI.DrawPrefixLabelLayout(m.isTimeModeSeconds ? EngHan("Duration Time", "지속 시간(초)") : EngHan("Duration Frame", "지속 시간(프레임)"));
+                    RitoEditorGUI.DrawPrefixLabelLayout(m.isTimeModeSeconds ?
+                        EngHan("Duration Time", "지속 시간(초)") : EngHan("Duration Frame", "지속 시간(프레임)"));
 
                     // 1. 시간 계산 방식이 초 일경우
                     if (m.isTimeModeSeconds)
@@ -862,8 +871,16 @@ namespace Rito
                         m.durationSeconds.RefClamp_000();
                         float prevDuration = m.durationSeconds;
 
+                        Color col = GUI.color;
+                        if (m.durationSeconds <= 0f)
+                        {
+                            GUI.color = Color.red;
+                            isDurationZero = true;
+                        }
                         m.durationSeconds = EditorGUILayout.FloatField(m.durationSeconds);
                         if (m.durationSeconds < 0f) m.durationSeconds = 0f;
+
+                        GUI.color = col;
 
                         // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
                         if (EditorGUI.EndChangeCheck() && m.durationSeconds > 0f)
@@ -890,8 +907,16 @@ namespace Rito
 
                         int prevDurationFrame = m.durationFrame;
 
+                        Color col = GUI.color;
+                        if (m.durationFrame == 0)
+                        {
+                            GUI.color = Color.red;
+                            isDurationZero = true;
+                        }
                         m.durationFrame = EditorGUILayout.IntField(m.durationFrame);
                         if (m.durationFrame < 0) m.durationFrame = 0;
+
+                        GUI.color = col;
 
                         // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
                         if (EditorGUI.EndChangeCheck() && m.durationSeconds > 0f)
@@ -1062,7 +1087,7 @@ namespace Rito
                     {
                         string enableButtonString = mp.enabled ? "E" : "D";
 
-                        if (RitoEditorGUI.DrawButtonLayout(enableButtonString, currentColor, 20f, 18f))
+                        if (RitoEditorGUI.DrawButtonLayout(enableButtonString, currentColor, 22f, 18f))
                             mp.enabled = !mp.enabled;
 
                         if (RitoEditorGUI.DrawButtonLayout("-", Color.red * 1.5f, 20f, 18f))
@@ -1071,7 +1096,12 @@ namespace Rito
                     // 이벤트 없을 경우 : 추가 버튼
                     else
                     {
-                        bool addButton = RitoEditorGUI.DrawButtonLayout("+", Color.green * 1.5f, 42f, 18f);
+#if UNITY_2017_9_OR_NEWER
+                        const float PlusButtonWidth = 42f;
+#else
+                        const float PlusButtonWidth = 46f;
+#endif
+                        bool addButton = RitoEditorGUI.DrawButtonLayout("+", Color.green * 1.5f, PlusButtonWidth, 18f);
                         if (addButton)
                         {
                             mp.AddInitialEvents(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
@@ -1089,6 +1119,13 @@ namespace Rito
             /// <summary> 프로퍼티 이벤트들 모두 그리기 </summary>
             private void DrawMaterialPropertyEventList()
             {
+                if (isDurationZero)
+                {
+                    EditorStyles.helpBox.fontSize = 14;
+                    EditorGUILayout.HelpBox(EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."), MessageType.Error);
+                    return;
+                }
+
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
                     if (m.matPropertyList[i].HasEvents)
@@ -1132,8 +1169,8 @@ namespace Rito
                 float heightPerElement = isVectorType ? 22f : 21f;
                 float heightPerButton = isColorType ? 23f : 22f;
 #else
-                float heightPerElement = isVectorType ? 20f : 20f;
-                float heightPerButton = isColorType ? 18f : 20f;
+                float heightPerElement = isVectorType ? 21f : 21f;
+                float heightPerButton = isColorType ? 17f : 20f;
 #endif
 
                 float foldoutContHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
@@ -1203,6 +1240,7 @@ namespace Rito
                 bool isFirst = index == 0;
                 bool isLast = index == mp.eventList.Count - 1;
                 bool isFirstOrLast = isFirst || isLast;
+                bool isColorType = mp.propType == ShaderPropertyType.Color;
 
                 // Clamp Time Value (First, Last)
                 if (isFirst) mpEvent.time = 0f;
@@ -1219,9 +1257,9 @@ namespace Rito
                 // 추가된 이벤트마다 배경 하이라이트
                 Rect highlightRight = GUILayoutUtility.GetRect(1f, 0f);
 #if UNITY_2019_3_OR_NEWER
-                highlightRight.height = mp.propType == ShaderPropertyType.Color ? 62f : 42f;
+                highlightRight.height = isColorType ? 62f : 42f;
 #else
-                highlightRight.height = mp.propType == ShaderPropertyType.Color ? 56f : 38f;
+                highlightRight.height = isColorType ? 56f : 38f;
 #endif
                 highlightRight.xMin += 4f;
                 highlightRight.xMax -= 4f;
@@ -1267,7 +1305,7 @@ namespace Rito
 #if UNITY_2019_3_OR_NEWER
                     indexRect.y += 10f;
 #else
-                    indexRect.y += 6f;
+                    indexRect.y += isColorType ? 14f : 6f;
 #endif
 
                     // 좌측 인덱스
@@ -1648,7 +1686,7 @@ namespace Rito
                 BTN3.yMax -= 1f;
 
                 Rect BTN2 = new Rect(BTN3);
-                BTN2.width = 60f;
+                BTN2.width = 64f;
                 BTN2.x = BTN3.xMin - BTN2.width - 4f;
 
                 Rect BTN1 = new Rect(H);

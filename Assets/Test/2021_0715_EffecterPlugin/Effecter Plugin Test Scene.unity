@@ -159,7 +159,6 @@ MonoBehaviour:
   durationFrame: 240
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __optionFoldout3: 1
   __matPropListFoldout: 1
   __propCount: 11
   __materialDefaultValues:
@@ -498,7 +497,6 @@ MonoBehaviour:
   durationFrame: 0
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __optionFoldout3: 1
   __matPropListFoldout: 1
   __propCount: 4
   __materialDefaultValues:
@@ -589,7 +587,6 @@ MonoBehaviour:
   durationFrame: 0
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __optionFoldout3: 1
   __matPropListFoldout: 1
   __propCount: 4
   __materialDefaultValues:
@@ -774,22 +771,21 @@ MonoBehaviour:
   showMaterialNameInHierarchy: 1
   stopAction: 2
   isTimeModeSeconds: 1
-  durationSeconds: 4
+  durationSeconds: 1
   durationFrame: 240
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __optionFoldout3: 1
   __matPropListFoldout: 1
   __propCount: 6
   __materialDefaultValues:
   - time: 0
     frame: 0
-    floatValue: 0
+    floatValue: 0.1509434
     range: {x: 0, y: 0}
     min: 0
     max: 0
-    color: {r: 0, g: 0, b: 0, a: 0}
-    vector4: {x: 0, y: 0, z: 0, w: 0}
+    color: {r: 0.1509434, g: 0, b: 0, a: 0}
+    vector4: {x: 0.1509434, y: 0, z: 0, w: 0}
   - time: 0
     frame: 0
     floatValue: 1
@@ -832,7 +828,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 2
+    - time: 0
       frame: 120
       floatValue: 0
       range: {x: 0, y: 0}
@@ -840,7 +836,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 2.5000002
+    - time: 0
       frame: 150
       floatValue: 0
       range: {x: 0, y: 0}
@@ -848,7 +844,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.0000002
+    - time: 0
       frame: 180
       floatValue: 0
       range: {x: 0, y: 0}
@@ -856,7 +852,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.2500002
+    - time: 0
       frame: 195
       floatValue: 0
       range: {x: 0, y: 0}
@@ -864,7 +860,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.5000002
+    - time: 0
       frame: 210
       floatValue: 0
       range: {x: 0, y: 0}
@@ -872,7 +868,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.6166668
+    - time: 0
       frame: 217
       floatValue: 0
       range: {x: 0, y: 0}
@@ -880,7 +876,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.7500002
+    - time: 0
       frame: 225
       floatValue: 0
       range: {x: 0, y: 0}
@@ -888,7 +884,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.8000002
+    - time: 0
       frame: 228
       floatValue: 0
       range: {x: 0, y: 0}
@@ -896,7 +892,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.8666668
+    - time: 0
       frame: 232
       floatValue: 0
       range: {x: 0, y: 0}
@@ -904,7 +900,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9
+    - time: 0
       frame: 234
       floatValue: 0
       range: {x: 0, y: 0}
@@ -912,7 +908,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9333336
+    - time: 0
       frame: 236
       floatValue: 0
       range: {x: 0, y: 0}
@@ -920,7 +916,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9500003
+    - time: 0
       frame: 237
       floatValue: 0
       range: {x: 0, y: 0}
@@ -928,7 +924,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.966667
+    - time: 0
       frame: 238
       floatValue: 0
       range: {x: 0, y: 0}
@@ -936,7 +932,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.966667
+    - time: 0
       frame: 238
       floatValue: 0
       range: {x: 0, y: 0}
@@ -944,7 +940,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9833336
+    - time: 0
       frame: 239
       floatValue: 0
       range: {x: 0, y: 0}
@@ -952,7 +948,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9833336
+    - time: 0
       frame: 239
       floatValue: 0
       range: {x: 0, y: 0}
@@ -960,7 +956,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9833336
+    - time: 0
       frame: 239
       floatValue: 0
       range: {x: 0, y: 0}
@@ -968,7 +964,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9833336
+    - time: 0
       frame: 239
       floatValue: 0
       range: {x: 0, y: 0}
@@ -976,7 +972,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.9833336
+    - time: 0
       frame: 239
       floatValue: 0
       range: {x: 0, y: 0}
@@ -984,7 +980,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 4
+    - time: 1
       frame: 240
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1001,7 +997,7 @@ MonoBehaviour:
     __foldout: 0
     __playingIndex: 0
     eventList:
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1009,7 +1005,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1017,7 +1013,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1025,7 +1021,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1033,7 +1029,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1041,7 +1037,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1049,7 +1045,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1057,7 +1053,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0.016666668
+    - time: Infinity
       frame: 1
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1065,7 +1061,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0.050000004
+    - time: Infinity
       frame: 3
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1073,7 +1069,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0.116666675
+    - time: Infinity
       frame: 7
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1081,7 +1077,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0.25
+    - time: Infinity
       frame: 15
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1089,7 +1085,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 0.5
+    - time: Infinity
       frame: 30
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1097,7 +1093,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 1
+    - time: Infinity
       frame: 60
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1105,7 +1101,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 2
+    - time: Infinity
       frame: 120
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1113,7 +1109,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 2.0500002
+    - time: Infinity
       frame: 123
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1121,7 +1117,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 2.1166668
+    - time: Infinity
       frame: 127
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1129,7 +1125,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 2.25
+    - time: Infinity
       frame: 135
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1137,7 +1133,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 2.5000002
+    - time: Infinity
       frame: 150
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1145,7 +1141,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 3.0000002
+    - time: Infinity
       frame: 180
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1153,7 +1149,7 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-    - time: 4
+    - time: Infinity
       frame: 240
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1167,10 +1163,10 @@ MonoBehaviour:
     propType: 1
     propIndex: 3
     enabled: 1
-    __foldout: 1
+    __foldout: 0
     __playingIndex: 0
     eventList:
-    - time: 0
+    - time: NaN
       frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1178,7 +1174,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 1
+    - time: Infinity
       frame: 15
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1186,7 +1182,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 1.2
+    - time: Infinity
       frame: 30
       floatValue: 0.5
       range: {x: 0, y: 0}
@@ -1194,7 +1190,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0.5, g: 0, b: 0, a: 0}
       vector4: {x: 0.5, y: 0, z: 0, w: 0}
-    - time: 1.4000001
+    - time: Infinity
       frame: 60
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1202,7 +1198,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 2
+    - time: Infinity
       frame: 135
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1210,7 +1206,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 2.2
+    - time: Infinity
       frame: 150
       floatValue: 0
       range: {x: 0.5, y: 0}
@@ -1218,7 +1214,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0.5, b: 0, a: 0}
       vector4: {x: 0, y: 0.5, z: 0, w: 0}
-    - time: 2.4
+    - time: Infinity
       frame: 180
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1226,7 +1222,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.0000002
+    - time: Infinity
       frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1234,7 +1230,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.1000001
+    - time: Infinity
       frame: 0
       floatValue: 0
       range: {x: 0, y: 1}
@@ -1242,7 +1238,7 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 3.2
+    - time: Infinity
       frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1250,7 +1246,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 4
+    - time: Infinity
       frame: 240
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1265,7 +1261,7 @@ MonoBehaviour:
     propIndex: 4
     enabled: 0
     __foldout: 0
-    __playingIndex: 3
+    __playingIndex: 0
     eventList:
     - time: 0
       frame: 0
@@ -1276,63 +1272,7 @@ MonoBehaviour:
       color: {r: 1, g: 0, b: 0, a: 0}
       vector4: {x: 1, y: 0, z: 0, w: 0}
     - time: 1
-      frame: 60
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 1.2
-      frame: 106
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 2.0800002
-      frame: 128
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 2.5600002
-      frame: 154
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 2.8300002
-      frame: 170
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 3.6100001
-      frame: 217
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 3.7500002
-      frame: 225
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 4
-      frame: 240
+      frame: 0
       floatValue: 1
       range: {x: 0, y: 0}
       min: 0
