@@ -159,7 +159,7 @@ MonoBehaviour:
   showMaterialNameInHierarchy: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __matPropListFoldout: 1
+  __matPropListFoldout: 0
   __propCount: 11
   __materialDefaultValues:
   - time: 0
@@ -245,12 +245,12 @@ MonoBehaviour:
   __materialCurrentValues:
   - time: 0
     frame: 0
-    floatValue: 0.1764706
-    range: {x: 0.6, y: 1}
-    min: 0.6
-    max: 1
-    color: {r: 0.1764706, g: 0.6, b: 1, a: 0}
-    vector4: {x: 0.1764706, y: 0.6, z: 1, w: 0}
+    floatValue: 0.57301813
+    range: {x: 0.31090912, y: 0.75427276}
+    min: 0.31090912
+    max: 0.75427276
+    color: {r: 0.57301813, g: 0.31090912, b: 0.75427276, a: 0}
+    vector4: {x: 0.57301813, y: 0.31090912, z: 0.75427276, w: 0}
   - time: 0
     frame: 0
     floatValue: 2
@@ -261,20 +261,20 @@ MonoBehaviour:
     vector4: {x: 2, y: 0, z: 0, w: 0}
   - time: 0
     frame: 0
-    floatValue: 0.15
+    floatValue: 0.2
     range: {x: 0, y: 1}
     min: 0
     max: 1
-    color: {r: 0.15, g: 0, b: 1, a: 0}
-    vector4: {x: 0.15, y: 0, z: 1, w: 0}
+    color: {r: 0.2, g: 0, b: 1, a: 0}
+    vector4: {x: 0.2, y: 0, z: 1, w: 0}
   - time: 0
     frame: 0
-    floatValue: 2
+    floatValue: 3
     range: {x: 1, y: 10}
     min: 1
     max: 10
-    color: {r: 2, g: 1, b: 10, a: 0}
-    vector4: {x: 2, y: 1, z: 10, w: 0}
+    color: {r: 3, g: 1, b: 10, a: 0}
+    vector4: {x: 3, y: 1, z: 10, w: 0}
   - time: 0
     frame: 0
     floatValue: 3
@@ -363,7 +363,7 @@ MonoBehaviour:
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
     __displayName: Color
     __propIndex: 1
-    __foldout: 1
+    __foldout: 0
     __playingIndex: 0
     __showGraphFloat: 0
     __showGraphVector: 01010101
@@ -884,7 +884,7 @@ MonoBehaviour:
     __displayName: Shake Intensity
     __propIndex: 0
     __foldout: 1
-    __playingIndex: 1
+    __playingIndex: 3
     __showGraphFloat: 0
     __showGraphVector: 
   - material: {fileID: 939036497}

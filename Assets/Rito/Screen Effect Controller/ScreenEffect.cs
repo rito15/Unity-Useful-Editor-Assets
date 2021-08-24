@@ -43,6 +43,11 @@ public enum ShaderPropertyType
 /*
  * [Future Works]
  * 
+ * - 편집모드 체크된 상태(이벤트 진행 멈춤)에서, 각 그래프를 클릭하면 해당 지점으로 currentTime 또는 currentFrame 이동시키기
+ * - 구현 완료하고 각종 테스트 진행
+ * 
+ * - 구현 전부 완료하고 2018 ~ 2021 빌드 테스트 진행
+ * 
  */
 
 namespace Rito
