@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,16 +31,18 @@ public enum ShaderPropertyType
  *  - 2018.3.14f1 테스트 완료
  *  - 2019.4.9f1  테스트 완료
  *  - 2020.3.14f1 테스트 완료
- *  - 2021 : TODO
+ *  - 2021.1.16f1 테스트 완료
  * 
  * [빌드 테스트]
  *  - 2018.3.14f1 테스트 완료
  *  - 2019.4.9f1  테스트 완료
  *  - 2020.3.14f1 테스트 완료(Mono, IL2CPP)
- *  - 2021 : TODO
- *  
- *  
- *  - TODO : 각각 이벤트모음 위쪽마다 정리된 그래프 표시/미표시 해주기
+ *  - 2021.1.16f1 테스트 완료
+ */
+
+/*
+ * [Future Works]
+ * 
  */
 
 namespace Rito
@@ -59,7 +62,6 @@ namespace Rito
         public Material effectMaterial;
         public int priority = 0;
 
-        [SerializeField] private bool showMaterialNameInHierarchy = true;
         [SerializeField] private StopAction stopAction;
 
         private static ScreenEffectController controller;
@@ -82,6 +84,7 @@ namespace Rito
         /// <summary> 플레이 모드 중 Current Time 직접 수정 가능 모드 </summary>
         private bool __editMode = false;
 
+        [SerializeField] private bool showMaterialNameInHierarchy = true;
         [SerializeField] private bool __optionFoldout1 = true;
         [SerializeField] private bool __optionFoldout2 = true;
         [SerializeField] private bool __matPropListFoldout = true;
@@ -381,6 +384,10 @@ namespace Rito
             public bool __foldout = true;
             public int __playingIndex = 0; // 현재 재생 중인 이벤트의 인덱스
 
+            // 그래프 보여주기
+            public bool __showGraphFloat = false;
+            public bool[] __showGraphVector;
+
             public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
             {
                 this.material = material;
@@ -391,6 +398,10 @@ namespace Rito
                 this.enabled = false;
 
                 this.eventList = new List<MaterialPropertyValue>(10);
+
+                this.__showGraphVector = new bool[4];
+                for (int i = 0; i < this.__showGraphVector.Length; i++)
+                    this.__showGraphVector[i] = false;
             }
 
             /// <summary> 이벤트가 아예 없었던 경우, 초기 이벤트 2개(시작, 끝) 추가 </summary>
@@ -505,7 +516,7 @@ namespace Rito
 
         #endregion
         /***********************************************************************
-        *                               Custom Editor
+        *                           Custom Editor
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
@@ -527,6 +538,7 @@ namespace Rito
             private static readonly Color EnabledColor = new Color(0f, 1.5f, 1.5f, 1f); // Cyan
 
             private static GUIStyle bigMinusButtonStyle;
+            private static GUIStyle whiteTextButtonStyle; // 글씨가 하얀색인 버튼
             private static GUIStyle boldFoldoutStyle;
             private static GUIStyle propertyEventTimeLabelStyle;
             private static GUIStyle whiteBoldLabelStyle;
@@ -542,6 +554,8 @@ namespace Rito
 
                 Undo.undoRedoPerformed -= OnUndoRedoPerformed;
                 Undo.undoRedoPerformed += OnUndoRedoPerformed;
+
+                InitReflectionData();
             }
             private void OnDisable()
             {
@@ -631,6 +645,7 @@ namespace Rito
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+
             /***********************************************************************
             *                               Eng / Han
             ***********************************************************************/
@@ -676,6 +691,15 @@ namespace Rito
 
                 return false;
             }
+            private void InitReflectionData()
+            {
+                if (fiCurveBGColor == null)
+                {
+                    Type type = typeof(EditorGUI);
+                    fiCurveBGColor = type.GetField("kCurveBGColor", BindingFlags.Static | BindingFlags.NonPublic);
+                    defaultCurveBGColor = (Color)fiCurveBGColor.GetValue(null);
+                }
+            }
             private void LoadMaterialInfo()
             {
                 InitVariables();
@@ -695,6 +719,15 @@ namespace Rito
                         fontSize = 20,
                         fontStyle = FontStyle.Bold
                     };
+                }
+                if (whiteTextButtonStyle == null)
+                {
+                    whiteTextButtonStyle = new GUIStyle("button")
+                    {
+                        fontStyle = FontStyle.Bold
+                    };
+                    whiteTextButtonStyle.normal.textColor = Color.white;
+                    whiteTextButtonStyle.hover.textColor = Color.white;
                 }
                 if (boldFoldoutStyle == null)
                 {
@@ -1233,22 +1266,46 @@ namespace Rito
                 }
             }
 
+
             GUIStyle eventFoldoutHeaderStyle;
+
+            // 그래프 너비 옵션
+            const float GraphToggleButtonWidth = 100f;
+            const float GraphMarginLeft = 4f;
+            const float GraphMarginRight = 4f;
+
+            // 그래프 높이
+            const float GraphMarginTop = 2f;           // 최상단 ~ 토글 버튼 사이 간격
+            const float GraphToggleButtonHeight = 20f; // 토글 버튼 높이
+            const float GraphMarginCenter = 2f;        // 토글 버튼 ~ 그래프 사이 간격
+            const float GraphHeight = 80f;             // 그래프 높이
+            const float GraphMarginBottom = 4f;        // 그래프 하단 간격
+
             /// <summary> 프로퍼티 하나의 이벤트 모두 그리기 </summary>
-            private void DrawPropertyEvents(in MaterialPropertyInfo matProp, Action removeAction)
+            private void DrawPropertyEvents(MaterialPropertyInfo mp, Action removeAction)
             {
-                ref bool enabled = ref matProp.enabled;
-                bool isColorType = matProp.propType == ShaderPropertyType.Color;
-                bool isVectorType = matProp.propType == ShaderPropertyType.Vector;
+                ref bool enabled = ref mp.enabled;
+                bool isColorType = mp.propType == ShaderPropertyType.Color;
+                bool isVectorType = mp.propType == ShaderPropertyType.Vector;
+
+                // 그래프 그릴지 여부 확인
+                bool showGraph = mp.__showGraphFloat;
+                for (int i = 0; i < mp.__showGraphVector.Length; i++)
+                    showGraph |= mp.__showGraphVector[i];
+
+                // 그래프 최종 높이
+                float graphTotalHeight = GraphMarginTop + GraphToggleButtonHeight + GraphMarginCenter;
+                if (showGraph) 
+                    graphTotalHeight += GraphHeight + GraphMarginBottom;
 
                 // 이벤트 하나당 요소 개수
                 int countPerEvent = isColorType ? 3 : 2;
 
                 // 전체 이벤트의 요소 개수
-                int contentCount = countPerEvent * matProp.eventList.Count;
+                int contentCount = countPerEvent * mp.eventList.Count;
 
                 // 전체 이벤트의 + 버튼 개수
-                int plusButtonCount = matProp.eventList.Count - 1;
+                int plusButtonCount = mp.eventList.Count - 1;
 
 #if UNITY_2019_3_OR_NEWER
                 float heightPerElement = isVectorType ? 22f : 21f;
@@ -1258,62 +1315,359 @@ namespace Rito
                 float heightPerButton = isColorType ? 17f : 20f;
 #endif
 
-                float foldoutContHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
+                // 최종 Foldout 높이 결정
+                float foldoutContHeight = graphTotalHeight + contentCount * heightPerElement + plusButtonCount * heightPerButton;
 
-                //float heightAdj = matProp.propType == ShaderPropertyType.Color ? eventCount : 0f;
-
+                // Foldout 스타일 설정
                 if (eventFoldoutHeaderStyle == null)
                     eventFoldoutHeaderStyle = new GUIStyle(EditorStyles.label);
                 eventFoldoutHeaderStyle.normal.textColor =
                 eventFoldoutHeaderStyle.onNormal.textColor = enabled ? Color.black : Color.gray;
                 eventFoldoutHeaderStyle.fontStyle = FontStyle.Bold;
 
-                string headerText = $"{matProp.__displayName} [{matProp.propType}]";
-                Color headerBgColor = enabled ? new Color(0f, 0.8f, 0.8f) : new Color(0.1f, 0.1f, 0.1f);
+                string headerText = $"{mp.__displayName} [{mp.propType}]";
 
+                Color headerBgColor = enabled ? new Color(0f, 0.8f, 0.8f) : new Color(0.1f, 0.1f, 0.1f);
                 Color enableButtonTextColor = enabled ? Color.white : Color.white;
                 Color enableButtonBgColor = enabled ? Color.black : Color.gray;
                 Color removeButtonColor = Color.red * 1.8f;
 
-                RitoEditorGUI.EventFoldoutHeaderBox(ref matProp.__foldout, headerText, foldoutContHeight, eventFoldoutHeaderStyle,
+                // Draw Foldout
+                RitoEditorGUI.EventFoldoutHeaderBox(ref mp.__foldout, headerText, foldoutContHeight, eventFoldoutHeaderStyle,
                     headerBgColor, enableButtonBgColor, enableButtonTextColor, removeButtonColor,
-                    ref matProp.enabled, out bool removePressed);
+                    ref mp.enabled, out bool removePressed);
 
                 if (removePressed)
                 {
                     removeAction();
                 }
 
-                if (matProp.__foldout)
+                if (!mp.__foldout) return;
+                // ======================= Foldout 펼쳐져 있을 때 ======================= //
+                
+                // 그래프 그리기
                 {
-                    int addNewEvent = -1;
+                    // [1] 상단 여백
+                    GUILayoutUtility.GetRect(1f, GraphMarginTop);
 
-                    var eventList = matProp.eventList;
-                    for (int i = 0; i < eventList.Count; i++)
+                    // [2] 토글 버튼
+                    Rect graphBtnRect = GUILayoutUtility.GetRect(1f, GraphToggleButtonHeight);
+
+                    // [3] 중간 여백
+                    GUILayoutUtility.GetRect(1f, GraphMarginCenter);
+
+                    Rect graphRect = default;
+
+                    if (showGraph)
                     {
-                        // 이벤트 항목 한개 그리기
-                        DrawEachEvent(matProp, eventList[i], i);
+                        // [4] 그래프
+                        graphRect = GUILayoutUtility.GetRect(1f, GraphHeight);
+                        graphRect.xMin += GraphMarginLeft;
+                        graphRect.xMax -= GraphMarginRight;
 
-                        // 이벤틑 사이사이 [+] 버튼 : 새로운 이벤트 추가
-                        if (i < eventList.Count - 1)
+                        // [5] 하단 여백
+                        GUILayoutUtility.GetRect(1f, GraphMarginBottom);
+                    }
+
+                    if (mp.propType == ShaderPropertyType.Float || mp.propType == ShaderPropertyType.Range)
+                        DrawFloatGraph(mp, graphBtnRect, graphRect);
+                    else
+                        DrawVector4OrColorGraph(mp, graphBtnRect, graphRect);
+
+                    if (showGraph && Application.isPlaying)
+                    {
+                        // [6] 그래프에 현재 재생 중인 위치 표시하기
+                        if (m.isTimeModeSeconds && m.durationSeconds > 0f ||
+                            !m.isTimeModeSeconds && m.durationFrame > 0)
                         {
-                            EditorGUILayout.BeginHorizontal();
+                            Rect currentPlayingRect = new Rect(graphRect);
+                            float baseXPos = graphRect.x;
+                            float totalWidth = graphRect.width - 2f;
+                            currentPlayingRect.width = 2f;
 
-                            const float ButtonWidth = 24f;
+                            float currentRatio = m.isTimeModeSeconds ?
+                                m.currentSeconds / m.durationSeconds :
+                                (float)m.currentFrame / m.durationFrame;
 
-                            // 버튼 중앙 정렬
-                            RitoEditorGUI.DrawHorizontalSpace((EditorGUIUtility.currentViewWidth) * 0.5f - ButtonWidth);
-                            if (RitoEditorGUI.DrawPlusButtonLayout(ButtonWidth)) addNewEvent = i;
+                            currentPlayingRect.x = baseXPos + currentRatio * totalWidth;
 
-                            EditorGUILayout.EndHorizontal();
+                            EditorGUI.DrawRect(currentPlayingRect, Color.yellow);
+                        }
+                    }
+                }
+
+                int addNewEvent = -1;
+
+                var eventList = mp.eventList;
+                for (int i = 0; i < eventList.Count; i++)
+                {
+                    // 이벤트 항목 한개 그리기
+                    DrawEachEvent(mp, eventList[i], i);
+
+                    // 이벤틑 사이사이 [+] 버튼 : 새로운 이벤트 추가
+                    if (i < eventList.Count - 1)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+
+                        const float ButtonWidth = 24f;
+
+                        // 버튼 중앙 정렬
+                        RitoEditorGUI.DrawHorizontalSpace((EditorGUIUtility.currentViewWidth) * 0.5f - ButtonWidth);
+                        if (RitoEditorGUI.DrawPlusButtonLayout(ButtonWidth)) addNewEvent = i;
+
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+
+                // 새로운 이벤트 추가
+                if (addNewEvent > -1)
+                {
+                    mp.Edt_AddNewEvent(addNewEvent, m.isTimeModeSeconds);
+                }
+            }
+
+            /// <summary> Float, Range 그래프를 그림미당 </summary>
+            private void DrawFloatGraph(MaterialPropertyInfo mp, Rect buttonRect, in Rect graphRect)
+            {
+                // Note : buttonRect는 여백 설정되지 않은 영역(중앙 정렬 필요)
+                //        graphRect는 여백 설정 모두 완료(바로 사용)
+
+                // 1. 토글 버튼
+                float viewWidth = buttonRect.width;
+                buttonRect.width = GraphToggleButtonWidth;
+                buttonRect.x = (viewWidth - GraphToggleButtonWidth * 0.5f) * 0.5f;
+
+                string buttonLabel = mp.__showGraphFloat ?
+                    EngHan("Hide Graph", "그래프 숨기기") :
+                    EngHan("Show Graph", "그래프 표시");
+
+                Color buttonColor = mp.__showGraphFloat ? Color.white : Color.black;
+                whiteTextButtonStyle.normal.textColor = mp.__showGraphFloat ? Color.black : Color.white;
+                whiteTextButtonStyle.hover.textColor = Color.gray;
+
+                // 그래프 표시 토글 버튼
+                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, whiteTextButtonStyle))
+                {
+                    mp.__showGraphFloat = !mp.__showGraphFloat;
+                }
+                if (mp.__showGraphFloat == false)
+                    return;
+
+                // 2. 그래프
+                AnimationCurve graph = new AnimationCurve();
+                for (int i = 0; i < mp.eventList.Count; i++)
+                {
+                    var current = mp.eventList[i];
+
+                    float t = m.isTimeModeSeconds ? current.time : (float)current.frame;
+
+                    // 인접한 두 키의 시간이 동일한 경우, 시간을 미세하게 더해주기
+                    if (0 < i && i < mp.eventList.Count)
+                    {
+                        if (current.time == mp.eventList[i - 1].time)
+                            t += 0.001f;
+                    }
+
+                    graph.AddKey(t, current.floatValue);
+                }
+                for (int i = 0; i < graph.length; i++)
+                {
+                    AnimationUtility.SetKeyLeftTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+                    AnimationUtility.SetKeyRightTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+                }
+
+                // 그래프 마우스 클릭 방지
+                if (graphRect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.type == EventType.MouseDown)
+                        Event.current.Use();
+                }
+
+                // 그래프 배경 색상 설정
+                fiCurveBGColor.SetValue(null, new Color(0.15f, 0.15f, 0.15f));
+
+                EditorGUI.CurveField(graphRect, graph);
+
+                // 그래프 배경 색상 복원
+                fiCurveBGColor.SetValue(null, defaultCurveBGColor);
+            }
+
+            private static string[] rgbaButtonLabels;
+            private static Color[] rgbaSignatureColors;
+            private static readonly Color rgbaButtonDisabledColor = Color.black;
+
+            private static FieldInfo fiCurveBGColor;
+            private static Color defaultCurveBGColor;
+
+            /// <summary> Vector4, Color 그래프를 그림미당 </summary>
+            private void DrawVector4OrColorGraph(MaterialPropertyInfo mp, in Rect buttonRect, in Rect graphRect)
+            {
+                const int ButtonCount = 4;
+
+                // true : Vector4, false : Color
+                bool isVectorOrColorType = mp.propType == ShaderPropertyType.Vector;
+
+                // Init(최초 한 번씩 실행)
+                {
+                    if (rgbaButtonLabels == null)
+                    {
+                        rgbaButtonLabels = isVectorOrColorType ?
+                            new string[ButtonCount] { "X", "Y", "Z", "W" } :
+                            new string[ButtonCount] { "R", "G", "B", "A" };
+                    }
+                    if (rgbaSignatureColors == null)
+                    {
+                        rgbaSignatureColors = new Color[ButtonCount]
+                        {
+                            Color.red,
+                            Color.green,
+                            Color.blue,
+                            Color.white,
+                        };
+                    }
+                }
+
+                // 1. 토글 버튼
+                const float ButtonWidth = 20f;
+                const float Margin = 4f;
+                float centerX = buttonRect.width * 0.5f;
+
+                Rect[] buttonRects = new Rect[ButtonCount];
+                buttonRects[0] = new Rect(buttonRect);
+                buttonRects[0].width = ButtonWidth;
+                buttonRects[0].x = centerX - (ButtonWidth);
+
+                // 모든 버튼 Rect 초기화
+                for (int i = 1; i < ButtonCount; i++)
+                {
+                    buttonRects[i] = new Rect(buttonRects[0]);
+                    buttonRects[i].x += i * (ButtonWidth + Margin);
+                }
+
+                // 토글 버튼 그리기
+                for (int i = 0; i < ButtonCount; i++)
+                {
+                    Color buttonColor = mp.__showGraphVector[i] ? rgbaSignatureColors[i] * 2f : rgbaButtonDisabledColor;
+
+                    whiteTextButtonStyle.normal.textColor = mp.__showGraphVector[i] ? Color.black : Color.white;
+                    whiteTextButtonStyle.hover.textColor = Color.gray;
+                    if (RitoEditorGUI.DrawButton(buttonRects[i], rgbaButtonLabels[i], buttonColor, whiteTextButtonStyle))
+                    {
+                        mp.__showGraphVector[i] = !mp.__showGraphVector[i];
+                    }
+                }
+
+                // 그래프 보일지 여부 결정
+                bool drawGraph = false;
+                for (int i = 0; i < ButtonCount; i++)
+                    drawGraph |= mp.__showGraphVector[i];
+                
+                if (drawGraph == false)
+                    return;
+
+                // 2. 그래프
+                AnimationCurve[] graphs = new AnimationCurve[ButtonCount];
+
+                // ====== Multiple Curves =======
+                // 다중 커브를 그리기 위해 커브 배경 색상 투명화
+                fiCurveBGColor.SetValue(null, Color.clear);
+
+                // 그래프 배경 색상
+                EditorGUI.DrawRect(graphRect, new Color(0.15f, 0.15f, 0.15f));
+
+                // 그래프 마우스 클릭 방지
+                if (graphRect.Contains(Event.current.mousePosition))
+                {
+                    if(Event.current.type == EventType.MouseDown)
+                        Event.current.Use();
+                }
+
+                // 그래프의 Y축 최솟값 구하기
+                float graphMinY = float.MaxValue;
+                float graphMaxY = float.MinValue;
+
+                // 벡터
+                if (isVectorOrColorType)
+                {
+                    for (int i = 0; i < ButtonCount; i++)
+                    {
+                        if (mp.__showGraphVector[i] == false)
+                            continue;
+
+                        for (int j = 0; j < mp.eventList.Count; j++)
+                        {
+                            if (graphMinY > mp.eventList[j].vector4[i])
+                                graphMinY = mp.eventList[j].vector4[i];
+                            if (graphMaxY < mp.eventList[j].vector4[i])
+                                graphMaxY = mp.eventList[j].vector4[i];
+                        }
+                    }
+                }
+                // 컬러
+                else
+                {
+                    graphMinY = 0f;
+                    for (int i = 0; i < ButtonCount; i++)
+                    {
+                        if (mp.__showGraphVector[i] == false)
+                            continue;
+
+                        for (int j = 0; j < mp.eventList.Count; j++)
+                        {
+                            if (graphMaxY < mp.eventList[j].vector4[i])
+                                graphMaxY = mp.eventList[j].vector4[i];
                         }
                     }
 
-                    if (addNewEvent > -1)
-                    {
-                        matProp.Edt_AddNewEvent(addNewEvent, m.isTimeModeSeconds);
-                    }
+                    if (graphMaxY < 1f)
+                        graphMaxY = 1f;
                 }
+
+                // a : 0 ~ 3 (X Y Z W 또는 R G B A)
+                for (int a = 0; a < ButtonCount; a++)
+                {
+                    AnimationCurve graph = graphs[a] = new AnimationCurve();
+
+                    // 토글 ON인 경우만 그래프 그리기
+                    if (mp.__showGraphVector[a] == false)
+                        continue;
+
+                    // i : 이벤트 개수
+                    for (int i = 0; i < mp.eventList.Count; i++)
+                    {
+                        var current = mp.eventList[i];
+
+                        float t = m.isTimeModeSeconds ? current.time : (float)current.frame;
+
+                        // 인접한 두 키의 시간이 동일한 경우, 시간을 미세하게 더해주기
+                        if (0 < i && i < mp.eventList.Count)
+                        {
+                            if (current.time == mp.eventList[i - 1].time)
+                                t += 0.001f;
+                        }
+
+                        graph.AddKey(t, current.vector4[a]);
+                    }
+                    for (int i = 0; i < graph.length; i++)
+                    {
+                        AnimationUtility.SetKeyLeftTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+                        AnimationUtility.SetKeyRightTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+                    }
+
+                    // 겹친 그래프들의 상하 잘림 방지
+                    Rect gr = new Rect(graphRect);
+                    gr.height += a;
+
+                    float curveWidth = m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame;
+                    float curveHeight = graphMaxY - graphMinY;
+                    if (curveHeight == 0f)
+                        curveHeight = 1f;
+
+                    EditorGUI.CurveField(gr, graph, rgbaSignatureColors[a], new Rect(0, graphMinY, curveWidth, curveHeight));
+                }
+
+                // 그래프 배경 색상 돌려놓기
+                fiCurveBGColor.SetValue(null, defaultCurveBGColor);
             }
 
             private static readonly Color HighlightBasic = new Color(0.3f, 0.3f, 0.3f);
@@ -1330,7 +1684,6 @@ namespace Rito
                 // Clamp Time Value (First, Last)
                 if (isFirst) mpEvent.time = 0f;
                 else if (isLast) mpEvent.time = m.durationSeconds;
-
 
                 // 현재 재생, 보간되는 두 이벤트 배경 하이라이트
                 bool currentPlaying =
@@ -1387,8 +1740,10 @@ namespace Rito
                     RitoEditorGUI.DrawHorizontalSpace(LeftMargin - LM);
 
                     Rect indexRect = GUILayoutUtility.GetRect(IndexLabelWidth + LM, 18f, whiteBoldLabelStyle);
+
+                    // 좌측 인덱스 레이블의 높이 조정
 #if UNITY_2019_3_OR_NEWER
-                    indexRect.y += 10f;
+                    indexRect.y += isColorType ? 18f : 10f;
 #else
                     indexRect.y += isColorType ? 14f : 6f;
 #endif
@@ -1456,8 +1811,9 @@ namespace Rito
 
                     GUI.color = guiColor;
 
-
                     // 값 변경 시, 전후값의 경계에서 전후값 변경
+                    // *ISSUE : 키보드로 직접 값 수정할 때, 도중에 전후값이 수정되는 문제 발생
+
                     //if (isFirstOrLast == false)
                     //{
                     //    MaterialPropertyValue prevEvent = mp.eventList[index - 1];
@@ -1560,7 +1916,7 @@ namespace Rito
 #endif
         #endregion
         /***********************************************************************
-        *                               Custom EditorGUI
+        *                           Custom EditorGUI
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
@@ -1850,7 +2206,7 @@ namespace Rito
 #endif
         #endregion
         /***********************************************************************
-        *                               Hierarchy Icon
+        *                           Hierarchy Icon
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
@@ -1986,7 +2342,7 @@ namespace Rito
 #endif
         #endregion
         /***********************************************************************
-        *                               Context Menu
+        *                           Context Menu
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
@@ -2011,7 +2367,7 @@ namespace Rito
 #endif
         #endregion
         /***********************************************************************
-        *                               Save Playmode Changes
+        *                           Save Playmode Changes
         ***********************************************************************/
         #region .
 #if UNITY_EDITOR
