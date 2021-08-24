@@ -309,7 +309,7 @@ namespace Rito
 #else
             iconRect.x = 0f;
 #endif
-            if (active)
+            if (iconTexture != null && active)
                 GUI.DrawTexture(iconRect, iconTexture);
 
             // 2. Right Buttons

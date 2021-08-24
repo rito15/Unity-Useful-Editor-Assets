@@ -172,12 +172,12 @@ MonoBehaviour:
     vector4: {x: 0.1764706, y: 0.6, z: 1, w: 0}
   - time: 0
     frame: 0
-    floatValue: -1
+    floatValue: 2
     range: {x: 0, y: 0}
     min: 0
     max: 0
-    color: {r: -1, g: 0, b: 0, a: 0}
-    vector4: {x: -1, y: 0, z: 0, w: 0}
+    color: {r: 2, g: 0, b: 0, a: 0}
+    vector4: {x: 2, y: 0, z: 0, w: 0}
   - time: 0
     frame: 0
     floatValue: 0.15
@@ -253,12 +253,12 @@ MonoBehaviour:
     vector4: {x: 0.1764706, y: 0.6, z: 1, w: 0}
   - time: 0
     frame: 0
-    floatValue: -1
+    floatValue: 2
     range: {x: 0, y: 0}
     min: 0
     max: 0
-    color: {r: -1, g: 0, b: 0, a: 0}
-    vector4: {x: -1, y: 0, z: 0, w: 0}
+    color: {r: 2, g: 0, b: 0, a: 0}
+    vector4: {x: 2, y: 0, z: 0, w: 0}
   - time: 0
     frame: 0
     floatValue: 0.15
@@ -337,7 +337,7 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0.5
+    - time: 0.49999994
       frame: 0
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
@@ -345,7 +345,7 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 2.5
+    - time: 2.4999995
       frame: 0
       floatValue: 1
       range: {x: 0, y: 0.095000006}
@@ -353,7 +353,7 @@ MonoBehaviour:
       max: 0.095000006
       color: {r: 1, g: 0, b: 0.095000006, a: 0}
       vector4: {x: 1, y: 0, z: 0.095000006, w: 0}
-    - time: 4
+    - time: 3.9999995
       frame: 0
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
@@ -363,8 +363,8 @@ MonoBehaviour:
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
     __displayName: Color
     __propIndex: 1
-    __foldout: 1
-    __playingIndex: 0
+    __foldout: 0
+    __playingIndex: 2
   - material: {fileID: 136709462}
     propName: _Distortion
     propType: 2
@@ -421,8 +421,8 @@ MonoBehaviour:
       vector4: {x: 0, y: 0, z: 1, w: 0}
     __displayName: Area Range
     __propIndex: 3
-    __foldout: 1
-    __playingIndex: 0
+    __foldout: 0
+    __playingIndex: 3
   - material: {fileID: 136709462}
     propName: _AreaPower
     propType: 3
@@ -436,7 +436,7 @@ MonoBehaviour:
       max: 10
       color: {r: 5, g: 1, b: 10, a: 0}
       vector4: {x: 5, y: 1, z: 10, w: 0}
-    - time: 0.5
+    - time: 0.49999994
       frame: 60
       floatValue: 3
       range: {x: 1, y: 10}
@@ -444,7 +444,7 @@ MonoBehaviour:
       max: 10
       color: {r: 3, g: 1, b: 10, a: 0}
       vector4: {x: 3, y: 1, z: 10, w: 0}
-    - time: 2.5
+    - time: 2.4999995
       frame: 150
       floatValue: 3
       range: {x: 1, y: 10}
@@ -460,7 +460,7 @@ MonoBehaviour:
       max: 10
       color: {r: 5, g: 1, b: 10, a: 0}
       vector4: {x: 5, y: 1, z: 10, w: 0}
-    - time: 4
+    - time: 3.9999995
       frame: 240
       floatValue: 5
       range: {x: 1, y: 10}
@@ -470,8 +470,8 @@ MonoBehaviour:
       vector4: {x: 5, y: 1, z: 10, w: 0}
     __displayName: Area Power
     __propIndex: 4
-    __foldout: 1
-    __playingIndex: 0
+    __foldout: 0
+    __playingIndex: 3
   - material: {fileID: 136709462}
     propName: _CircleNoiseScale
     propType: 2
@@ -573,7 +573,7 @@ Material:
     - _CircleNoiseScale: 3
     - _CircleSpreadSpeed: 0.2
     - _ColorIntensity: 3.18
-    - _Distortion: -1
+    - _Distortion: 2
     - _PatternAreaRange: 0.1
     - _PatternBorderOpacity: 20
     - _PatternColorOpacity: 15
@@ -833,7 +833,7 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 2.5
+    - time: 2
       frame: 0
       floatValue: 0.2
       range: {x: 0, y: 1}
@@ -860,7 +860,7 @@ MonoBehaviour:
     __displayName: Shake Intensity
     __propIndex: 0
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 3
   - material: {fileID: 939036497}
     propName: _HorizontalShakeSpeed
     propType: 3

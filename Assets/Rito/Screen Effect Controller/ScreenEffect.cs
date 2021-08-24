@@ -535,10 +535,51 @@ namespace Rito
             {
                 m = target as ScreenEffect;
 
+                isHangle = EditorPrefs.GetBool(EngHanPrefKey, false);
+
                 m.__OnEditorUpdate -= Repaint;
                 m.__OnEditorUpdate += Repaint;
 
-                isHangle = EditorPrefs.GetBool(EngHanPrefKey, false);
+                Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+                Undo.undoRedoPerformed += OnUndoRedoPerformed;
+            }
+            private void OnDisable()
+            {
+                Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            }
+
+            /// <summary> 마테리얼 프로퍼티 값 수정 후 Undo/Redo 동작 시 정상적으로 적용 </summary>
+            private void OnUndoRedoPerformed()
+            {
+                if (material == null) return;
+                if (m.__materialCurrentValues == null) return;
+                if (m.matPropertyList == null) return;
+
+                for (int i = 0; i < m.__materialCurrentValues.Length; i++)
+                {
+                    if (m.__materialCurrentValues[i] == null) continue;
+                    if (m.matPropertyList[i] == null) continue;
+
+                    var curValue = m.__materialCurrentValues[i];
+                    var propType = m.matPropertyList[i].propType;
+                    var propName = m.matPropertyList[i].propName;
+
+                    switch (propType)
+                    {
+                        case ShaderPropertyType.Float:
+                        case ShaderPropertyType.Range:
+                            material.SetFloat(propName, curValue.floatValue);
+                            break;
+
+                        case ShaderPropertyType.Vector:
+                            material.SetVector(propName, curValue.vector4);
+                            break;
+
+                        case ShaderPropertyType.Color:
+                            material.SetColor(propName, curValue.color);
+                            break;
+                    }
+                }
             }
 
             public override void OnInspectorGUI()
