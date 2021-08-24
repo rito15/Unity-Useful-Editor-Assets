@@ -11,18 +11,35 @@ using UnityEditor;
 
 #if UNITY_2019_3_OR_NEWER
 using ShaderPropertyType = UnityEngine.Rendering.ShaderPropertyType;
-#elif UNITY_EDITOR
-using ShaderPropertyType = UnityEditor.ShaderUtil.ShaderPropertyType;
+#else
+public enum ShaderPropertyType
+{
+    Color = 0,
+    Vector = 1,
+    Float = 2,
+    Range = 3,
+    Texture = 4
+}
 #endif
 
 // 날짜 : 2021-08-18 PM 10:48:56
 // 작성자 : Rito
 
 /*
+ * [에디터 테스트]
  *  - 2018.3.14f1 테스트 완료
  *  - 2019.4.9f1  테스트 완료
  *  - 2020.3.14f1 테스트 완료
  *  - 2021 : TODO
+ * 
+ * [빌드 테스트]
+ *  - 2018.3.14f1 테스트 완료
+ *  - 2019.4.9f1  테스트 완료
+ *  - 2020.3.14f1 테스트 완료(Mono, IL2CPP)
+ *  - 2021 : TODO
+ *  
+ *  
+ *  - TODO : 각각 이벤트모음 위쪽마다 정리된 그래프 표시/미표시 해주기
  */
 
 namespace Rito
@@ -117,18 +134,25 @@ namespace Rito
 
         private void UpdateMaterialProperties()
         {
-            if (durationSeconds <= 0f)
-                return;
+            if (isTimeModeSeconds)
+            {
+                if (durationSeconds <= 0f)
+                    return;
+            }
+            else
+            {
+                if (durationFrame == 0)
+                    return;
+            }
 
             for (int i = 0; i < matPropertyList.Count; i++)
             {
                 var mp = matPropertyList[i];
                 if (mp == null || mp.eventList == null || mp.eventList.Count == 0)
                     continue;
-#if UNITY_EDITOR
+
                 if (mp.enabled == false)
                     continue;
-#endif
 
                 var eventList = mp.eventList;
                 int eventCount = eventList.Count - 1;
@@ -139,7 +163,6 @@ namespace Rito
                 // 1. 시간 계산 방식 : 초
                 if (isTimeModeSeconds)
                 {
-                    if (durationSeconds <= 0f) break;
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
                     for (int j = 0; j < eventCount; j++)
@@ -212,7 +235,6 @@ namespace Rito
                 // 2. 시간 계산 방식 : 프레임
                 else
                 {
-                    if (durationFrame == 0) break;
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
                     for (int j = 0; j < eventCount; j++)
@@ -345,35 +367,34 @@ namespace Rito
         {
             public Material material;
             public string propName;
-            public string displayName;
             public ShaderPropertyType propType;
-            public int propIndex;
-
             public bool enabled;
-
-#if UNITY_EDITOR
-            public bool __foldout = true;
-            public int __playingIndex = 0; // 현재 재생 중인 이벤트의 인덱스
-#endif
 
             public List<MaterialPropertyValue> eventList;
 
-            public bool HasEvents => eventList != null && eventList.Count > 0;
+#if UNITY_EDITOR
+            public bool __HasEvents => eventList != null && eventList.Count > 0;
+
+            public string __displayName;
+            public int __propIndex;
+
+            public bool __foldout = true;
+            public int __playingIndex = 0; // 현재 재생 중인 이벤트의 인덱스
 
             public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
             {
                 this.material = material;
                 this.propName = name;
-                this.displayName = displayName;
+                this.__displayName = displayName;
                 this.propType = type;
-                this.propIndex = propIndex;
+                this.__propIndex = propIndex;
                 this.enabled = false;
 
                 this.eventList = new List<MaterialPropertyValue>(10);
             }
 
             /// <summary> 이벤트가 아예 없었던 경우, 초기 이벤트 2개(시작, 끝) 추가 </summary>
-            public void AddInitialEvents(float duration, bool isTimeModeSeconds)
+            public void Edt_AddInitialEvents(float duration, bool isTimeModeSeconds)
             {
                 this.enabled = true;
 
@@ -395,7 +416,7 @@ namespace Rito
 
                     case ShaderPropertyType.Range:
                         begin.floatValue = end.floatValue = material.GetFloat(propName);
-                        begin.range = end.range = material.shader.GetPropertyRangeLimits(propIndex);
+                        begin.range = end.range = material.shader.GetPropertyRangeLimits(__propIndex);
                         break;
                     case ShaderPropertyType.Color:
                         begin.color = end.color = material.GetColor(propName);
@@ -411,7 +432,7 @@ namespace Rito
             }
 
             /// <summary> 해당 인덱스의 바로 뒤에 새로운 이벤트 추가 </summary>
-            public void AddNewEvent(int index, bool isTimeModeSeconds)
+            public void Edt_AddNewEvent(int index, bool isTimeModeSeconds)
             {
                 MaterialPropertyValue prevEvent = eventList[index];
                 MaterialPropertyValue nextEvent = eventList[index + 1];
@@ -425,12 +446,12 @@ namespace Rito
                     newValue.frame = (prevEvent.frame + nextEvent.frame) / 2;
 
                 // 현재 마테리얼로부터 값 가져와 초기화
-                SetPropertyValueFromMaterial(newValue);
+                Edt_SetPropertyValueFromMaterial(newValue);
 
                 eventList.Insert(index + 1, newValue);
             }
 
-            private void SetPropertyValueFromMaterial(MaterialPropertyValue dest)
+            private void Edt_SetPropertyValueFromMaterial(MaterialPropertyValue dest)
             {
                 switch (propType)
                 {
@@ -440,7 +461,7 @@ namespace Rito
 
                     case ShaderPropertyType.Range:
                         dest.floatValue = material.GetFloat(propName);
-                        dest.range = material.shader.GetPropertyRangeLimits(propIndex);
+                        dest.range = material.shader.GetPropertyRangeLimits(__propIndex);
                         break;
 
                     case ShaderPropertyType.Color:
@@ -454,11 +475,12 @@ namespace Rito
             }
 
             /// <summary> 프로퍼티 내의 모든 이벤트 제거 </summary>
-            public void RemoveAllEvents()
+            public void Edt_RemoveAllEvents()
             {
                 this.eventList.Clear();
                 this.enabled = false;
             }
+#endif
         }
 
         [System.Serializable]
@@ -476,12 +498,6 @@ namespace Rito
 
             [FieldOffset(8)] public Color color;
             [FieldOffset(8)] public Vector4 vector4;
-
-            /// <summary> 시간을 제외한 모든 값 복제하여 전달 </summary>
-            public void CopyValuesWithoutTime(MaterialPropertyValue other)
-            {
-                other.vector4 = this.vector4;
-            }
         }
 
         [SerializeField]
@@ -692,7 +708,7 @@ namespace Rito
                     {
                         MaterialPropertyInfo cur = m.matPropertyList[i];
                         MaterialPropertyInfo found = backup.Find(x =>
-                            x.HasEvents &&
+                            x.__HasEvents &&
                             x.propName == cur.propName &&
                             x.propType == cur.propType
                         );
@@ -712,7 +728,7 @@ namespace Rito
                 for (int i = 0; i < validPropCount; i++)
                 {
                     var currentInfo = m.matPropertyList[i];
-                    var backupValue  = m.__materialDefaultValues[i] = new MaterialPropertyValue();
+                    var backupValue = m.__materialDefaultValues[i] = new MaterialPropertyValue();
                     var currentValue = m.__materialCurrentValues[i] = new MaterialPropertyValue();
 
                     switch (currentInfo.propType)
@@ -723,19 +739,19 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Range:
-                            backupValue.floatValue = currentValue.floatValue = 
+                            backupValue.floatValue = currentValue.floatValue =
                                 material.GetFloat(currentInfo.propName);
 
-                            currentValue.range = shader.GetPropertyRangeLimits(m.matPropertyList[i].propIndex);
+                            currentValue.range = shader.GetPropertyRangeLimits(m.matPropertyList[i].__propIndex);
                             break;
 
                         case ShaderPropertyType.Vector:
-                            backupValue.vector4 = currentValue.vector4 = 
+                            backupValue.vector4 = currentValue.vector4 =
                                 material.GetVector(currentInfo.propName);
                             break;
 
                         case ShaderPropertyType.Color:
-                            backupValue.color = currentValue.color = 
+                            backupValue.color = currentValue.color =
                                 material.GetColor(currentInfo.propName);
                             break;
                     }
@@ -823,7 +839,7 @@ namespace Rito
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].HasEvents == false)
+                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
                                     continue;
 
                                 var eventList = m.matPropertyList[i].eventList;
@@ -840,7 +856,7 @@ namespace Rito
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].HasEvents == false)
+                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
                                     continue;
 
                                 var eventList = m.matPropertyList[i].eventList;
@@ -886,7 +902,7 @@ namespace Rito
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].HasEvents == false)
+                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
                                     continue;
 
                                 var eventList = m.matPropertyList[i].eventList;
@@ -1015,13 +1031,13 @@ namespace Rito
                     MaterialPropertyValue currentMatValue = m.__materialCurrentValues[i];
 
                     Color currentColor = mp.enabled ? EnabledColor : Color.gray;
-                    bool hasEvents = mp.HasEvents;
+                    bool hasEvents = mp.__HasEvents;
 
                     EditorGUILayout.BeginHorizontal();
 
                     RitoEditorGUI.DrawHorizontalSpace(4f);
 
-                    RitoEditorGUI.DrawPrefixLabelLayout(mp.displayName,
+                    RitoEditorGUI.DrawPrefixLabelLayout(mp.__displayName,
                         hasEvents ? currentColor : Color.white, 0.25f);
 
                     Color guiColor = GUI.color;
@@ -1037,7 +1053,7 @@ namespace Rito
                                 currentMatValue.floatValue = material.GetFloat(mp.propName);
                                 currentMatValue.floatValue = EditorGUILayout.FloatField(currentMatValue.floatValue);
 
-                                if(EditorGUI.EndChangeCheck())
+                                if (EditorGUI.EndChangeCheck())
                                     material.SetFloat(mp.propName, currentMatValue.floatValue);
                             }
                             break;
@@ -1046,7 +1062,7 @@ namespace Rito
                                 EditorGUI.BeginChangeCheck();
 
                                 currentMatValue.floatValue = material.GetFloat(mp.propName);
-                                currentMatValue.floatValue = 
+                                currentMatValue.floatValue =
                                     EditorGUILayout.Slider(currentMatValue.floatValue, currentMatValue.min, currentMatValue.max);
 
                                 if (EditorGUI.EndChangeCheck())
@@ -1058,7 +1074,7 @@ namespace Rito
                                 EditorGUI.BeginChangeCheck();
 
                                 currentMatValue.vector4 = material.GetVector(mp.propName);
-                                currentMatValue.vector4 = 
+                                currentMatValue.vector4 =
                                     EditorGUILayout.Vector4Field("", currentMatValue.vector4);
 
                                 if (EditorGUI.EndChangeCheck())
@@ -1070,7 +1086,7 @@ namespace Rito
                                 EditorGUI.BeginChangeCheck();
 
                                 currentMatValue.color = material.GetColor(mp.propName);
-                                currentMatValue.color = 
+                                currentMatValue.color =
                                     EditorGUILayout.ColorField(currentMatValue.color);
 
                                 if (EditorGUI.EndChangeCheck())
@@ -1117,7 +1133,7 @@ namespace Rito
                             mp.enabled = !mp.enabled;
 
                         if (RitoEditorGUI.DrawButtonLayout("-", Color.red * 1.5f, 20f, 18f))
-                            mp.RemoveAllEvents();
+                            mp.Edt_RemoveAllEvents();
                     }
                     // 이벤트 없을 경우 : 추가 버튼
                     else
@@ -1130,7 +1146,7 @@ namespace Rito
                         bool addButton = RitoEditorGUI.DrawButtonLayout("+", Color.green * 1.5f, PlusButtonWidth, 18f);
                         if (addButton)
                         {
-                            mp.AddInitialEvents(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
+                            mp.Edt_AddInitialEvents(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
                         }
                     }
 
@@ -1149,19 +1165,19 @@ namespace Rito
                 {
                     EditorStyles.helpBox.fontSize = 12;
                     EditorGUILayout.HelpBox(
-                        EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."), 
+                        EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."),
                         MessageType.Warning);
                     return;
                 }
 
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
-                    if (m.matPropertyList[i].HasEvents)
+                    if (m.matPropertyList[i].__HasEvents)
                     {
                         DrawPropertyEvents(m.matPropertyList[i], () =>
                         {
                             // [-] 버튼 클릭하면 해당 프로퍼티에서 이벤트들 싹 제거
-                            m.matPropertyList[i].RemoveAllEvents();
+                            m.matPropertyList[i].Edt_RemoveAllEvents();
                         }
                         );
 
@@ -1211,7 +1227,7 @@ namespace Rito
                 eventFoldoutHeaderStyle.onNormal.textColor = enabled ? Color.black : Color.gray;
                 eventFoldoutHeaderStyle.fontStyle = FontStyle.Bold;
 
-                string headerText = $"{matProp.displayName} [{matProp.propType}]";
+                string headerText = $"{matProp.__displayName} [{matProp.propType}]";
                 Color headerBgColor = enabled ? new Color(0f, 0.8f, 0.8f) : new Color(0.1f, 0.1f, 0.1f);
 
                 Color enableButtonTextColor = enabled ? Color.white : Color.white;
@@ -1254,7 +1270,7 @@ namespace Rito
 
                     if (addNewEvent > -1)
                     {
-                        matProp.AddNewEvent(addNewEvent, m.isTimeModeSeconds);
+                        matProp.Edt_AddNewEvent(addNewEvent, m.isTimeModeSeconds);
                     }
                 }
             }
@@ -2043,7 +2059,7 @@ namespace Rito
         }
         public static ShaderPropertyType GetPropertyType(this Shader shader, int index)
         {
-            return ShaderUtil.GetPropertyType(shader, index);
+            return (ShaderPropertyType)ShaderUtil.GetPropertyType(shader, index);
         }
 #endif
     }

@@ -326,12 +326,8 @@ MonoBehaviour:
   matPropertyList:
   - material: {fileID: 136709462}
     propName: _Color
-    displayName: Color
     propType: 0
-    propIndex: 1
     enabled: 1
-    __foldout: 1
-    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -365,23 +361,23 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-  - material: {fileID: 136709462}
-    propName: _Distortion
-    displayName: Distortion
-    propType: 2
-    propIndex: 2
-    enabled: 0
+    __displayName: Color
+    __propIndex: 1
     __foldout: 1
     __playingIndex: 0
+  - material: {fileID: 136709462}
+    propName: _Distortion
+    propType: 2
+    enabled: 0
     eventList: []
+    __displayName: Distortion
+    __propIndex: 2
+    __foldout: 1
+    __playingIndex: 0
   - material: {fileID: 136709462}
     propName: _AreaRange
-    displayName: Area Range
     propType: 3
-    propIndex: 3
     enabled: 1
-    __foldout: 1
-    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -423,14 +419,14 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
+    __displayName: Area Range
+    __propIndex: 3
+    __foldout: 1
+    __playingIndex: 0
   - material: {fileID: 136709462}
     propName: _AreaPower
-    displayName: Area Power
     propType: 3
-    propIndex: 4
     enabled: 1
-    __foldout: 1
-    __playingIndex: 1
     eventList:
     - time: 0
       frame: 0
@@ -472,60 +468,64 @@ MonoBehaviour:
       max: 10
       color: {r: 5, g: 1, b: 10, a: 0}
       vector4: {x: 5, y: 1, z: 10, w: 0}
+    __displayName: Area Power
+    __propIndex: 4
+    __foldout: 1
+    __playingIndex: 0
   - material: {fileID: 136709462}
     propName: _CircleNoiseScale
-    displayName: Circle Noise Scale
     propType: 2
-    propIndex: 5
     enabled: 0
+    eventList: []
+    __displayName: Circle Noise Scale
+    __propIndex: 5
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 136709462}
     propName: _CircleSpreadSpeed
-    displayName: Circle Spread Speed
     propType: 3
-    propIndex: 6
     enabled: 0
+    eventList: []
+    __displayName: Circle Spread Speed
+    __propIndex: 6
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 136709462}
     propName: _PatternSpeed
-    displayName: Pattern Speed
     propType: 3
-    propIndex: 7
     enabled: 0
+    eventList: []
+    __displayName: Pattern Speed
+    __propIndex: 7
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 136709462}
     propName: _PatternBorderOpacity
-    displayName: Pattern Border Opacity
     propType: 3
-    propIndex: 8
     enabled: 0
+    eventList: []
+    __displayName: Pattern Border Opacity
+    __propIndex: 8
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 136709462}
     propName: _PatternColorOpacity
-    displayName: Pattern Color Opacity
     propType: 3
-    propIndex: 9
     enabled: 0
+    eventList: []
+    __displayName: Pattern Color Opacity
+    __propIndex: 9
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 136709462}
     propName: _PatternAreaRange
-    displayName: Pattern Area Range
     propType: 3
-    propIndex: 10
     enabled: 0
+    eventList: []
+    __displayName: Pattern Area Range
+    __propIndex: 10
     __foldout: 1
     __playingIndex: 0
-    eventList: []
 --- !u!4 &127338338
 Transform:
   m_ObjectHideFlags: 0
@@ -658,22 +658,22 @@ MonoBehaviour:
   matPropertyList:
   - material: {fileID: 1053813330}
     propName: _Power
-    displayName: Power
     propType: 3
-    propIndex: 1
     enabled: 0
+    eventList: []
+    __displayName: Power
+    __propIndex: 1
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 1053813330}
     propName: _Speed
-    displayName: Speed
     propType: 3
-    propIndex: 2
     enabled: 0
+    eventList: []
+    __displayName: Speed
+    __propIndex: 2
     __foldout: 1
     __playingIndex: 0
-    eventList: []
 --- !u!4 &428262898
 Transform:
   m_ObjectHideFlags: 0
@@ -737,7 +737,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &649687435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -814,12 +814,8 @@ MonoBehaviour:
   matPropertyList:
   - material: {fileID: 939036497}
     propName: _ShakeIntensity
-    displayName: Shake Intensity
     propType: 3
-    propIndex: 0
-    enabled: 0
-    __foldout: 1
-    __playingIndex: 0
+    enabled: 1
     eventList:
     - time: 0
       frame: 0
@@ -861,24 +857,28 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
+    __displayName: Shake Intensity
+    __propIndex: 0
+    __foldout: 1
+    __playingIndex: 0
   - material: {fileID: 939036497}
     propName: _HorizontalShakeSpeed
-    displayName: Horizontal Shake Speed
     propType: 3
-    propIndex: 1
     enabled: 0
+    eventList: []
+    __displayName: Horizontal Shake Speed
+    __propIndex: 1
     __foldout: 1
     __playingIndex: 0
-    eventList: []
   - material: {fileID: 939036497}
     propName: _VerticalShakeSpeed
-    displayName: Vertical Shake Speed
     propType: 3
-    propIndex: 2
     enabled: 0
+    eventList: []
+    __displayName: Vertical Shake Speed
+    __propIndex: 2
     __foldout: 1
     __playingIndex: 0
-    eventList: []
 --- !u!4 &649687436
 Transform:
   m_ObjectHideFlags: 0
@@ -1002,12 +1002,8 @@ MonoBehaviour:
   matPropertyList:
   - material: {fileID: 561608905}
     propName: _Color
-    displayName: Color
     propType: 0
-    propIndex: 1
     enabled: 0
-    __foldout: 0
-    __playingIndex: 0
     eventList:
     - time: 0
       frame: 0
@@ -1177,14 +1173,14 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-  - material: {fileID: 561608905}
-    propName: _Range
-    displayName: Range
-    propType: 3
-    propIndex: 2
-    enabled: 0
+    __displayName: Color
+    __propIndex: 1
     __foldout: 0
     __playingIndex: 0
+  - material: {fileID: 561608905}
+    propName: _Range
+    propType: 3
+    enabled: 0
     eventList:
     - time: NaN
       frame: 0
@@ -1346,14 +1342,14 @@ MonoBehaviour:
       max: 1
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
-  - material: {fileID: 561608905}
-    propName: _Vec
-    displayName: Vec
-    propType: 1
-    propIndex: 3
-    enabled: 1
+    __displayName: Range
+    __propIndex: 2
     __foldout: 0
     __playingIndex: 0
+  - material: {fileID: 561608905}
+    propName: _Vec
+    propType: 1
+    enabled: 1
     eventList:
     - time: 0
       frame: 0
@@ -1443,14 +1439,14 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-  - material: {fileID: 561608905}
-    propName: _Float
-    displayName: Float
-    propType: 2
-    propIndex: 4
-    enabled: 0
+    __displayName: Vec
+    __propIndex: 3
     __foldout: 0
     __playingIndex: 0
+  - material: {fileID: 561608905}
+    propName: _Float
+    propType: 2
+    enabled: 0
     eventList:
     - time: 0
       frame: 0
@@ -1468,6 +1464,10 @@ MonoBehaviour:
       max: 0
       color: {r: 1, g: 0, b: 0, a: 0}
       vector4: {x: 1, y: 0, z: 0, w: 0}
+    __displayName: Float
+    __propIndex: 4
+    __foldout: 0
+    __playingIndex: 0
 --- !u!4 &669391149
 Transform:
   m_ObjectHideFlags: 0
