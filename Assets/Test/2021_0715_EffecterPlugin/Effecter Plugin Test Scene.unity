@@ -643,7 +643,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &428262897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -789,7 +789,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &649687435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1074,7 +1074,7 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 0.69000006
+    - time: 3.0000002
       frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
@@ -1082,14 +1082,6 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 3.0000002
-      frame: 0
-      floatValue: 0.84000003
-      range: {x: 0.37, y: 0.72}
-      min: 0.37
-      max: 0.72
-      color: {r: 0.84000003, g: 0.37, b: 0.72, a: 0}
-      vector4: {x: 0.84000003, y: 0.37, z: 0.72, w: 0}
     __displayName: Color
     __propIndex: 1
     __foldout: 1
@@ -1100,17 +1092,9 @@ MonoBehaviour:
   - material: {fileID: 561608905}
     propName: _Range
     propType: 3
-    enabled: 0
+    enabled: 1
     eventList:
     - time: 0
-      frame: 0
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0.97
       frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
@@ -1119,7 +1103,7 @@ MonoBehaviour:
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
     - time: 3.0000002
-      frame: 240
+      frame: 0
       floatValue: 1
       range: {x: 0, y: 1}
       min: 0
@@ -1146,30 +1130,14 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 0.66
-      frame: 0
-      floatValue: 1
-      range: {x: 0.5, y: 0.2}
-      min: 0.5
-      max: 0.2
-      color: {r: 1, g: 0.5, b: 0.2, a: 0}
-      vector4: {x: 1, y: 0.5, z: 0.2, w: 0}
-    - time: 2.16
-      frame: 0
-      floatValue: 0.5
-      range: {x: 0.5, y: 1}
-      min: 0.5
-      max: 1
-      color: {r: 0.5, g: 0.5, b: 1, a: 0}
-      vector4: {x: 0.5, y: 0.5, z: 1, w: 0}
     - time: 3.0000002
-      frame: 240
+      frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: 0, g: 0, b: 0, a: 1}
-      vector4: {x: 0, y: 0, z: 0, w: 1}
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
     __displayName: Vec
     __propIndex: 3
     __foldout: 1
@@ -1180,32 +1148,16 @@ MonoBehaviour:
   - material: {fileID: 561608905}
     propName: _Float
     propType: 2
-    enabled: 0
+    enabled: 1
     eventList:
     - time: 0
       frame: 0
-      floatValue: 0
+      floatValue: 1
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 1.029
-      frame: 0
-      floatValue: 5
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 5, g: 0, b: 0, a: 0}
-      vector4: {x: 5, y: 0, z: 0, w: 0}
-    - time: 2.01
-      frame: 0
-      floatValue: -5
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: -5, g: 0, b: 0, a: 0}
-      vector4: {x: -5, y: 0, z: 0, w: 0}
+      color: {r: 1, g: 0, b: 0, a: 0}
+      vector4: {x: 1, y: 0, z: 0, w: 0}
     - time: 3.0000002
       frame: 0
       floatValue: 1
@@ -1528,8 +1480,8 @@ Camera:
   m_GameObject: {fileID: 1138514726}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.0754717, g: 0.0754717, b: 0.0754717, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1800,7 +1752,7 @@ Transform:
   m_GameObject: {fileID: 1636721342}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -0.55, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 1, z: 2}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

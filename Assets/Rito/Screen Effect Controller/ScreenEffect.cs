@@ -554,6 +554,7 @@ namespace Rito
 
             private static GUIStyle bigMinusButtonStyle;
             private static GUIStyle whiteTextButtonStyle; // 글씨가 하얀색인 버튼
+            private static GUIStyle graphToggleButtonStyle;
             private static GUIStyle boldFoldoutStyle;
             private static GUIStyle propertyEventTimeLabelStyle;
             private static GUIStyle whiteBoldLabelStyle;
@@ -614,7 +615,7 @@ namespace Rito
 
             public override void OnInspectorGUI()
             {
-                DrawEngHanButton();
+                DrawTopMostButtons();
 
                 isMaterialChanged = CheckMaterialChanged();
                 InitVariables();
@@ -682,17 +683,99 @@ namespace Rito
                 "시간(초)", "프레임"
             };
 
-            private void DrawEngHanButton()
+            bool onOffMoving = false;
+            float onOffPos = 0f;
+            string onOffStr = "On";
+            Rect onOffRect = default;
+            private void DrawTopMostButtons()
             {
+#if !UNITY_2019_3_OR_NEWER
+                EditorGUILayout.Space();
+#endif
                 Rect rect = GUILayoutUtility.GetRect(1f, 20f);
+
+#if UNITY_2019_3_OR_NEWER
+                const float LEFT = 15f;
+#else
+                const float LEFT = 12f;
+#endif
+                const float RIGHT = 52f;
+                const float WIDTH = 40f;
+
+                Rect bgRect = new Rect(rect);
+                bgRect.x = LEFT + 1f;
+                bgRect.xMax = RIGHT + WIDTH - 2f;
+                EditorGUI.DrawRect(bgRect, new Color(0.15f, 0.15f, 0.15f));
+
+                onOffRect = new Rect(rect);
+                onOffRect.width = WIDTH;
+                onOffRect.x = onOffPos;
+
                 const float buttonWidth = 44f;
                 rect.xMin = rect.width - buttonWidth - 4f;
 
-                if (GUI.Button(rect, "Eng/한글"))
+                Color col = GUI.backgroundColor;
+                GUI.backgroundColor = Color.black;
+
+                // 1. 움직이는 On/Off 버튼
+                if (GUI.Button(onOffRect, onOffStr, whiteTextButtonStyle))
+                {
+                    onOffMoving = true;
+                }
+
+                if (!onOffMoving)
+                {
+                    if (m.gameObject.activeSelf)
+                    {
+                        onOffPos = LEFT;
+                        onOffStr = "On";
+                    }
+                    else
+                    {
+                        onOffPos = RIGHT;
+                        onOffStr = "Off";
+                    }
+                }
+                else
+                {
+                    if (m.gameObject.activeSelf)
+                    {
+                        if (onOffPos < RIGHT)
+                        {
+                            onOffPos += 1f;
+                            Repaint();
+
+                            if (onOffPos >= RIGHT)
+                            {
+                                onOffMoving = false;
+                                m.gameObject.SetActive(false);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (onOffPos > LEFT)
+                        {
+                            onOffPos -= 1f;
+                            Repaint();
+
+                            if (onOffPos <= LEFT)
+                            {
+                                onOffMoving = false;
+                                m.gameObject.SetActive(true);
+                            }
+                        }
+                    }
+                }
+
+                // 2. EngHan 버튼
+                if (GUI.Button(rect, "Eng/한글", whiteTextButtonStyle))
                 {
                     isHangle = !isHangle;
                     EditorPrefs.SetBool(EngHanPrefKey, isHangle);
                 }
+
+                GUI.backgroundColor = col;
             }
 
             private string EngHan(string eng, string han)
@@ -781,6 +864,15 @@ namespace Rito
                     };
                     whiteTextButtonStyle.normal.textColor = Color.white;
                     whiteTextButtonStyle.hover.textColor = Color.white;
+                }
+                if (graphToggleButtonStyle == null)
+                {
+                    graphToggleButtonStyle = new GUIStyle("button")
+                    {
+                        fontStyle = FontStyle.Bold
+                    };
+
+                    // 실제 사용하는 곳에서 초기화
                 }
                 if (boldFoldoutStyle == null)
                 {
@@ -896,7 +988,13 @@ namespace Rito
             #region .
             private void DrawDefaultFields()
             {
-                RitoEditorGUI.FoldoutHeaderBox(ref m.__optionFoldout1, EngHan("Options", "설정"), 6);
+                int fieldCount;
+
+                if (m.effectMaterial == null) fieldCount = 1;
+                else if (isDurationZero) fieldCount = 5;
+                else fieldCount = 6;
+
+                RitoEditorGUI.FoldoutHeaderBox(ref m.__optionFoldout1, EngHan("Options", "설정"), fieldCount);
                 if (!m.__optionFoldout1) return;
 
                 using (new RitoEditorGUI.HorizontalMarginScope())
@@ -909,23 +1007,23 @@ namespace Rito
                     {
                         isMaterialChanged = true;
 
-                        //Debug.Log("Material Changed");
-
                         // 복제
                         if (m.effectMaterial != null)
                             m.effectMaterial = new Material(m.effectMaterial);
                     }
 
-                    // 마테리얼 재할당
-                    if (RitoEditorGUI.DrawButtonLayout("Reload", Color.white, Color.black, 60f))
+                    if (m.effectMaterial != null)
                     {
-                        if (m.effectMaterial != null)
+                        // 마테리얼 재할당
+                        if (RitoEditorGUI.DrawButtonLayout("Reload", Color.white, Color.black, 60f))
                         {
-                            //m.effectMaterial = new Material(m.effectMaterial);
                             InitMaterial();
                         }
                     }
                 }
+
+                if (m.effectMaterial == null) return;
+                //==============================================================
 
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
@@ -1006,9 +1104,13 @@ namespace Rito
                         Color col = GUI.color;
                         if (m.durationSeconds <= 0f)
                         {
-                            GUI.color = Color.red * 2f;
+                            GUI.color = Color.cyan;
                             isDurationZero = true;
                         }
+
+                        // 지속시간 필드에 이름 부여
+                        GUI.SetNextControlName("DurationField");
+
                         m.durationSeconds = EditorGUILayout.FloatField(m.durationSeconds);
                         if (m.durationSeconds < 0f) m.durationSeconds = 0f;
 
@@ -1042,9 +1144,13 @@ namespace Rito
                         Color col = GUI.color;
                         if (m.durationFrame == 0)
                         {
-                            GUI.color = Color.red * 2f;
+                            GUI.color = Color.cyan;
                             isDurationZero = true;
                         }
+
+                        // 지속시간 필드에 이름 부여
+                        GUI.SetNextControlName("DurationField");
+
                         m.durationFrame = EditorGUILayout.IntField(m.durationFrame);
                         if (m.durationFrame < 0) m.durationFrame = 0;
 
@@ -1078,16 +1184,26 @@ namespace Rito
                     }
                 }
 
-                using (new RitoEditorGUI.HorizontalMarginScope())
+                if (isDurationZero && GUI.GetNameOfFocusedControl() != "DurationField")
                 {
-                    RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Stop Action", "종료 동작"));
-                    if (isHangle)
+                    Rect durationRect = GUILayoutUtility.GetLastRect();
+                    durationRect.xMin += durationRect.width * 0.65f;
+                    EditorGUI.LabelField(durationRect, EngHan("Looping", "상시 지속"), whiteBoldLabelStyle);
+                }
+
+                if (!isDurationZero)
+                {
+                    using (new RitoEditorGUI.HorizontalMarginScope())
                     {
-                        m.stopAction = (StopAction)EditorGUILayout.Popup((int)m.stopAction, StopActionsHangle);
-                    }
-                    else
-                    {
-                        m.stopAction = (StopAction)EditorGUILayout.EnumPopup(m.stopAction);
+                        RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Stop Action", "종료 동작"));
+                        if (isHangle)
+                        {
+                            m.stopAction = (StopAction)EditorGUILayout.Popup((int)m.stopAction, StopActionsHangle);
+                        }
+                        else
+                        {
+                            m.stopAction = (StopAction)EditorGUILayout.EnumPopup(m.stopAction);
+                        }
                     }
                 }
 
@@ -1163,6 +1279,10 @@ namespace Rito
                     if (hasEvents)
                         GUI.color = currentColor;
 
+                    // 레이블 하얗게 만들기
+                    Color colLN = EditorStyles.label.normal.textColor;
+                    EditorStyles.label.normal.textColor = Color.white;
+
                     switch (mp.propType)
                     {
                         case ShaderPropertyType.Float:
@@ -1213,6 +1333,8 @@ namespace Rito
                             }
                             break;
                     }
+
+                    EditorStyles.label.normal.textColor = colLN;
 
                     GUI.color = guiColor;
 
@@ -1284,8 +1406,8 @@ namespace Rito
                 {
                     EditorStyles.helpBox.fontSize = 12;
                     EditorGUILayout.HelpBox(
-                        EngHan("Duration must be more than ZERO.", "지속 시간이 0일 경우 이벤트가 재생되지 않습니다."),
-                        MessageType.Warning);
+                        EngHan("Cannot create events if duration is 0.", "이벤트를 생성하려면 지속 시간을 설정해야 합니다."),
+                        MessageType.Info);
                     return;
                 }
 
@@ -1705,11 +1827,11 @@ namespace Rito
 
                 // 버튼 스타일 결정
                 Color buttonColor = mp.__showGraph ? Color.white * 2f : Color.black;
-                whiteTextButtonStyle.normal.textColor = mp.__showGraph ? Color.black : Color.white;
-                whiteTextButtonStyle.hover.textColor = Color.gray;
+                graphToggleButtonStyle.normal.textColor = mp.__showGraph ? Color.black : Color.white;
+                graphToggleButtonStyle.hover.textColor = Color.gray;
 
                 // 그래프 표시 토글 버튼
-                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, whiteTextButtonStyle))
+                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, graphToggleButtonStyle))
                 {
                     mp.__showGraph = !mp.__showGraph;
                 }
@@ -1728,11 +1850,11 @@ namespace Rito
                     EngHan("Show Events", "이벤트 표시");
 
                 Color buttonColor = mp.__showEvents ? Color.white * 2f : Color.black;
-                whiteTextButtonStyle.normal.textColor = mp.__showEvents ? Color.black : Color.white;
-                whiteTextButtonStyle.hover.textColor = Color.gray;
+                graphToggleButtonStyle.normal.textColor = mp.__showEvents ? Color.black : Color.white;
+                graphToggleButtonStyle.hover.textColor = Color.gray;
 
                 // 이벤트 표시 토글 버튼
-                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, whiteTextButtonStyle))
+                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, graphToggleButtonStyle))
                 {
                     mp.__showEvents = !mp.__showEvents;
                 }
@@ -1835,9 +1957,9 @@ namespace Rito
                 {
                     Color buttonColor = mp.__showVectorGraphs[i] ? rgbaSignatureColors[i] * 2f : rgbaButtonDisabledColor;
 
-                    whiteTextButtonStyle.normal.textColor = mp.__showVectorGraphs[i] ? Color.black : Color.white;
-                    whiteTextButtonStyle.hover.textColor = Color.gray;
-                    if (RitoEditorGUI.DrawButton(buttonRects[i], buttonLabels4[i], buttonColor, whiteTextButtonStyle))
+                    graphToggleButtonStyle.normal.textColor = mp.__showVectorGraphs[i] ? Color.black : Color.white;
+                    graphToggleButtonStyle.hover.textColor = Color.gray;
+                    if (RitoEditorGUI.DrawButton(buttonRects[i], buttonLabels4[i], buttonColor, graphToggleButtonStyle))
                     {
                         mp.__showVectorGraphs[i] = !mp.__showVectorGraphs[i];
                     }
