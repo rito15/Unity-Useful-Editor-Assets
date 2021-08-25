@@ -337,8 +337,8 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0.5
-      frame: 29
+    - time: 0.46600002
+      frame: 28
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
       min: 0.6
@@ -346,13 +346,21 @@ MonoBehaviour:
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
     - time: 1.6
-      frame: 149
+      frame: 96
       floatValue: 1
       range: {x: 0, y: 0.49}
       min: 0
       max: 0.49
       color: {r: 1, g: 0, b: 0.49, a: 0}
       vector4: {x: 1, y: 0, z: 0.49, w: 0}
+    - time: 2.8000002
+      frame: 0
+      floatValue: 0.89500004
+      range: {x: 0.076000005, y: 0.554}
+      min: 0.076000005
+      max: 0.554
+      color: {r: 0.89500004, g: 0.076000005, b: 0.554, a: 0}
+      vector4: {x: 0.89500004, y: 0.076000005, z: 0.554, w: 0}
     - time: 4
       frame: 240
       floatValue: 0.17600001
@@ -363,10 +371,10 @@ MonoBehaviour:
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
     __displayName: Color
     __propIndex: 1
-    __foldout: 0
-    __playingIndex: 0
+    __foldout: 1
+    __playingIndex: 2
     __showGraphFloat: 0
-    __showGraphVector: 01010101
+    __showGraphVector: 01010100
   - material: {fileID: 136709462}
     propName: _Distortion
     propType: 2
@@ -391,30 +399,30 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0.5
-      frame: 30
-      floatValue: 0.2
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.2, g: 0, b: 1, a: 0}
-      vector4: {x: 0.2, y: 0, z: 1, w: 0}
-    - time: 2.5
-      frame: 150
-      floatValue: 0.2
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.2, g: 0, b: 1, a: 0}
-      vector4: {x: 0.2, y: 0, z: 1, w: 0}
     - time: 2.7
       frame: 162
-      floatValue: 0
+      floatValue: 0.282
       range: {x: 0, y: 1}
       min: 0
       max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
+      color: {r: 0.282, g: 0, b: 1, a: 0}
+      vector4: {x: 0.282, y: 0, z: 1, w: 0}
+    - time: 3.3500001
+      frame: 201
+      floatValue: 0.718
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.718, g: 0, b: 1, a: 0}
+      vector4: {x: 0.718, y: 0, z: 1, w: 0}
+    - time: 3.65
+      frame: 219
+      floatValue: 0.15
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.15, g: 0, b: 1, a: 0}
+      vector4: {x: 0.15, y: 0, z: 1, w: 0}
     - time: 4
       frame: 240
       floatValue: 0
@@ -442,16 +450,16 @@ MonoBehaviour:
       max: 10
       color: {r: 5, g: 1, b: 10, a: 0}
       vector4: {x: 5, y: 1, z: 10, w: 0}
-    - time: 0.483
-      frame: 29
+    - time: 0.45000002
+      frame: 27
       floatValue: 3
       range: {x: 1, y: 10}
       min: 1
       max: 10
       color: {r: 3, g: 1, b: 10, a: 0}
       vector4: {x: 3, y: 1, z: 10, w: 0}
-    - time: 2.483
-      frame: 149
+    - time: 2.45
+      frame: 147
       floatValue: 3
       range: {x: 1, y: 10}
       min: 1
@@ -477,8 +485,8 @@ MonoBehaviour:
     __displayName: Area Power
     __propIndex: 4
     __foldout: 1
-    __playingIndex: 0
-    __showGraphFloat: 0
+    __playingIndex: 2
+    __showGraphFloat: 1
     __showGraphVector: 00000000
   - material: {fileID: 136709462}
     propName: _CircleNoiseScale
