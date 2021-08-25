@@ -23,6 +23,8 @@ public enum ShaderPropertyType
 }
 #endif
 
+#pragma warning disable CS0649 // Never Assigned
+
 // 날짜 : 2021-08-18 PM 10:48:56
 // 작성자 : Rito
 
@@ -390,8 +392,11 @@ namespace Rito
             public int __playingIndex = 0; // 현재 재생 중인 이벤트의 인덱스
 
             // 그래프 보여주기
-            public bool __showGraphFloat = false;
-            public bool[] __showGraphVector;
+            public bool __showGraph = false;
+            public bool[] __showVectorGraphs;
+
+            // 이벤트 보여주기
+            public bool __showEvents = false;
 
             public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
             {
@@ -404,9 +409,9 @@ namespace Rito
 
                 this.eventList = new List<MaterialPropertyValue>(10);
 
-                this.__showGraphVector = new bool[4];
-                for (int i = 0; i < this.__showGraphVector.Length; i++)
-                    this.__showGraphVector[i] = false;
+                this.__showVectorGraphs = new bool[4];
+                for (int i = 0; i < this.__showVectorGraphs.Length; i++)
+                    this.__showVectorGraphs[i] = true;
             }
 
             /// <summary> 이벤트가 아예 없었던 경우, 초기 이벤트 2개(시작, 끝) 추가 </summary>
@@ -1314,57 +1319,133 @@ namespace Rito
             const float GraphMarginLeft = 4f;
             const float GraphMarginRight = 4f;
 
-            // 그래프 높이
-            const float GraphMarginTop = 2f;           // 최상단 ~ 토글 버튼 사이 간격
-            const float GraphToggleButtonHeight = 20f; // 토글 버튼 높이
-            const float GraphMarginCenter = 2f;        // 토글 버튼 ~ 그래프 사이 간격
-            const float GraphHeight = 80f;             // 그래프 높이
-            const float GraphMarginBottom = 8f;        // 그래프 하단 간격
+            // 그래프 높이 옵션
+            const float GraphToggleButtonMarginTop = 2f;    // 최상단 ~ 토글 버튼 사이 간격
+            const float GraphToggleButtonHeight = 20f;      // 토글 버튼 높이
+            const float GraphToggleButtonMarginBottom = 2f; // 토글 버튼 ~ 그래프 사이 간격
 
             const float GraphTimestampHeightOnTop = 20f; // 그래프 상단 현재 시간 표시
+            const float GraphHeight = 80f;               // 그래프 높이
+            const float GraphMarginBottom = 8f;          // 그래프 하단 간격
+
+            const float RGBAButtonHeight = 20f;          // 벡터, 색상 XYZW 또는 RGBA 버튼 높이
+            const float RGBAButtonBottomMargin = 2f;
+
+            // 이벤트 표시 버튼 옵션
+            const float EventToggleButtonWidth = 100f;      // 이벤트 표시 토글 버튼 너비
+
+            const float EventToggleButtonMarginTop = 4f;    // 이벤트 표시 토글 버튼 상단 여백
+            const float EventToggleButtonHeight = 20f;      // 이벤트 표시 토글 버튼 높이
+            const float EventToggleButtonMarginBottom = 4f; // 이벤트 표시 토글 버튼 ~ 이벤트 사이 간격
 
             /// <summary> 프로퍼티 하나의 이벤트 모두 그리기 </summary>
             private void DrawPropertyEvents(MaterialPropertyInfo mp, Action removeAction)
             {
                 ref bool enabled = ref mp.enabled;
+                bool isFloatOrRangeType = mp.propType == ShaderPropertyType.Float || mp.propType == ShaderPropertyType.Range;
+                bool isVectorOrColorType = !isFloatOrRangeType;
                 bool isColorType = mp.propType == ShaderPropertyType.Color;
                 bool isVectorType = mp.propType == ShaderPropertyType.Vector;
 
-                // 그래프 그릴지 여부 확인
-                bool showGraph = mp.__showGraphFloat;
-                for (int i = 0; i < mp.__showGraphVector.Length; i++)
-                    showGraph |= mp.__showGraphVector[i];
+                // NOTE : GraphToggleButton, EventToggleButton은 항상 그림
 
-                // 그래프 최종 높이
-                float graphTotalHeight = GraphMarginTop + GraphToggleButtonHeight + GraphMarginCenter;
+                // NOTE : showGraph가 true이면
+                //  - Float/Range : 그래프를 그림
+                //  - Vector/Color : RGBA 토글 버튼을 그림
+                //    - showVectorGraphs가 true여야 그래프를 그림
+
+                // 그래프 그릴지 여부 확인
+                bool showGraph = mp.__showGraph;
+                bool showVectorGraphs = false; // 벡터 또는 컬러일 경우, RGBA 토글이 하나라도 활성화 되어 있는지 여부
+                bool showTimeStamp = false;
 
                 if (showGraph)
                 {
-                    graphTotalHeight += GraphHeight + GraphMarginBottom;
+                    // 벡터 또는 색상 - 그래프 표시 여부
+                    if (isVectorOrColorType)
+                    {
+                        for (int i = 0; i < mp.__showVectorGraphs.Length; i++)
+                            showVectorGraphs |= mp.__showVectorGraphs[i];
+                    }
 
-                    if (isPlayMode)
-                        graphTotalHeight += GraphTimestampHeightOnTop; // 그래프 상단
+                    // 타임스탬프 표시 여부 결정
+                    // float
+                    if (isFloatOrRangeType)
+                    {
+                        showTimeStamp = isPlayMode;
+                    }
+                    // 벡터, 색상
+                    else
+                    {
+                        showTimeStamp = isPlayMode && showVectorGraphs;
+                    }
                 }
 
-                // 이벤트 하나당 요소 개수
-                int countPerEvent = isColorType ? 3 : 2;
+                // 그래프 표시 토글 버튼 최종 높이
+                float graphToggleButtonTotalHeight =
+                    GraphToggleButtonMarginTop + GraphToggleButtonHeight + GraphToggleButtonMarginBottom;
 
-                // 전체 이벤트의 요소 개수
-                int contentCount = countPerEvent * mp.eventList.Count;
+                // 그래프 최종 높이
+                float graphTotalHeight = 0f;
 
-                // 전체 이벤트의 + 버튼 개수
-                int plusButtonCount = mp.eventList.Count - 1;
+                // 그래프 표시 허용하는 경우
+                if (showGraph)
+                {
+                    // 벡터 또는 색상 타입인 경우, RGBA 버튼 높이 확보
+                    if (isVectorOrColorType)
+                    {
+                        graphTotalHeight += RGBAButtonHeight + RGBAButtonBottomMargin;
+                    }
+
+                    // 그래프 상단 타임스탬프
+                    if (showTimeStamp)
+                        graphTotalHeight += GraphTimestampHeightOnTop;
+
+                    // 그래프 기본 높이
+                    if (isFloatOrRangeType)
+                    {
+                        graphTotalHeight += GraphHeight + GraphMarginBottom;
+                    }
+                    else
+                    {
+                        if (showVectorGraphs)
+                            graphTotalHeight += GraphHeight + GraphMarginBottom;
+                    }
+                }
+
+                // 이벤트 표시 토글 버튼 최종 높이
+                float eventButtonTotalHeight = EventToggleButtonMarginTop + EventToggleButtonHeight + EventToggleButtonMarginBottom;
+
+                // 이벤트 최종 높이 합
+                float eventContentsTotalHeight = 0f;
+
+                if (mp.__showEvents)
+                {
+                    // 이벤트 하나당 요소 개수
+                    int countPerEvent = isColorType ? 3 : 2;
+
+                    // 전체 이벤트의 요소 개수
+                    int contentCount = countPerEvent * mp.eventList.Count;
+
+                    // 전체 이벤트의 + 버튼 개수
+                    int plusButtonCount = mp.eventList.Count - 1;
 
 #if UNITY_2019_3_OR_NEWER
-                float heightPerElement = isVectorType ? 22f : 21f;
-                float heightPerButton = isColorType ? 23f : 22f;
+                    float heightPerElement = isVectorType ? 22f : 21f;
+                    float heightPerButton = isColorType ? 23f : 22f;
 #else
-                float heightPerElement = isVectorType ? 21f : 21f;
-                float heightPerButton = isColorType ? 17f : 20f;
+                    float heightPerElement = isVectorType ? 21f : 21f;
+                    float heightPerButton = isColorType ? 17f : 20f;
 #endif
+                    eventContentsTotalHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
+                }
 
                 // 최종 Foldout 높이 결정
-                float foldoutContHeight = graphTotalHeight + contentCount * heightPerElement + plusButtonCount * heightPerButton;
+                float foldoutContHeight =
+                    graphToggleButtonTotalHeight + // 그래프 토글 버튼
+                    graphTotalHeight +             // 그래프
+                    eventButtonTotalHeight +       // 이벤트 토글 버튼
+                    eventContentsTotalHeight;      // 이벤트
 
                 // Foldout 스타일 설정
                 if (eventFoldoutHeaderStyle == null)
@@ -1393,60 +1474,94 @@ namespace Rito
                 if (!mp.__foldout) return;
                 // ======================= Foldout 펼쳐져 있을 때 ======================= //
 
-                // == 그래프 그리기 ==
+                // ================== 그래프 토글 버튼 : 항상 그림 =============== //
+                // [1] 버튼 상단 여백
+                GUILayoutUtility.GetRect(1f, GraphToggleButtonMarginTop);
 
-                // [1] 상단 여백
-                GUILayoutUtility.GetRect(1f, GraphMarginTop);
-
-                // [2] 토글 버튼
+                // [2] 토글 버튼 영역
                 Rect graphBtnRect = GUILayoutUtility.GetRect(1f, GraphToggleButtonHeight);
 
-                // [3] 버튼 ~ 그래프 사이 여백
-                GUILayoutUtility.GetRect(1f, GraphMarginCenter);
+                // 토글 버튼 그리기
+                DrawGraphToggleButton(mp, graphBtnRect);
 
+                // [3] 버튼 하단 여백
+                GUILayoutUtility.GetRect(1f, GraphToggleButtonMarginBottom);
+
+                // ================== 그래프 그리기 =============== //
                 Rect graphRect = default;
 
                 // == 그래프 표시 허용 상태 ==
                 if (showGraph)
                 {
-                    // [4] 그래프 상단 시간 표시
-                    if (isPlayMode)
+                    // [4] 벡터 또는 컬러 타입인 경우, RGBA 버튼 그리기
+                    if (isVectorOrColorType)
                     {
-                        Rect graphTimeRect = GUILayoutUtility.GetRect(1f, GraphTimestampHeightOnTop);
-                        DrawTimestampOverGraph(graphTimeRect);
+                        // [4-1] RGBA 버튼 영역
+                        Rect rgbaButtonRect = GUILayoutUtility.GetRect(1f, RGBAButtonHeight);
+
+                        // RGBA 버튼 그리기
+                        GUILayoutUtility.GetRect(1f, RGBAButtonBottomMargin);
+
+                        // [4-2] RGBA 버튼 하단 여백
+                        DrawRGBAToggleButtons(mp, rgbaButtonRect);
                     }
 
-                    // [5] 그래프 위치 확보
-                    graphRect = GUILayoutUtility.GetRect(1f, GraphHeight);
-                    graphRect.xMin += GraphMarginLeft;
-                    graphRect.xMax -= GraphMarginRight;
+                    // 그래프 그리기
+                    if (isFloatOrRangeType || (isVectorOrColorType && showVectorGraphs))
+                    {
+                        // [5] 그래프 상단 시간 표시
+                        if (showTimeStamp)
+                        {
+                            Rect graphTimeRect = GUILayoutUtility.GetRect(1f, GraphTimestampHeightOnTop);
+                            DrawTimestampOverGraph(graphTimeRect);
+                        }
 
-                    // [6] 하단 여백
-                    GUILayoutUtility.GetRect(1f, GraphMarginBottom);
+                        // [6] 그래프 영역 확보
+                        graphRect = GUILayoutUtility.GetRect(1f, GraphHeight);
+                        graphRect.xMin += GraphMarginLeft;
+                        graphRect.xMax -= GraphMarginRight;
 
-                    // [7] 그래프 영역 마우스 이벤트 처리
-                    //  - 그래프 클릭 방지
-                    //  - 플레이 & 편집 모드 => 진행도 설정
-                    HandleMouseEventInGraphRect(graphRect);
+                        // [7] 하단 여백
+                        GUILayoutUtility.GetRect(1f, GraphMarginBottom);
+
+                        // [8] 그래프 영역 마우스 이벤트 처리
+                        //  - 그래프 클릭 방지
+                        //  - 플레이 & 편집 모드 => 진행도 설정
+                        HandleMouseEventInGraphRect(graphRect);
+
+                        // [9] 그래프 그리기
+                        if (isFloatOrRangeType)
+                            DrawFloatGraph(mp, graphRect);
+                        else
+                            DrawVector4OrColorGraph(mp, graphRect);
+
+                        // [10] 그래프에 X 좌표마다 강조 표시
+                        //  - 현재 등록된 이벤트들 위치
+                        //  - 현재 재생 중인 위치
+                        DrawMarkersOnGraphRect(mp, graphRect);
+                    }
                 }
 
-                // [8] 토글 버튼 & 그래프 그리기
-                if (mp.propType == ShaderPropertyType.Float || mp.propType == ShaderPropertyType.Range)
-                    DrawFloatGraph(mp, graphBtnRect, graphRect);
-                else
-                    DrawVector4OrColorGraph(mp, graphBtnRect, graphRect);
 
-                if (showGraph)
-                {
-                    // [8] 그래프에 X 좌표마다 강조 표시
-                    //  - 현재 등록된 이벤트들 위치
-                    //  - 현재 재생 중인 위치
-                    DrawMarkersOnGraphRect(mp, graphRect);
-                }
+                // ==================== 이벤트 토글 버튼 그리기 ====================== //
+                // [1] 버튼 상단 여백 확보
+                GUILayoutUtility.GetRect(1f, EventToggleButtonMarginTop);
 
+                // [2] 버튼 영역 확보
+                Rect eventButtonRect = GUILayoutUtility.GetRect(1f, EventToggleButtonHeight);
+
+                // 버튼 그리기
+                DrawEventToggleButton(mp, eventButtonRect);
+
+                // [3] 버튼 하단 여백 확보
+                GUILayoutUtility.GetRect(1f, EventToggleButtonMarginBottom);
+
+
+                if (mp.__showEvents == false) return;
+                // ======================== 이벤트들 그리기 ========================== //
                 int addNewEvent = -1;
-
                 var eventList = mp.eventList;
+
                 for (int i = 0; i < eventList.Count; i++)
                 {
                     // 이벤트 항목 한개 그리기
@@ -1482,17 +1597,26 @@ namespace Rito
 
                 if (graphRect.Contains(mPos) && (current.type == EventType.MouseDown || current.type == EventType.MouseDrag))
                 {
-                    // 편집 모드일 경우, 마우스 클릭 좌표에 따라 진행도 변경
-                    if (isPlayMode && m.__editMode)
+                    if (isPlayMode)
                     {
-                        // X : 0. ~ 1.
-                        float ratio = (mPos.x - graphRect.x) / graphRect.width;
+                        // 편집 모드가 아닐 경우, 마우스 클릭 시 편집 모드 진입
+                        if (m.__editMode == false)
+                        {
+                            m.__editMode = true;
+                        }
 
-                        // 진행도 변경
-                        if (m.isTimeModeSeconds)
-                            m.currentSeconds = m.durationSeconds * ratio;
-                        else
-                            m.currentFrame = (int)(m.durationFrame * ratio);
+                        // 편집 모드일 경우, 마우스 클릭 좌표에 따라 진행도 변경
+                        if (m.__editMode)
+                        {
+                            // X : 0. ~ 1.
+                            float ratio = (mPos.x - graphRect.x) / graphRect.width;
+
+                            // 진행도 변경
+                            if (m.isTimeModeSeconds)
+                                m.currentSeconds = m.durationSeconds * ratio;
+                            else
+                                m.currentFrame = (int)(m.durationFrame * ratio);
+                        }
                     }
 
                     // 그래프 마우스 클릭 방지
@@ -1567,34 +1691,56 @@ namespace Rito
                 }
             }
 
-            /// <summary> Float, Range 그래프를 그림미당 </summary>
-            private void DrawFloatGraph(MaterialPropertyInfo mp, Rect buttonRect, in Rect graphRect)
+            /// <summary> 그래프 토글 버튼 그리기 </summary>
+            private void DrawGraphToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
             {
-                // Note : buttonRect는 여백 설정되지 않은 영역(중앙 정렬 필요)
-                //        graphRect는 여백 설정 모두 완료(바로 사용)
-
-                // 1. 토글 버튼
+                // 버튼 중앙 정렬
                 float viewWidth = buttonRect.width;
                 buttonRect.width = GraphToggleButtonWidth;
                 buttonRect.x = (viewWidth - GraphToggleButtonWidth * 0.5f) * 0.5f;
 
-                string buttonLabel = mp.__showGraphFloat ?
+                string buttonLabel = mp.__showGraph ?
                     EngHan("Hide Graph", "그래프 숨기기") :
                     EngHan("Show Graph", "그래프 표시");
 
-                Color buttonColor = mp.__showGraphFloat ? Color.white * 2f : Color.black;
-                whiteTextButtonStyle.normal.textColor = mp.__showGraphFloat ? Color.black : Color.white;
+                // 버튼 스타일 결정
+                Color buttonColor = mp.__showGraph ? Color.white * 2f : Color.black;
+                whiteTextButtonStyle.normal.textColor = mp.__showGraph ? Color.black : Color.white;
                 whiteTextButtonStyle.hover.textColor = Color.gray;
 
                 // 그래프 표시 토글 버튼
                 if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, whiteTextButtonStyle))
                 {
-                    mp.__showGraphFloat = !mp.__showGraphFloat;
+                    mp.__showGraph = !mp.__showGraph;
                 }
-                if (mp.__showGraphFloat == false)
-                    return;
+            }
 
-                // 2. 그래프
+            /// <summary> 이벤트 토글 버튼 그리기 </summary>
+            private void DrawEventToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
+            {
+                // 버튼 중앙 정렬
+                float viewWidth = buttonRect.width;
+                buttonRect.width = EventToggleButtonWidth;
+                buttonRect.x = (viewWidth - EventToggleButtonWidth * 0.5f) * 0.5f;
+
+                string buttonLabel = mp.__showEvents ?
+                    EngHan("Hide Events", "이벤트 숨기기") :
+                    EngHan("Show Events", "이벤트 표시");
+
+                Color buttonColor = mp.__showEvents ? Color.white * 2f : Color.black;
+                whiteTextButtonStyle.normal.textColor = mp.__showEvents ? Color.black : Color.white;
+                whiteTextButtonStyle.hover.textColor = Color.gray;
+
+                // 이벤트 표시 토글 버튼
+                if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, whiteTextButtonStyle))
+                {
+                    mp.__showEvents = !mp.__showEvents;
+                }
+            }
+
+            /// <summary> Float, Range 그래프를 그림미당 </summary>
+            private void DrawFloatGraph(MaterialPropertyInfo mp, in Rect graphRect)
+            {
                 AnimationCurve graph = new AnimationCurve();
                 for (int i = 0; i < mp.eventList.Count; i++)
                 {
@@ -1628,27 +1774,30 @@ namespace Rito
             }
 
             private static string[] rgbaButtonLabels;
+            private static string[] xyzwButtonLabels;
             private static Color[] rgbaSignatureColors;
             private static readonly Color rgbaButtonDisabledColor = Color.black;
 
             private static FieldInfo fiCurveBGColor;
             private static Color defaultCurveBGColor;
 
-            /// <summary> Vector4, Color 그래프를 그림미당 </summary>
-            private void DrawVector4OrColorGraph(MaterialPropertyInfo mp, in Rect buttonRect, in Rect graphRect)
+            /// <summary> 벡터, 컬러 타입인 경우 4가지 토글 버튼 그리기 </summary>
+            private void DrawRGBAToggleButtons(MaterialPropertyInfo mp, in Rect buttonRect)
             {
                 const int ButtonCount = 4;
 
                 // true : Vector4, false : Color
-                bool isVectorOrColorType = mp.propType == ShaderPropertyType.Vector;
+                bool isVectorType = mp.propType == ShaderPropertyType.Vector;
 
                 // Init(최초 한 번씩 실행)
                 {
                     if (rgbaButtonLabels == null)
                     {
-                        rgbaButtonLabels = isVectorOrColorType ?
-                            new string[ButtonCount] { "X", "Y", "Z", "W" } :
-                            new string[ButtonCount] { "R", "G", "B", "A" };
+                        rgbaButtonLabels = new string[ButtonCount] { "R", "G", "B", "A" };
+                    }
+                    if (xyzwButtonLabels == null)
+                    {
+                        xyzwButtonLabels = new string[ButtonCount] { "X", "Y", "Z", "W" };
                     }
                     if (rgbaSignatureColors == null)
                     {
@@ -1662,15 +1811,17 @@ namespace Rito
                     }
                 }
 
+                string[] buttonLabels4 = isVectorType ? xyzwButtonLabels : rgbaButtonLabels;
+
                 // 1. 토글 버튼
-                const float ButtonWidth = 20f;
+                const float ButtonWidth = 22f;
                 const float Margin = 4f;
                 float centerX = buttonRect.width * 0.5f;
 
                 Rect[] buttonRects = new Rect[ButtonCount];
                 buttonRects[0] = new Rect(buttonRect);
                 buttonRects[0].width = ButtonWidth;
-                buttonRects[0].x = centerX - (ButtonWidth);
+                buttonRects[0].x = centerX - (ButtonWidth) - 3f;
 
                 // 모든 버튼 Rect 초기화
                 for (int i = 1; i < ButtonCount; i++)
@@ -1682,25 +1833,25 @@ namespace Rito
                 // 토글 버튼 그리기
                 for (int i = 0; i < ButtonCount; i++)
                 {
-                    Color buttonColor = mp.__showGraphVector[i] ? rgbaSignatureColors[i] * 2f : rgbaButtonDisabledColor;
+                    Color buttonColor = mp.__showVectorGraphs[i] ? rgbaSignatureColors[i] * 2f : rgbaButtonDisabledColor;
 
-                    whiteTextButtonStyle.normal.textColor = mp.__showGraphVector[i] ? Color.black : Color.white;
+                    whiteTextButtonStyle.normal.textColor = mp.__showVectorGraphs[i] ? Color.black : Color.white;
                     whiteTextButtonStyle.hover.textColor = Color.gray;
-                    if (RitoEditorGUI.DrawButton(buttonRects[i], rgbaButtonLabels[i], buttonColor, whiteTextButtonStyle))
+                    if (RitoEditorGUI.DrawButton(buttonRects[i], buttonLabels4[i], buttonColor, whiteTextButtonStyle))
                     {
-                        mp.__showGraphVector[i] = !mp.__showGraphVector[i];
+                        mp.__showVectorGraphs[i] = !mp.__showVectorGraphs[i];
                     }
                 }
+            }
 
-                // 그래프 보일지 여부 결정
-                bool drawGraph = false;
-                for (int i = 0; i < ButtonCount; i++)
-                    drawGraph |= mp.__showGraphVector[i];
+            /// <summary> Vector4, Color 그래프를 그림미당 </summary>
+            private void DrawVector4OrColorGraph(MaterialPropertyInfo mp, in Rect graphRect)
+            {
+                const int ButtonCount = 4;
 
-                if (drawGraph == false)
-                    return;
+                // true : Vector4, false : Color
+                bool isVectorType = mp.propType == ShaderPropertyType.Vector;
 
-                // 2. 그래프
                 AnimationCurve[] graphs = new AnimationCurve[ButtonCount];
 
                 // ====== Multiple Curves =======
@@ -1722,11 +1873,11 @@ namespace Rito
                 float graphMaxY = float.MinValue;
 
                 // 벡터
-                if (isVectorOrColorType)
+                if (isVectorType)
                 {
                     for (int i = 0; i < ButtonCount; i++)
                     {
-                        if (mp.__showGraphVector[i] == false)
+                        if (mp.__showVectorGraphs[i] == false)
                             continue;
 
                         for (int j = 0; j < mp.eventList.Count; j++)
@@ -1744,7 +1895,7 @@ namespace Rito
                     graphMinY = 0f;
                     for (int i = 0; i < ButtonCount; i++)
                     {
-                        if (mp.__showGraphVector[i] == false)
+                        if (mp.__showVectorGraphs[i] == false)
                             continue;
 
                         for (int j = 0; j < mp.eventList.Count; j++)
@@ -1764,7 +1915,7 @@ namespace Rito
                     AnimationCurve graph = graphs[a] = new AnimationCurve();
 
                     // 토글 ON인 경우만 그래프 그리기
-                    if (mp.__showGraphVector[a] == false)
+                    if (mp.__showVectorGraphs[a] == false)
                         continue;
 
                     // i : 이벤트 개수
@@ -1954,27 +2105,28 @@ namespace Rito
 
                     // 값 변경 시, 전후값의 경계에서 전후값 변경
                     // *ISSUE : 키보드로 직접 값 수정할 때, 도중에 전후값이 수정되는 문제 발생
+#if false
+                    if (isFirstOrLast == false)
+                    {
+                        MaterialPropertyValue prevEvent = mp.eventList[index - 1];
+                        MaterialPropertyValue nextEvent = mp.eventList[index + 1];
 
-                    //if (isFirstOrLast == false)
-                    //{
-                    //    MaterialPropertyValue prevEvent = mp.eventList[index - 1];
-                    //    MaterialPropertyValue nextEvent = mp.eventList[index + 1];
-
-                    //    if (m.isTimeModeSeconds)
-                    //    {
-                    //        if (prevEvent.time > mpEvent.time)
-                    //            prevEvent.time = mpEvent.time;
-                    //        if (nextEvent.time < mpEvent.time)
-                    //            nextEvent.time = mpEvent.time;
-                    //    }
-                    //    else
-                    //    {
-                    //        if (prevEvent.frame > mpEvent.frame)
-                    //            prevEvent.frame = mpEvent.frame;
-                    //        if (nextEvent.frame < mpEvent.frame)
-                    //            nextEvent.frame = mpEvent.frame;
-                    //    }
-                    //}
+                        if (m.isTimeModeSeconds)
+                        {
+                            if (prevEvent.time > mpEvent.time)
+                                prevEvent.time = mpEvent.time;
+                            if (nextEvent.time < mpEvent.time)
+                                nextEvent.time = mpEvent.time;
+                        }
+                        else
+                        {
+                            if (prevEvent.frame > mpEvent.frame)
+                                prevEvent.frame = mpEvent.frame;
+                            if (nextEvent.frame < mpEvent.frame)
+                                nextEvent.frame = mpEvent.frame;
+                        }
+                    }
+#endif
 
                     // 여백 생성
                     RitoEditorGUI.DrawHorizontalSpace(MinusButtonWidth);
@@ -2122,6 +2274,7 @@ namespace Rito
 
                 GUIStyle buttonStyle = new GUIStyle("button");
                 buttonStyle.normal.textColor = textColor;
+                buttonStyle.hover.textColor = textColor * 0.5f;
 
                 bool pressed = GUILayout.Button(label, buttonStyle, GUILayout.Width(width));
 
@@ -2559,6 +2712,9 @@ namespace Rito
                                     newSO.CopyFromSerializedProperty(oldIter);
                                 newSO.ApplyModifiedProperties();
                             }
+
+                            // 씬 저장
+                            UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
                             break;
                     }
                 };
