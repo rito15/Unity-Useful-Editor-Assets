@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &178887159
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24880,7 +24880,7 @@ MonoBehaviour:
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
     __displayName: Color
     __propIndex: 1
-    __foldout: 1
+    __foldout: 0
     __playingIndex: 4
     __showGraph: 1
     __showVectorGraphs: 01000001
@@ -24969,7 +24969,7 @@ MonoBehaviour:
     __displayName: Area Range
     __propIndex: 3
     __foldout: 0
-    __playingIndex: 6
+    __playingIndex: 4
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
@@ -25029,7 +25029,7 @@ MonoBehaviour:
     __displayName: Area Power
     __propIndex: 4
     __foldout: 0
-    __playingIndex: 4
+    __playingIndex: 2
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
