@@ -19,13 +19,15 @@ namespace Rito
     [ExecuteInEditMode]
     public class ScreenEffectController : MonoBehaviour
     {
-        private readonly List<ScreenEffect> _screenEffectList = new List<ScreenEffect>(8);
-        private readonly List<ScreenEffect> _validEffectList = new List<ScreenEffect>(8);
-        private readonly RenderTexture[] _renderTexArr = new RenderTexture[20];
+        private const int INITIAL_EFFECT_CAPACITY = 8;
+
+        private readonly List<ScreenEffect> _screenEffectList = new List<ScreenEffect>(INITIAL_EFFECT_CAPACITY);
+        private readonly List<ScreenEffect> _validEffectList = new List<ScreenEffect>(INITIAL_EFFECT_CAPACITY);
+        private RenderTexture[] _renderTexArr = new RenderTexture[INITIAL_EFFECT_CAPACITY];
 
 #if UNITY_EDITOR
         private event Action EffectListChanged;
-        private bool autoUpdateInEditMode;
+        [SerializeField] private bool autoUpdateInEditMode;
 #endif
 
         private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -58,6 +60,12 @@ namespace Rito
                         // 순서 정렬
                         _validEffectList.Sort((a, b) => a.priority - b.priority);
 
+                        // 공간 동적 확보
+                        if (_renderTexArr.Length <= validCount)
+                        {
+                            _renderTexArr = new RenderTexture[validCount * 2]; // 넉넉히 확보
+                        }
+
                         _renderTexArr[0] = source;
                         _renderTexArr[validCount] = destination;
 
@@ -76,6 +84,7 @@ namespace Rito
                 }
                 else
                 {
+                    // 유효한 스크린 이펙트가 없을 경우 : 스크린 그대로 출력
                     Graphics.Blit(source, destination);
                 }
             }
@@ -109,7 +118,7 @@ namespace Rito
 #if UNITY_EDITOR
         // 에디터 모드에서 게임뷰 자동 업데이트
         [InitializeOnLoadMethod]
-        static void Test()
+        private static void AutoUpdateInEditMode()
         {
             EditorApplication.update += () =>
             {

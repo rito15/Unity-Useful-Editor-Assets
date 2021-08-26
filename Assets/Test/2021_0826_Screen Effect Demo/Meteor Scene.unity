@@ -358,6 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6c76023c6dc8124ebd2fda6b972eb92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoUpdateInEditMode: 0
 --- !u!21 &366551778
 Material:
   serializedVersion: 6

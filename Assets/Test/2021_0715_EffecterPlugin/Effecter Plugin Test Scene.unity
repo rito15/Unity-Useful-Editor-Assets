@@ -372,7 +372,7 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 3
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
@@ -444,7 +444,7 @@ MonoBehaviour:
     __displayName: Area Range
     __propIndex: 3
     __foldout: 1
-    __playingIndex: 4
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
@@ -496,7 +496,7 @@ MonoBehaviour:
     __displayName: Area Power
     __propIndex: 4
     __foldout: 1
-    __playingIndex: 3
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
@@ -912,7 +912,7 @@ MonoBehaviour:
     __displayName: Shake Intensity
     __propIndex: 0
     __foldout: 1
-    __playingIndex: 3
+    __playingIndex: 2
     __showGraph: 1
     __showVectorGraphs: 00000000
     __showEvents: 0

@@ -860,7 +860,9 @@ namespace Rito
                 {
                     whiteTextButtonStyle = new GUIStyle("button")
                     {
+#if UNITY_2019_3_OR_NEWER
                         fontStyle = FontStyle.Bold
+#endif
                     };
                     whiteTextButtonStyle.normal.textColor = Color.white;
                     whiteTextButtonStyle.hover.textColor = Color.white;
@@ -869,7 +871,9 @@ namespace Rito
                 {
                     graphToggleButtonStyle = new GUIStyle("button")
                     {
+#if UNITY_2019_3_OR_NEWER
                         fontStyle = FontStyle.Bold
+#endif
                     };
 
                     // 실제 사용하는 곳에서 초기화
@@ -2489,7 +2493,11 @@ namespace Rito
 
                 if (foldoutHeaderTextStyle == null)
                 {
+#if UNITY_2019_3_OR_NEWER
                     foldoutHeaderTextStyle = new GUIStyle(EditorStyles.boldLabel);
+#else
+                    foldoutHeaderTextStyle = new GUIStyle(EditorStyles.label);
+#endif
                     foldoutHeaderTextStyle.normal.textColor = Color.white;
                 }
                 EditorGUI.LabelField(HL, headerText, foldoutHeaderTextStyle);
