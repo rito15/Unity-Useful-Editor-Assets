@@ -2084,7 +2084,7 @@ namespace Rito
                 if (isVectorType) return;
 
                 Rect gradToggleRect = new Rect(buttonRect);
-                gradToggleRect.width -= 2f;
+                gradToggleRect.width -= 4f;
                 gradToggleRect.xMin = gradToggleRect.xMax - 80f; // 우측에서부터 너비 결정
 
                 string strGrad = mp.__isGradientView ?
