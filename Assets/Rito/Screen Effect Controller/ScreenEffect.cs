@@ -805,11 +805,20 @@ namespace Rito
             }
             private void InitReflectionData()
             {
+                BindingFlags privateStatic = BindingFlags.Static | BindingFlags.NonPublic;
+
+                // 커브 필드의 배경 색상
                 if (fiCurveBGColor == null)
                 {
-                    Type type = typeof(EditorGUI);
-                    fiCurveBGColor = type.GetField("kCurveBGColor", BindingFlags.Static | BindingFlags.NonPublic);
+                    fiCurveBGColor = typeof(EditorGUI).GetField("kCurveBGColor", privateStatic);
                     defaultCurveBGColor = (Color)fiCurveBGColor.GetValue(null);
+                }
+
+                // Vector4 필드의 XYZW 레이블
+                if (fiVector4FieldLables == null)
+                {
+                    fiVector4FieldLables = typeof(EditorGUI).GetField("s_XYZWLabels", privateStatic);
+                    vector4FieldLables = fiVector4FieldLables.GetValue(null) as GUIContent[];
                 }
             }
             private void InitVariables()
@@ -1907,6 +1916,9 @@ namespace Rito
             private static FieldInfo fiCurveBGColor;
             private static Color defaultCurveBGColor;
 
+            private static FieldInfo fiVector4FieldLables;
+            private static GUIContent[] vector4FieldLables;
+
             /// <summary> 벡터, 컬러 타입인 경우 4가지 토글 버튼 그리기 </summary>
             private void DrawRGBAToggleButtons(MaterialPropertyInfo mp, in Rect buttonRect)
             {
@@ -2309,12 +2321,24 @@ namespace Rito
 
                         mpEvent.color = EditorGUILayout.ColorField(mpEvent.color); // Color Field
 
+                        // XYZW 레이블 -> RGBA로 변경
+                        vector4FieldLables[0].text = "R";
+                        vector4FieldLables[1].text = "G";
+                        vector4FieldLables[2].text = "B";
+                        vector4FieldLables[3].text = "A";
+
                         Color colLN2 = EditorStyles.label.normal.textColor;
                         EditorStyles.label.normal.textColor = Color.white;
                         {
                             mpEvent.vector4 = EditorGUILayout.Vector4Field("", mpEvent.vector4); // Vec4 Field
                         }
                         EditorStyles.label.normal.textColor = colLN2;
+
+                        // XYZW 레이블 복원
+                        vector4FieldLables[0].text = "X";
+                        vector4FieldLables[1].text = "Y";
+                        vector4FieldLables[2].text = "Z";
+                        vector4FieldLables[3].text = "W";
 
                         EditorGUILayout.EndVertical();
                         break;

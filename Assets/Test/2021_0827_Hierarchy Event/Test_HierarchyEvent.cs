@@ -90,16 +90,26 @@ namespace Rito
         {
             private Test_HierarchyEvent m;
 
+            GUIStyle style1;
+
             private void OnEnable()
             {
                 m = target as Test_HierarchyEvent;
+
             }
 
             public override void OnInspectorGUI()
             {
+                GUIStyle buttonStyle = new GUIStyle("button");
+                buttonStyle.normal.textColor = Color.yellow;
+
+                if (GUILayout.Button("BUTTON", buttonStyle))
+                {
+                    // ..
+                }
                 if (GUILayout.Button("BUTTON"))
                 {
-                    Debug.Log(HierarchyWindow);
+                    // ..
                 }
             }
         }
