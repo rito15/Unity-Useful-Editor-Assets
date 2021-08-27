@@ -4,6 +4,7 @@
 #define CREATE_TOOLBAR_BUTTON
 
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -69,6 +70,34 @@ namespace Rito
             var target = GameObject.FindObjectOfType<Transform>();
             EditorUtility.SetDirty(target);
         }
+        #endregion
+        /***********************************************************************
+        *                               Hierarchy Key Event
+        ***********************************************************************/
+        #region .
+
+        // 하이라키의 게임오브젝트가 선택된 상태에서 F2 누를 경우 Auto Update 기능 해제
+        [InitializeOnLoadMethod]
+        private static void StaticInitMethod()
+        {
+            EditorApplication.hierarchyWindowItemOnGUI -= OnHierarchyWindow;
+            EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyWindow;
+        }
+
+        private static void OnHierarchyWindow(int instanceID, Rect selectionRect)
+        {
+            Event cur = Event.current;
+
+            if (cur == null) return;
+            if (IsActivated == false) return;
+            if (Selection.activeGameObject == null) return;
+
+            if (cur.type == EventType.KeyDown && cur.keyCode == KeyCode.F2)
+            {
+                MenuItemChecked = false;
+            }
+        }
+
         #endregion
         /***********************************************************************
         *                               Toolbar Button
