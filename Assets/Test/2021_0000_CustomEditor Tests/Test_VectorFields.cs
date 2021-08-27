@@ -22,6 +22,10 @@ namespace Rito
             private void OnEnable()
             {
                 m = target as Test_VectorFields;
+                Debug.Log(Application.dataPath);
+
+                string str = Application.dataPath;
+                Debug.Log(str.Substring(0, str.LastIndexOf('/')));
             }
 
             private Vector2 vec2;

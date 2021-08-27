@@ -152,7 +152,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   effectMaterial: {fileID: 998077944}
   priority: 0
-  stopAction: 0
+  stopAction: 2
   isTimeModeSeconds: 1
   durationSeconds: 4
   durationFrame: 0
@@ -241,14 +241,22 @@ MonoBehaviour:
       max: 0
       color: {r: 1, g: 0, b: 0, a: 0}
       vector4: {x: 1, y: 0, z: 0, w: 0}
+    - time: 2
+      frame: 0
+      floatValue: 0
+      range: {x: 1, y: 0.5}
+      min: 1
+      max: 0.5
+      color: {r: 0, g: 1, b: 0.5, a: 0}
+      vector4: {x: 0, y: 1, z: 0.5, w: 0}
     - time: 4
       frame: 0
       floatValue: 0
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
+      color: {r: 0, g: 0, b: 0, a: 1}
+      vector4: {x: 0, y: 0, z: 0, w: 1}
     __displayName: Color
     __propIndex: 1
     __foldout: 1
@@ -304,7 +312,7 @@ MonoBehaviour:
     __displayName: Range
     __propIndex: 2
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010101
     __showEvents: 1
@@ -316,25 +324,25 @@ MonoBehaviour:
     - time: 0
       frame: 0
       floatValue: 0
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
+      range: {x: 1, y: 1}
+      min: 1
+      max: 1
+      color: {r: 0, g: 1, b: 1, a: 0}
+      vector4: {x: 0, y: 1, z: 1, w: 0}
     - time: 4
       frame: 0
-      floatValue: 0
-      range: {x: 0, y: 0}
+      floatValue: 1
+      range: {x: 0, y: 1}
       min: 0
-      max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
     __displayName: Vec
     __propIndex: 3
     __foldout: 1
     __playingIndex: 0
-    __showGraph: 0
-    __showVectorGraphs: 01010101
+    __showGraph: 1
+    __showVectorGraphs: 01010000
     __showEvents: 1
   - material: {fileID: 998077944}
     propName: _Float

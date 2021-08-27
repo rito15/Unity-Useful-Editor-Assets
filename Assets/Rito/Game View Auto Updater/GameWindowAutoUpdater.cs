@@ -67,6 +67,7 @@ namespace Rito
         private static void UpdateGameWindow()
         {
             if (!IsActivated) return;
+
             var target = GameObject.FindObjectOfType<Transform>();
             EditorUtility.SetDirty(target);
         }
@@ -132,6 +133,6 @@ namespace Rito
 #endif
         #endregion
     }
-}
+} 
 
 #endif

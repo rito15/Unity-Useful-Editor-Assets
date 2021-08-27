@@ -460,9 +460,16 @@ namespace Rito
             }
         }
 
+        // Assets 상위의 프로젝트 루트 경로
+        private static string GetProjectPath()
+        {
+            string path = Application.dataPath;
+            return path.Substring(0, path.LastIndexOf('/'));
+        }
+
         private static string GetJsonFilePath(string fileName)
         {
-            return $"{Path.Combine(Application.dataPath, $"{fileName}.txt")}";
+            return $"{Path.Combine(GetProjectPath(), $"{fileName}.dat")}";
         }
 
         private static void SaveAllDataToJson()
@@ -474,7 +481,8 @@ namespace Rito
                 if (target._bundles != null)
                 {
                     string jsonStr = JsonUtility.ToJson(new SerializableAnimatorEventController(target));
-                    File.WriteAllText(GetJsonFilePath(target.GetInstanceID().ToString()), jsonStr, System.Text.Encoding.UTF8);
+                    string filePath = GetJsonFilePath(target.GetInstanceID().ToString());
+                    File.WriteAllText(filePath, jsonStr, System.Text.Encoding.UTF8);
                 }
             }
         }
