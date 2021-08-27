@@ -398,6 +398,12 @@ namespace Rito
             // 이벤트 보여주기
             public bool __showEvents = false;
 
+            // 컬러 : 그라디언트 or 그래프
+            public bool __isGradientView = true;
+
+            // 마커 : 인덱스 표시 or 시간/프레임 표시
+            public bool __showIndexOrTime = true;
+
             public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
             {
                 this.material = material;
@@ -559,6 +565,7 @@ namespace Rito
             private static GUIStyle propertyEventTimeLabelStyle;
             private static GUIStyle whiteBoldLabelStyle;
             private static GUIStyle yellowBoldLabelStyle;
+            private static GUIStyle whiteEventKeyIndexLabelStyle;
 
             private void OnEnable()
             {
@@ -908,6 +915,12 @@ namespace Rito
                 {
                     yellowBoldLabelStyle = new GUIStyle(EditorStyles.boldLabel);
                     yellowBoldLabelStyle.normal.textColor = Color.yellow;
+                }
+                if (whiteEventKeyIndexLabelStyle == null)
+                {
+                    whiteEventKeyIndexLabelStyle = new GUIStyle(EditorStyles.label);
+                    whiteEventKeyIndexLabelStyle.normal.textColor = Color.white;
+                    whiteEventKeyIndexLabelStyle.fontSize = 10;
                 }
             }
             private void LoadMaterialProperties()
@@ -1417,10 +1430,15 @@ namespace Rito
             {
                 if (isDurationZero)
                 {
+                    int fs = EditorStyles.helpBox.fontSize;
                     EditorStyles.helpBox.fontSize = 12;
+
                     EditorGUILayout.HelpBox(
                         EngHan("Cannot create events if duration is 0.", "이벤트를 생성하려면 지속 시간을 설정해야 합니다."),
                         MessageType.Info);
+
+                    EditorStyles.helpBox.fontSize = fs;
+
                     return;
                 }
 
@@ -1461,7 +1479,7 @@ namespace Rito
 
             const float GraphTimestampHeightOnTop = 20f; // 그래프 상단 현재 시간 표시
             const float GraphHeight = 80f;               // 그래프 높이
-            const float GraphMarginBottom = 8f;          // 그래프 하단 간격
+            const float GraphMarginBottom = 20f;         // 그래프 하단 여백
 
             const float RGBAButtonHeight = 20f;          // 벡터, 색상 XYZW 또는 RGBA 버튼 높이
             const float RGBAButtonBottomMargin = 2f;
@@ -1527,7 +1545,8 @@ namespace Rito
                 if (showGraph)
                 {
                     // 벡터 또는 색상 타입인 경우, RGBA 버튼 높이 확보
-                    if (isVectorOrColorType)
+                    // => 인덱스/시간 표시 버튼 추가로 항상 여백 확보하도록 변경
+                    //if (isVectorOrColorType)
                     {
                         graphTotalHeight += RGBAButtonHeight + RGBAButtonBottomMargin;
                     }
@@ -1628,18 +1647,21 @@ namespace Rito
                 // == 그래프 표시 허용 상태 ==
                 if (showGraph)
                 {
-                    // [4] 벡터 또는 컬러 타입인 경우, RGBA 버튼 그리기
+                    // [4] 그래프 상단 토글 버튼들 그리기
+
+                    // [4-1] RGBA 버튼 영역
+                    Rect rgbaButtonRect = GUILayoutUtility.GetRect(1f, RGBAButtonHeight);
+
+                    // [4-2] RGBA 버튼 하단 여백
+                    GUILayoutUtility.GetRect(1f, RGBAButtonBottomMargin);
+
+                    // 좌측 : 인덱스 or 시간/프레임 토글
+                    DrawIndexOrTimeToggleButton(mp, rgbaButtonRect);
+
+                    // 중앙 : RGBA 버튼 그리기
                     if (isVectorOrColorType)
-                    {
-                        // [4-1] RGBA 버튼 영역
-                        Rect rgbaButtonRect = GUILayoutUtility.GetRect(1f, RGBAButtonHeight);
-
-                        // RGBA 버튼 그리기
-                        GUILayoutUtility.GetRect(1f, RGBAButtonBottomMargin);
-
-                        // [4-2] RGBA 버튼 하단 여백
                         DrawRGBAToggleButtons(mp, rgbaButtonRect);
-                    }
+
 
                     // 그래프 그리기
                     if (isFloatOrRangeType || (isVectorOrColorType && showVectorGraphs))
@@ -1664,11 +1686,19 @@ namespace Rito
                         //  - 플레이 & 편집 모드 => 진행도 설정
                         HandleMouseEventInGraphRect(graphRect);
 
+                        bool needToDrawGradient = isColorType && mp.__isGradientView;
+
                         // [9] 그래프 그리기
                         if (isFloatOrRangeType)
                             DrawFloatGraph(mp, graphRect);
                         else
-                            DrawVector4OrColorGraph(mp, graphRect);
+                        {
+                            // 컬러 타입 && 그라디언트 뷰
+                            if (needToDrawGradient)
+                                DrawColorGradientView(mp, graphRect);
+                            else
+                                DrawVector4OrColorGraph(mp, graphRect);
+                        }
 
                         // [10] 그래프에 X 좌표마다 강조 표시
                         //  - 현재 등록된 이벤트들 위치
@@ -1790,6 +1820,8 @@ namespace Rito
             /// <summary> 그래프 내의 특정 위치들을 강조 표시하기 </summary>
             private void DrawMarkersOnGraphRect(MaterialPropertyInfo mp, in Rect graphRect)
             {
+                bool shouldDrawGradient = mp.propType == ShaderPropertyType.Color && mp.__isGradientView;
+
                 Rect markerRect = new Rect(graphRect);
                 float baseXPos = graphRect.x;
                 float totalWidth = graphRect.width - 2f;
@@ -1797,18 +1829,69 @@ namespace Rito
 
                 // 1. 이벤트 위치들 표시
                 var eventList = mp.eventList;
-                for (int i = 1; i < eventList.Count - 1; i++)
+                for (int i = 0; i < eventList.Count; i++)
                 {
-                    Rect r = new Rect(markerRect);
-                    var e = eventList[i];
+                    var cur = eventList[i];
+                    float t = m.isTimeModeSeconds ?
+                        cur.time / m.durationSeconds :
+                        (float)cur.frame / m.durationFrame;
 
-                    float ratio = m.isTimeModeSeconds ?
-                        e.time / m.durationSeconds :
-                        (float)e.frame / m.durationFrame;
+                    // 1-1. 그래프 위에 마커 그리기
+                    if (i > 0 && i < eventList.Count - 1)
+                    {
+                        Rect r = new Rect(markerRect);
+                        r.x = baseXPos + (t * totalWidth);
 
-                    r.x = baseXPos + (ratio * totalWidth);
+                        if (!shouldDrawGradient)
+                            EditorGUI.DrawRect(r, new Color(1, 1, 1, 0.2f));
+                    }
 
-                    EditorGUI.DrawRect(r, new Color(1, 1, 1, 0.2f)); // 마커 그리기
+                    // 1-2. 그래프 하단에 키프레임 표시
+                    {
+                        // 1-2-1. 작은 네모네모
+                        Rect keyRect = new Rect(graphRect);
+                        keyRect.width = 2f;
+                        keyRect.height = 6f;
+                        keyRect.y = graphRect.yMax;
+                        keyRect.x += graphRect.width * t - 1f;
+
+                        EditorGUI.DrawRect(keyRect, Color.white);
+
+                        // 1-2-2. 인덱스 레이블
+                        Rect indexLabelRect = new Rect(keyRect);
+                        indexLabelRect.y += 8f;
+                        indexLabelRect.height = 15f;
+
+                        string label;
+
+                        if (mp.__showIndexOrTime)
+                        {
+                            label = $"{i}";
+                        }
+                        else
+                        {
+                            label = m.isTimeModeSeconds ? $"{cur.time:F2}" : $"{cur.frame}";
+                        }
+
+                        float len = label.Length * 3f;
+#if UNITY_2019_3_OR_NEWER
+                        indexLabelRect.width = Mathf.Max(8f, len * 2.5f);
+#else
+                        indexLabelRect.width = Mathf.Max(12f, len * 3f);
+#endif
+                        indexLabelRect.x -= len;
+
+                        // 레이블 좌측 위치 제한
+                        indexLabelRect.x = Mathf.Max(indexLabelRect.x, graphRect.x - 4f);
+
+                        // 레이블 우측 위치 제한
+                        float rightExceed = indexLabelRect.xMax - graphRect.xMax;
+                        if (rightExceed > 0f)
+                            indexLabelRect.x -= rightExceed - len;
+
+                        //EditorGUI.DrawRect(indexLabelRect, Color.white);
+                        EditorGUI.LabelField(indexLabelRect, label, whiteEventKeyIndexLabelStyle);
+                    }
                 }
 
                 if (isPlayMode)
@@ -1919,6 +2002,22 @@ namespace Rito
             private static FieldInfo fiVector4FieldLables;
             private static GUIContent[] vector4FieldLables;
 
+            /// <summary> 좌측의 인덱스 or 시간/프레임 토글 버튼 그리기 </summary>
+            private void DrawIndexOrTimeToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
+            {
+                buttonRect.x += 4f;
+                buttonRect.width = 60f;
+
+                string strGrad = mp.__showIndexOrTime ?
+                    EngHan("Index", "인덱스") :
+                    EngHan(m.isTimeModeSeconds ? "Time" : "Frame", m.isTimeModeSeconds ? "시간(초)" : "프레임");
+
+                if (RitoEditorGUI.DrawButton(buttonRect, strGrad, Color.black, whiteTextButtonStyle))
+                {
+                    mp.__showIndexOrTime = !mp.__showIndexOrTime;
+                }
+            }
+
             /// <summary> 벡터, 컬러 타입인 경우 4가지 토글 버튼 그리기 </summary>
             private void DrawRGBAToggleButtons(MaterialPropertyInfo mp, in Rect buttonRect)
             {
@@ -1979,6 +2078,22 @@ namespace Rito
                     {
                         mp.__showVectorGraphs[i] = !mp.__showVectorGraphs[i];
                     }
+                }
+
+                // =========== 컬러 타입 : 그라디언트 뷰 토글 ==========
+                if (isVectorType) return;
+
+                Rect gradToggleRect = new Rect(buttonRect);
+                gradToggleRect.width -= 2f;
+                gradToggleRect.xMin = gradToggleRect.xMax - 80f; // 우측에서부터 너비 결정
+
+                string strGrad = mp.__isGradientView ?
+                    EngHan("Gradient", "그라디언트") :
+                    EngHan("Graph", "그래프");
+
+                if (RitoEditorGUI.DrawButton(gradToggleRect, strGrad, Color.black, whiteTextButtonStyle))
+                {
+                    mp.__isGradientView = !mp.__isGradientView;
                 }
             }
 
@@ -2092,6 +2207,68 @@ namespace Rito
 
                 // 그래프 배경 색상 돌려놓기
                 fiCurveBGColor.SetValue(null, defaultCurveBGColor);
+            }
+
+            /// <summary> Color - 그래프 위치에 그라디언트 필드 그리기 </summary>
+            private void DrawColorGradientView(MaterialPropertyInfo mp, in Rect gradientRect)
+            {
+                // 그라디언트 내 색상 최대 개수 제한
+                if (mp.eventList.Count > 8)
+                {
+                    var oldAlign = EditorStyles.helpBox.alignment;
+                    var oldFS = EditorStyles.helpBox.fontSize;
+
+                    EditorStyles.helpBox.alignment = TextAnchor.MiddleCenter;
+                    EditorStyles.helpBox.fontSize = 12;
+
+                    EditorGUI.HelpBox(gradientRect,
+                        EngHan("Only up to 8 colors can be displayed as a gradient.",
+                               "최대 8개의 색상만 그라디언트로 나타낼수 있습니다."),
+                        MessageType.Warning);
+
+                    EditorStyles.helpBox.alignment = oldAlign;
+                    EditorStyles.helpBox.fontSize = oldFS;
+
+                    return;
+                }
+
+                Gradient grad = new Gradient();
+
+                var eventList = mp.eventList;
+                bool showR = mp.__showVectorGraphs[0];
+                bool showG = mp.__showVectorGraphs[1];
+                bool showB = mp.__showVectorGraphs[2];
+                bool showA = mp.__showVectorGraphs[3];
+
+                GradientColorKey[] colorKeys = new GradientColorKey[eventList.Count];
+                GradientAlphaKey[] alphaKeys = null;
+
+                if (showA)
+                {
+                    alphaKeys = new GradientAlphaKey[eventList.Count];
+                }
+
+                // 그라디언트에 컬러키, 알파키 추가
+                for (int i = 0; i < eventList.Count; i++)
+                {
+                    MaterialPropertyValue key = eventList[i];
+                    float t = m.isTimeModeSeconds ? (key.time / m.durationSeconds) : ((float)key.frame / m.durationFrame);
+                    float r = showR ? key.color.r : 0f;
+                    float g = showG ? key.color.g : 0f;
+                    float b = showB ? key.color.b : 0f;
+
+                    colorKeys[i] = new GradientColorKey(new Color(r, g, b), t);
+
+                    if (showA)
+                        alphaKeys[i] = new GradientAlphaKey(key.color.a, t);
+                }
+
+                grad.colorKeys = colorKeys;
+
+                if (showA)
+                    grad.alphaKeys = alphaKeys;
+
+                EditorGUI.GradientField(gradientRect, grad);
             }
 
             private static readonly Color HighlightBasic = new Color(0.1f, 0.1f, 0.1f);

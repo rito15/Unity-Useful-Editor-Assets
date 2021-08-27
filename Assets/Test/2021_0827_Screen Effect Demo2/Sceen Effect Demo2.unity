@@ -155,7 +155,7 @@ MonoBehaviour:
   stopAction: 2
   isTimeModeSeconds: 1
   durationSeconds: 4
-  durationFrame: 0
+  durationFrame: 240
   showMaterialNameInHierarchy: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
@@ -241,8 +241,16 @@ MonoBehaviour:
       max: 0
       color: {r: 1, g: 0, b: 0, a: 0}
       vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 2
-      frame: 0
+    - time: 1.0500001
+      frame: 63
+      floatValue: 0.32200003
+      range: {x: 0.287, y: 1}
+      min: 0.287
+      max: 1
+      color: {r: 0.32200003, g: 0.287, b: 1, a: 0}
+      vector4: {x: 0.32200003, y: 0.287, z: 1, w: 0}
+    - time: 2.0500002
+      frame: 123
       floatValue: 0
       range: {x: 1, y: 0.5}
       min: 1
@@ -250,7 +258,7 @@ MonoBehaviour:
       color: {r: 0, g: 1, b: 0.5, a: 0}
       vector4: {x: 0, y: 1, z: 0.5, w: 0}
     - time: 4
-      frame: 0
+      frame: 240
       floatValue: 0
       range: {x: 0, y: 0}
       min: 0
@@ -260,10 +268,12 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 2
     __showGraph: 1
-    __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showVectorGraphs: 01010100
+    __showEvents: 0
+    __isGradientView: 1
+    __showIndexOrTime: 0
   - material: {fileID: 998077944}
     propName: _Range
     propType: 3
@@ -278,7 +288,7 @@ MonoBehaviour:
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
     - time: 1
-      frame: 0
+      frame: 60
       floatValue: 0.5
       range: {x: 0, y: 1}
       min: 0
@@ -286,15 +296,15 @@ MonoBehaviour:
       color: {r: 0.5, g: 0, b: 1, a: 0}
       vector4: {x: 0.5, y: 0, z: 1, w: 0}
     - time: 2
-      frame: 0
+      frame: 120
       floatValue: 0
       range: {x: 0, y: 1}
       min: 0
       max: 1
       color: {r: 0, g: 0, b: 1, a: 0}
       vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 3.0000002
-      frame: 0
+    - time: 2.5
+      frame: 150
       floatValue: 1
       range: {x: 0, y: 1}
       min: 0
@@ -302,7 +312,7 @@ MonoBehaviour:
       color: {r: 1, g: 0, b: 1, a: 0}
       vector4: {x: 1, y: 0, z: 1, w: 0}
     - time: 4
-      frame: 0
+      frame: 240
       floatValue: 0
       range: {x: 0, y: 1}
       min: 0
@@ -312,10 +322,12 @@ MonoBehaviour:
     __displayName: Range
     __propIndex: 2
     __foldout: 1
-    __playingIndex: 1
+    __playingIndex: 2
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showEvents: 0
+    __isGradientView: 1
+    __showIndexOrTime: 0
   - material: {fileID: 998077944}
     propName: _Vec
     propType: 1
@@ -329,21 +341,31 @@ MonoBehaviour:
       max: 1
       color: {r: 0, g: 1, b: 1, a: 0}
       vector4: {x: 0, y: 1, z: 1, w: 0}
-    - time: 4
-      frame: 0
+    - time: 2
+      frame: 120
       floatValue: 1
-      range: {x: 0, y: 1}
+      range: {x: 0, y: 0}
       min: 0
+      max: 0
+      color: {r: 1, g: 0, b: 0, a: 0}
+      vector4: {x: 1, y: 0, z: 0, w: 0}
+    - time: 4
+      frame: 240
+      floatValue: 0.5
+      range: {x: 0.5, y: 1}
+      min: 0.5
       max: 1
-      color: {r: 1, g: 0, b: 1, a: 0}
-      vector4: {x: 1, y: 0, z: 1, w: 0}
+      color: {r: 0.5, g: 0.5, b: 1, a: 0}
+      vector4: {x: 0.5, y: 0.5, z: 1, w: 0}
     __displayName: Vec
     __propIndex: 3
-    __foldout: 1
+    __foldout: 0
     __playingIndex: 0
     __showGraph: 1
     __showVectorGraphs: 01010000
     __showEvents: 1
+    __isGradientView: 1
+    __showIndexOrTime: 1
   - material: {fileID: 998077944}
     propName: _Float
     propType: 2
@@ -356,6 +378,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 1
+    __showIndexOrTime: 0
 --- !u!4 &157101057
 Transform:
   m_ObjectHideFlags: 0
@@ -556,6 +580,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 556531718}
     propName: _HorizontalShakeSpeed
     propType: 3
@@ -568,6 +594,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 556531718}
     propName: _VerticalShakeSpeed
     propType: 3
@@ -580,6 +608,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
 --- !u!4 &307091775
 Transform:
   m_ObjectHideFlags: 0
@@ -814,6 +844,39 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &937533034
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Test_Screen Effect Test
+  m_Shader: {fileID: 4800000, guid: 422f764cc250b6149a8fd5ae20264c41, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Float: 1
+    - _Range: 1
+    m_Colors:
+    - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _Vec: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &941430046
 GameObject:
   m_ObjectHideFlags: 0
@@ -1029,6 +1092,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _Distortion
     propType: 2
@@ -1041,6 +1106,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _AreaRange
     propType: 3
@@ -1053,6 +1120,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _AreaPower
     propType: 3
@@ -1065,6 +1134,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _CircleNoiseScale
     propType: 2
@@ -1077,6 +1148,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _CircleSpreadSpeed
     propType: 3
@@ -1089,6 +1162,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _PatternSpeed
     propType: 3
@@ -1101,6 +1176,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _PatternBorderOpacity
     propType: 3
@@ -1113,6 +1190,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _PatternColorOpacity
     propType: 3
@@ -1125,6 +1204,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
   - material: {fileID: 1123329295}
     propName: _PatternAreaRange
     propType: 3
@@ -1137,6 +1218,8 @@ MonoBehaviour:
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showEvents: 0
+    __isGradientView: 0
+    __showIndexOrTime: 0
 --- !u!4 &941430048
 Transform:
   m_ObjectHideFlags: 0
@@ -1225,6 +1308,327 @@ Material:
     - _PatternSpeed: 2
     m_Colors:
     - _Color: {r: 0.1764706, g: 0.6, b: 1, a: 0}
+--- !u!1 &1706382574
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1706382576}
+  - component: {fileID: 1706382575}
+  m_Layer: 0
+  m_Name: Screen Effect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1706382575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706382574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectMaterial: {fileID: 937533034}
+  priority: 0
+  stopAction: 0
+  isTimeModeSeconds: 1
+  durationSeconds: 4
+  durationFrame: 0
+  showMaterialNameInHierarchy: 1
+  __optionFoldout1: 1
+  __optionFoldout2: 1
+  __matPropListFoldout: 1
+  __propCount: 6
+  __materialDefaultValues:
+  - time: 0
+    frame: 0
+    floatValue: 0
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    vector4: {x: 0, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 1, g: 0, b: 0, a: 0}
+    vector4: {x: 1, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    vector4: {x: 0, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 1, g: 0, b: 0, a: 0}
+    vector4: {x: 1, y: 0, z: 0, w: 0}
+  __materialCurrentValues:
+  - time: 0
+    frame: 0
+    floatValue: 0
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    vector4: {x: 0, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 1}
+    min: 0
+    max: 1
+    color: {r: 1, g: 0, b: 1, a: 0}
+    vector4: {x: 1, y: 0, z: 1, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    vector4: {x: 0, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 1, g: 0, b: 0, a: 0}
+    vector4: {x: 1, y: 0, z: 0, w: 0}
+  matPropertyList:
+  - material: {fileID: 937533034}
+    propName: _Color
+    propType: 0
+    enabled: 1
+    eventList:
+    - time: 0
+      frame: 0
+      floatValue: 1
+      range: {x: 1, y: 1}
+      min: 1
+      max: 1
+      color: {r: 1, g: 1, b: 1, a: 1}
+      vector4: {x: 1, y: 1, z: 1, w: 1}
+    - time: 0.405
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 0.81
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 1, g: 0, b: 0, a: 0}
+      vector4: {x: 1, y: 0, z: 0, w: 0}
+    - time: 1.4399999
+      frame: 0
+      floatValue: 0.34300002
+      range: {x: 1, y: 0.117000006}
+      min: 1
+      max: 0.117000006
+      color: {r: 0.34300002, g: 1, b: 0.117000006, a: 0}
+      vector4: {x: 0.34300002, y: 1, z: 0.117000006, w: 0}
+    - time: 1.89
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 3.04
+      frame: 0
+      floatValue: 0.91
+      range: {x: 1, y: 0}
+      min: 1
+      max: 0
+      color: {r: 0.91, g: 1, b: 0, a: 0}
+      vector4: {x: 0.91, y: 1, z: 0, w: 0}
+    - time: 3.6899998
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 3.9999998
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 1}
+      vector4: {x: 0, y: 0, z: 0, w: 1}
+    __displayName: Color
+    __propIndex: 1
+    __foldout: 0
+    __playingIndex: 0
+    __showGraph: 1
+    __showVectorGraphs: 01010100
+    __showEvents: 1
+    __isGradientView: 1
+    __showIndexOrTime: 0
+  - material: {fileID: 937533034}
+    propName: _Range
+    propType: 3
+    enabled: 1
+    eventList:
+    - time: 0
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 0.29000002
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 1.5000001
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 1.6240001
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 1.7500001
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 2
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 2.25
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 2.499
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 3.0000002
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 1, g: 0, b: 1, a: 0}
+      vector4: {x: 1, y: 0, z: 1, w: 0}
+    - time: 4
+      frame: 0
+      floatValue: 0.809
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.809, g: 0, b: 1, a: 0}
+      vector4: {x: 0.809, y: 0, z: 1, w: 0}
+    __displayName: Range
+    __propIndex: 2
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 1
+    __showVectorGraphs: 01010101
+    __showEvents: 1
+    __isGradientView: 1
+    __showIndexOrTime: 0
+  - material: {fileID: 937533034}
+    propName: _Vec
+    propType: 1
+    enabled: 0
+    eventList: []
+    __displayName: Vec
+    __propIndex: 3
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showEvents: 0
+    __isGradientView: 1
+    __showIndexOrTime: 0
+  - material: {fileID: 937533034}
+    propName: _Float
+    propType: 2
+    enabled: 0
+    eventList: []
+    __displayName: Float
+    __propIndex: 4
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showEvents: 0
+    __isGradientView: 1
+    __showIndexOrTime: 0
+--- !u!4 &1706382576
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706382574}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1743633656
 GameObject:
   m_ObjectHideFlags: 0
