@@ -577,12 +577,16 @@ namespace Rito
 
             private static GUIStyle bigMinusButtonStyle;
             private static GUIStyle whiteTextButtonStyle; // 글씨가 하얀색인 버튼
+            private static GUIStyle blackTextButtonStyle; // 글씨가 하얀색인 버튼
             private static GUIStyle graphToggleButtonStyle;
             private static GUIStyle boldFoldoutStyle;
             private static GUIStyle propertyEventTimeLabelStyle;
             private static GUIStyle whiteBoldLabelStyle;
             private static GUIStyle yellowBoldLabelStyle;
             private static GUIStyle whiteEventKeyIndexLabelStyle;
+
+            private static Texture2D playTexture;
+            private static Texture2D pauseTexture;
 
             private void OnEnable()
             {
@@ -597,6 +601,7 @@ namespace Rito
                 Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
                 InitReflectionData();
+                LoadEditorInternalTextures();
             }
             private void OnDisable()
             {
@@ -848,6 +853,14 @@ namespace Rito
                     vector4FieldLables = fiVector4FieldLables.GetValue(null) as GUIContent[];
                 }
             }
+            private void LoadEditorInternalTextures()
+            {
+                if (playTexture == null)
+                    playTexture = EditorGUIUtility.FindTexture("PlayButton@2x");
+
+                if (pauseTexture == null)
+                    pauseTexture = EditorGUIUtility.FindTexture("PauseButton@2x");
+            }
             private void InitVariables()
             {
                 isPlayMode = Application.isPlaying;
@@ -902,6 +915,17 @@ namespace Rito
                     };
                     whiteTextButtonStyle.normal.textColor = Color.white;
                     whiteTextButtonStyle.hover.textColor = Color.white;
+                }
+                if (blackTextButtonStyle == null)
+                {
+                    blackTextButtonStyle = new GUIStyle("button")
+                    {
+#if UNITY_2019_3_OR_NEWER
+                        fontStyle = FontStyle.Bold
+#endif
+                    };
+                    blackTextButtonStyle.normal.textColor = Color.black;
+                    blackTextButtonStyle.hover.textColor = Color.black;
                 }
                 if (graphToggleButtonStyle == null)
                 {
@@ -1365,7 +1389,7 @@ namespace Rito
                         m.currentSeconds = EditorGUILayout.Slider(m.currentSeconds, 0f, m.durationSeconds);
                     else
                     {
-                        if(m.__editMode)
+                        if (m.__editMode)
                             m.currentFrame = EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
                         else
                             EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
@@ -1728,7 +1752,7 @@ namespace Rito
                 string headerText = $"{mp.__displayName} [{mp.propType}]";
 
                 Color headerBgColor = enabled ? new Color(0f, 0.8f, 0.8f) : new Color(0.1f, 0.1f, 0.1f);
-                Color enableButtonTextColor = enabled ? Color.white : Color.white;
+                Color enableButtonTextColor = Color.white;
                 Color enableButtonBgColor = enabled ? Color.black : Color.gray;
                 Color removeButtonColor = Color.red * 1.8f;
 
@@ -1749,7 +1773,7 @@ namespace Rito
                 // [1] 버튼 상단 여백
                 GUILayoutUtility.GetRect(1f, GraphToggleButtonMarginTop);
 
-                // [2] 토글 버튼 영역
+                // [2] 그래프 토글 버튼 영역
                 Rect graphBtnRect = GUILayoutUtility.GetRect(1f, GraphToggleButtonHeight);
 
                 // 토글 버튼 그리기
@@ -1764,6 +1788,12 @@ namespace Rito
                 // == 그래프 표시 허용 상태 ==
                 if (showGraph)
                 {
+                    // 그래프 토글 버튼 영역 좌측 : 재생/정지 버튼
+                    if (isPlayMode)
+                    {
+                        DrawPlayAndStopButtons(graphBtnRect);
+                    }
+
                     // [4] 그래프 상단 토글 버튼들 그리기
 
                     // [4-1] RGBA 버튼 영역
@@ -1775,7 +1805,7 @@ namespace Rito
                     // 좌측 : 인덱스 or 시간/프레임 토글
                     DrawIndexOrTimeToggleButton(mp, rgbaButtonRect);
 
-                    // 중앙 : RGBA 버튼 그리기
+                    // 중앙 : RGBA 토글 버튼 + 우측 그라디언트/그래프 토글 버튼
                     if (isVectorOrColorType)
                         DrawRGBAToggleButtons(mp, rgbaButtonRect);
 
@@ -2094,10 +2124,10 @@ namespace Rito
                 }
                 for (int i = 0; i < graph.length; i++)
                 {
-                    if(i > 0)
+                    if (i > 0)
                         AnimationUtility.SetKeyLeftTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
 
-                    if(i < graph.length - 1)
+                    if (i < graph.length - 1)
                         AnimationUtility.SetKeyRightTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
                 }
 
@@ -2121,6 +2151,71 @@ namespace Rito
 
             private static FieldInfo fiVector4FieldLables;
             private static GUIContent[] vector4FieldLables;
+
+            /// <summary> 그래프 토글 좌측 : 재생, 정지 버튼 </summary>
+            private void DrawPlayAndStopButtons(in Rect buttonRect)
+            {
+                const float LeftMargin = 4f;
+                const float ButtonWidth = 28f;
+                const float ButtonGap = 4f;
+
+                // 좌측 : 재생 버튼
+                Rect playRect = new Rect(buttonRect);
+                playRect.width = ButtonWidth;
+                playRect.x += LeftMargin;
+
+                // 우측 : 정지 버튼
+                Rect stopRect = new Rect(playRect);
+                stopRect.x = playRect.xMax + ButtonGap;
+
+                bool playable = !m.gameObject.activeSelf || m.__editMode;
+                bool playPressed, pausePressed;
+
+#if UNITY_2019_3_OR_NEWER
+                Color playColor = Color.cyan * 2f;
+#else
+                Color playColor = Color.cyan * 1.2f;
+#endif
+
+                var old = whiteTextButtonStyle.normal.background;
+
+                // 1. 재생 버튼
+                EditorGUI.BeginDisabledGroup(!playable);
+                {
+                    string label = playTexture != null ? " " : "▶";
+                    if (playTexture != null)
+                    {
+                        whiteTextButtonStyle.normal.background = playTexture;
+                    }
+                    playPressed = RitoEditorGUI.DrawButton(playRect, label, playable ? Color.black : playColor, whiteTextButtonStyle);
+                }
+                EditorGUI.EndDisabledGroup();
+
+                // 2. 정지 버튼
+                EditorGUI.BeginDisabledGroup(playable);
+                {
+                    string label = pauseTexture != null ? " " : "■";
+                    if (pauseTexture != null)
+                    {
+                        whiteTextButtonStyle.normal.background = pauseTexture;
+                    }
+                    pausePressed = RitoEditorGUI.DrawButton(stopRect, label, !playable ? Color.black : playColor, whiteTextButtonStyle);
+                }
+
+                EditorGUI.EndDisabledGroup();
+
+                whiteTextButtonStyle.normal.background = old;
+
+                if (playPressed)
+                {
+                    m.gameObject.SetActive(true);
+                    m.__editMode = false;
+                }
+                if (pausePressed)
+                {
+                    m.__editMode = true;
+                }
+            }
 
             /// <summary> 좌측의 인덱스 or 시간/프레임 토글 버튼 그리기 </summary>
             private void DrawIndexOrTimeToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
@@ -2689,10 +2784,31 @@ namespace Rito
             public static Color ContentBoxColor { get; set; } = defaultContentBoxColor;
             public static Color HeaderTextColor { get; set; } = defaultHeaderTextColor;
             public static Color OutlineColor { get; set; } = defaultOutlineColor;
-
             public static Color PrefixLabelColor { get; set; } = Color.white;
 
             private static GUIStyle prefixLabelStyle;
+
+            // 컨트롤을 그리기 전에 호출
+            /// <summary> 지정한 조건이 참인 경우에만 해당 영역 마우스 클릭 허용 </summary>
+            public static void EnabledRectArea(in Rect rect, in bool enabledCondition)
+            {
+                if (!enabledCondition && rect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.type == EventType.MouseDown)
+                        Event.current.Use();
+                }
+            }
+
+            /// <summary> 지정한 조건이 참인 경우에만 해당 영역 마우스 클릭 방지 </summary>
+            public static void DisabledRectArea(in Rect rect, in bool disabledCondition)
+            {
+                if (disabledCondition && rect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.type == EventType.MouseDown)
+                        Event.current.Use();
+                }
+            }
+
             public static void DrawPrefixLabelLayout(string label, in Color color = default, float width = 0.36f, bool fixedWidth = false)
             {
                 if (prefixLabelStyle == null)
