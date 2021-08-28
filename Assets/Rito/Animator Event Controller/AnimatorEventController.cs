@@ -1041,8 +1041,12 @@ namespace Rito
                             GUI.color = Color.cyan;
 
                         // 1프레임부터 가능하도록 제한 추가
+                        // 클립의 마지막 프레임 - 1까지 가능하도록 제한 추가
                         string spawnFrameStr = EngHan("Spawn Frame", "생성 프레임");
-                        bundle.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, bundle.spawnFrame, 1, m.GetTotalFrameInt(bundle.animationClip));
+                        int maxFrame = m.GetTotalFrameInt(bundle.animationClip) - 1;
+                        if (maxFrame < 0) maxFrame = 0;
+
+                        bundle.spawnFrame = EditorGUILayout.IntSlider(spawnFrameStr, bundle.spawnFrame, 1, maxFrame);
 
                         GUI.color = oldContentColor;
                     }
