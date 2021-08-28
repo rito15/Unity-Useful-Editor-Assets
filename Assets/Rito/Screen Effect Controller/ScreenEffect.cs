@@ -73,25 +73,28 @@ namespace Rito
 
         private static ScreenEffectController controller;
 
-        private const int ReferenceFPS = 60;
-        private const float ReferenceSPF = 1f / (float)ReferenceFPS;
+        /// <summary> 기준 FPS를 설정할지 여부 </summary>
+        [SerializeField] private bool useTargetFPS = false;
+        [SerializeField] private float targetFPS = 60;
 
         /// <summary> 시간 계산 방식이 초인지 프레임인지 여부 </summary>
         [SerializeField] private bool isTimeModeSeconds = true;
+        private bool IsTimeModeFrame => !isTimeModeSeconds;
 
         // 지속시간 : 초
         [SerializeField] private float durationSeconds = 0f;
         private float currentSeconds = 0f;
 
         // 지속시간 : 프레임
-        [SerializeField] private int durationFrame = 0;
-        private int currentFrame = 0;
+        [SerializeField] private float durationFrame = 0;
+        private float currentFrame = 0;
 
 #if UNITY_EDITOR
         /// <summary> 플레이 모드 중 Current Time 직접 수정 가능 모드 </summary>
         private bool __editMode = false;
 
-        [SerializeField] private bool showMaterialNameInHierarchy = true;
+        [SerializeField] private bool showMaterialNameInHierarchy = false; // Deprecated
+
         [SerializeField] private bool __optionFoldout1 = true;
         [SerializeField] private bool __optionFoldout2 = true;
         [SerializeField] private bool __matPropListFoldout = true;
@@ -350,9 +353,18 @@ namespace Rito
         {
             if (durationFrame <= 0) return;
 
-            currentFrame++;
+            // 1. 타겟 FPS를 지정한 경우 : 프레임 계산하여 증가
+            if (useTargetFPS)
+            {
+                currentFrame += Time.deltaTime * targetFPS;
+            }
+            // 2. 그냥 매 프레임 카운팅 하는 경우 : 매 프레임 1씩 증가
+            else
+            {
+                currentFrame++;
+            }
 
-            if (currentFrame >= durationFrame)
+            if (currentFrame > durationFrame + 0.5f) // +0.5f : 타임라인의 마지막에 비활성화될 때, 재활성화 되는 버그 해결
             {
                 switch (stopAction)
                 {
@@ -433,7 +445,7 @@ namespace Rito
                 if (isTimeModeSeconds)
                     end.time = duration;
                 else
-                    end.frame = (int)duration;
+                    end.frame = duration;
 
                 switch (propType)
                 {
@@ -515,7 +527,7 @@ namespace Rito
         private class MaterialPropertyValue
         {
             [FieldOffset(0)] public float time;
-            [FieldOffset(4)] public int frame;
+            [FieldOffset(4)] public float frame;
 
             [FieldOffset(8)] public float floatValue;
 
@@ -589,9 +601,12 @@ namespace Rito
             /// <summary> 마테리얼 프로퍼티 값 수정 후 Undo/Redo 동작 시 정상적으로 적용 </summary>
             private void OnUndoRedoPerformed()
             {
+                SetGameObjectName();
+
                 if (material == null) return;
                 if (m.__materialCurrentValues == null) return;
                 if (m.matPropertyList == null) return;
+                if (m.matPropertyList.Count == 0) return;
 
                 for (int i = 0; i < m.__materialCurrentValues.Length; i++)
                 {
@@ -1007,6 +1022,24 @@ namespace Rito
                     }
                 }
             }
+
+            /// <summary> 현재 쉐이더의 이름에 따라 게임오브젝트 이름 변경 </summary>
+            void SetGameObjectName()
+            {
+                if (m.effectMaterial != null)
+                {
+                    string name = m.effectMaterial.shader.name;
+                    int slashIndex = name.LastIndexOf('/') + 1;
+                    if (slashIndex > 0 && slashIndex < name.Length)
+                        name = name.Substring(slashIndex);
+
+                    m.gameObject.name = $"Screen Effect [{name}]";
+                }
+                else
+                {
+                    m.gameObject.name = "Screen Effect";
+                }
+            }
             #endregion
             /************************************************************************
              *                               Drawing Methods
@@ -1017,12 +1050,27 @@ namespace Rito
                 int fieldCount;
 
                 if (m.effectMaterial == null) fieldCount = 1;
-                else if (isDurationZero) fieldCount = 5;
-                else fieldCount = 6;
+                else
+                {
+                    fieldCount = 5;
+
+                    if (isDurationZero) fieldCount--; // 설정 시간 또는 프레임이 0이면 종료 동작 표시하지 않음
+                    else
+                    {
+                        if (m.IsTimeModeFrame)
+                        {
+                            fieldCount++; // 프레임 방식이면 기준 FPS 사용 여부 표시
+
+                            if (m.useTargetFPS)
+                                fieldCount++; // 타겟 FPS 필드(int)
+                        }
+                    }
+                }
 
                 RitoEditorGUI.FoldoutHeaderBox(ref m.__optionFoldout1, EngHan("Options", "설정"), fieldCount);
                 if (!m.__optionFoldout1) return;
 
+                // 이펙트 마테리얼
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Effect Material", "이펙트 마테리얼"));
@@ -1035,7 +1083,12 @@ namespace Rito
 
                         // 복제
                         if (m.effectMaterial != null)
+                        {
                             m.effectMaterial = new Material(m.effectMaterial);
+                        }
+
+                        // 이름도 변경
+                        SetGameObjectName();
                     }
 
                     if (m.effectMaterial != null)
@@ -1044,6 +1097,7 @@ namespace Rito
                         if (RitoEditorGUI.DrawButtonLayout("Reload", Color.white, Color.black, 60f))
                         {
                             InitMaterial();
+                            SetGameObjectName();
                         }
                     }
                 }
@@ -1051,18 +1105,23 @@ namespace Rito
                 if (m.effectMaterial == null) return;
                 //==============================================================
 
+                // 마테리얼 이름 표시(Checkbox) - 게임오브젝트에 직접 이름 지정되도록 변경
+                /*
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Show Material Name", "마테리얼 이름 표시"));
                     m.showMaterialNameInHierarchy = EditorGUILayout.Toggle(m.showMaterialNameInHierarchy);
                 }
+                */
 
+                // 우선순위(Int Slider)
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Priority", "우선순위"));
                     m.priority = EditorGUILayout.IntSlider(m.priority, -10, 10);
                 }
 
+                // 시간 계산 방식(Dropdown)
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Time Mode", "시간 계산 방식"));
@@ -1078,7 +1137,7 @@ namespace Rito
                         // 프레임 -> 초로 바꾼 경우
                         if (m.isTimeModeSeconds)
                         {
-                            m.durationSeconds = m.durationFrame * ReferenceSPF;
+                            m.durationSeconds = m.durationFrame / m.targetFPS;
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
@@ -1088,14 +1147,17 @@ namespace Rito
                                 var eventList = m.matPropertyList[i].eventList;
                                 for (int j = 0; j < eventList.Count; j++)
                                 {
-                                    eventList[j].time = eventList[j].frame * ReferenceSPF;
+                                    eventList[j].time = eventList[j].frame / m.targetFPS;
                                 }
                             }
+
+                            // 현재 시간 초기화
+                            m.currentSeconds = 0;
                         }
                         // 초 -> 프레임으로 바꾼 경우
                         else
                         {
-                            m.durationFrame = (int)(m.durationSeconds * ReferenceFPS);
+                            m.durationFrame = (m.durationSeconds * m.targetFPS);
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
@@ -1105,15 +1167,19 @@ namespace Rito
                                 var eventList = m.matPropertyList[i].eventList;
                                 for (int j = 0; j < eventList.Count; j++)
                                 {
-                                    eventList[j].frame = (int)(eventList[j].time * ReferenceFPS);
+                                    eventList[j].frame = (eventList[j].time * m.targetFPS);
                                 }
                             }
+
+                            // 현재 프레임 초기화
+                            m.currentFrame = 0;
                         }
                     }
                 }
 
                 isDurationZero = false;
 
+                // 지속시간 : 초/프레임
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(m.isTimeModeSeconds ?
@@ -1122,8 +1188,6 @@ namespace Rito
                     // 1. 시간 계산 방식이 초 일경우
                     if (m.isTimeModeSeconds)
                     {
-                        EditorGUI.BeginChangeCheck();
-
                         m.durationSeconds.RefClamp_000();
                         float prevDuration = m.durationSeconds;
 
@@ -1137,13 +1201,13 @@ namespace Rito
                         // 지속시간 필드에 이름 부여
                         GUI.SetNextControlName("DurationField");
 
-                        m.durationSeconds = EditorGUILayout.FloatField(m.durationSeconds);
+                        m.durationSeconds = EditorGUILayout.DelayedFloatField(m.durationSeconds); // DelayedField : 엔터 치면 적용
                         if (m.durationSeconds < 0f) m.durationSeconds = 0f;
 
                         GUI.color = col;
 
                         // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
-                        if (EditorGUI.EndChangeCheck() && m.durationSeconds > 0f)
+                        if (prevDuration != m.durationSeconds && m.durationSeconds > 0f)
                         {
                             float changeRatio = m.durationSeconds / prevDuration;
 
@@ -1163,9 +1227,7 @@ namespace Rito
                     // 2. 시간 계산 방식이 프레임일 경우
                     else
                     {
-                        EditorGUI.BeginChangeCheck();
-
-                        int prevDurationFrame = m.durationFrame;
+                        float prevDurationFrame = m.durationFrame;
 
                         Color col = GUI.color;
                         if (m.durationFrame == 0)
@@ -1177,13 +1239,13 @@ namespace Rito
                         // 지속시간 필드에 이름 부여
                         GUI.SetNextControlName("DurationField");
 
-                        m.durationFrame = EditorGUILayout.IntField(m.durationFrame);
+                        m.durationFrame = EditorGUILayout.DelayedIntField((int)m.durationFrame); // DelayedField
                         if (m.durationFrame < 0) m.durationFrame = 0;
 
                         GUI.color = col;
 
                         // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
-                        if (EditorGUI.EndChangeCheck() && m.durationSeconds > 0f)
+                        if (prevDurationFrame != m.durationFrame && m.durationSeconds > 0f)
                         {
                             float changeRatio = (float)m.durationFrame / prevDurationFrame;
 
@@ -1203,18 +1265,48 @@ namespace Rito
                                         eventList[j].frame = m.durationFrame;
                                     // 나머지 이벤트 : 계산
                                     else
-                                        eventList[j].frame = (int)(eventList[j].frame * changeRatio);
+                                        eventList[j].frame = (eventList[j].frame * changeRatio);
                                 }
                             }
                         }
                     }
                 }
 
-                if (isDurationZero && GUI.GetNameOfFocusedControl() != "DurationField")
+                if (isDurationZero/* && GUI.GetNameOfFocusedControl() != "DurationField"*/)
                 {
                     Rect durationRect = GUILayoutUtility.GetLastRect();
                     durationRect.xMin += durationRect.width * 0.65f;
                     EditorGUI.LabelField(durationRect, EngHan("Looping", "상시 지속"), whiteBoldLabelStyle);
+                }
+
+
+                // 프레임 전용 설정
+                if (m.IsTimeModeFrame && !isDurationZero)
+                {
+                    // 타겟 프레임 설정 여부 (Checkbox)
+                    using (new RitoEditorGUI.HorizontalMarginScope())
+                    {
+                        RitoEditorGUI.DrawPrefixLabelLayout(
+                            EngHan("Use Target FPS", "기준 FPS 사용"));
+
+                        m.useTargetFPS = EditorGUILayout.Toggle(m.useTargetFPS);
+                    }
+
+                    // 타겟 FPS 설정 (Int Field)
+                    if (m.useTargetFPS)
+                    {
+                        using (new RitoEditorGUI.HorizontalMarginScope())
+                        {
+                            RitoEditorGUI.DrawPrefixLabelLayout(
+                                EngHan("Target FPS", "기준 FPS"));
+
+                            m.targetFPS = EditorGUILayout.IntField((int)m.targetFPS);
+
+                            // 최솟값 설정
+                            if (m.targetFPS < 15)
+                                m.targetFPS = 15;
+                        }
+                    }
                 }
 
                 if (!isDurationZero)
@@ -1265,7 +1357,12 @@ namespace Rito
                     if (m.isTimeModeSeconds)
                         m.currentSeconds = EditorGUILayout.Slider(m.currentSeconds, 0f, m.durationSeconds);
                     else
-                        m.currentFrame = EditorGUILayout.IntSlider(m.currentFrame, 0, m.durationFrame);
+                    {
+                        if(m.__editMode)
+                            m.currentFrame = EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
+                        else
+                            EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
+                    }
 
                     GUI.color = col;
                 }
@@ -1281,7 +1378,7 @@ namespace Rito
                 if (!m.__matPropListFoldout)
                     return;
 
-                EditorGUI.BeginDisabledGroup(isPlayMode && !m.__editMode);
+                EditorGUI.BeginDisabledGroup(isPlayMode && m.gameObject.activeSelf && !m.__editMode);
 
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
@@ -1780,7 +1877,7 @@ namespace Rito
                             if (m.isTimeModeSeconds)
                                 m.currentSeconds = m.durationSeconds * ratio;
                             else
-                                m.currentFrame = (int)(m.durationFrame * ratio);
+                                m.currentFrame = (m.durationFrame * ratio);
                         }
                     }
 
@@ -1814,7 +1911,7 @@ namespace Rito
                 if (m.isTimeModeSeconds)
                     EditorGUI.LabelField(graphTimeRect, $"{m.currentSeconds:F2}", yellowBoldLabelStyle);
                 else
-                    EditorGUI.LabelField(graphTimeRect, $"{m.currentFrame}", yellowBoldLabelStyle);
+                    EditorGUI.LabelField(graphTimeRect, $"{m.currentFrame:F0}", yellowBoldLabelStyle);
             }
 
             /// <summary> 그래프 내의 특정 위치들을 강조 표시하기 </summary>
@@ -1898,7 +1995,7 @@ namespace Rito
                 {
                     // 2. 그래프에 현재 재생 중인 위치 표시하기
                     if (m.isTimeModeSeconds && m.durationSeconds > 0f ||
-                        !m.isTimeModeSeconds && m.durationFrame > 0)
+                        m.IsTimeModeFrame && m.durationFrame > 0)
                     {
                         Rect currentPlayingRect = new Rect(markerRect);
 
@@ -2403,7 +2500,7 @@ namespace Rito
                     else
                     {
                         EditorGUI.BeginChangeCheck();
-                        mpEvent.frame = EditorGUILayout.IntSlider(mpEvent.frame, 0, m.durationFrame);
+                        mpEvent.frame = EditorGUILayout.IntSlider((int)mpEvent.frame, 0, (int)m.durationFrame);
                         if (EditorGUI.EndChangeCheck())
                         {
                             MaterialPropertyValue prevEvent = mp.eventList[index - 1];
