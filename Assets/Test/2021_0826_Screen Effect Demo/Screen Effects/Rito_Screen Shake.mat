@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Rito_Screen Shake
-  m_Shader: {fileID: 4800000, guid: cdaf41aea4d92e945829f51361de8377, type: 3}
+  m_Shader: {fileID: 4800000, guid: 0e018f45283c51b4f939aaaf819e1c2a, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

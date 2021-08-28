@@ -121,56 +121,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &209329426
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 209329428}
-  - component: {fileID: 209329427}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!320 &209329427
-PlayableDirector:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209329426}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: 0ed4691a36b8e9345aab3729c0ebeea8, type: 2}
-  m_InitialState: 1
-  m_WrapMode: 2
-  m_DirectorUpdateMode: 1
-  m_InitialTime: 0
-  m_SceneBindings:
-  - key: {fileID: -757788133786537362, guid: 0ed4691a36b8e9345aab3729c0ebeea8, type: 2}
-    value: {fileID: 0}
-  m_ExposedReferences:
-    m_References: []
---- !u!4 &209329428
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209329426}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &239556251
 GameObject:
   m_ObjectHideFlags: 0
@@ -283,7 +233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectMaterial: {fileID: 717274959}
+  effectMaterial: {fileID: 1046263295}
   priority: 0
   stopAction: 0
   useTargetFPS: 0
@@ -291,7 +241,6 @@ MonoBehaviour:
   isTimeModeSeconds: 1
   durationSeconds: 0.3
   durationFrame: 18
-  showMaterialNameInHierarchy: 0
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -347,7 +296,7 @@ MonoBehaviour:
     color: {r: 25, g: 0, b: 100, a: 0}
     vector4: {x: 25, y: 0, z: 100, w: 0}
   matPropertyList:
-  - material: {fileID: 717274959}
+  - material: {fileID: 1046263295}
     propName: _ShakeIntensity
     propType: 3
     enabled: 0
@@ -361,7 +310,7 @@ MonoBehaviour:
     __showEvents: 0
     __isGradientView: 1
     __showIndexOrTime: 1
-  - material: {fileID: 717274959}
+  - material: {fileID: 1046263295}
     propName: _HorizontalShakeSpeed
     propType: 3
     enabled: 0
@@ -375,7 +324,7 @@ MonoBehaviour:
     __showEvents: 0
     __isGradientView: 1
     __showIndexOrTime: 1
-  - material: {fileID: 717274959}
+  - material: {fileID: 1046263295}
     propName: _VerticalShakeSpeed
     propType: 3
     enabled: 0
@@ -495,40 +444,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!21 &717274959
-Material:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Rito_Screen Shake
-  m_Shader: {fileID: 4800000, guid: cdaf41aea4d92e945829f51361de8377, type: 3}
-  m_ShaderKeywords: 
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Floats:
-    - _HorizontalShakeSpeed: 40
-    - _ShakeIntensity: 0.05
-    - _ShakeRange: 0
-    - _ShakeRange1: 0.2
-    - _ShakeSpeed1: 40.3
-    - _ShakeSpeed2: 35.9
-    - _VerticalShakeSpeed: 25
-    m_Colors:
-    - _ShakeDirection1: {r: 1, g: 0, b: 0, a: 0}
-    - _ShakeDirection2: {r: 0, g: 1, b: 0, a: 0}
 --- !u!1 &909767151
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,6 +538,40 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &1046263295
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Shake
+  m_Shader: {fileID: 4800000, guid: 2c6fd0c23610ba34e8638b390959f2e4, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _HorizontalShakeSpeed: 40
+    - _ShakeIntensity: 0.05
+    - _ShakeRange: 0
+    - _ShakeRange1: 0.2
+    - _ShakeSpeed1: 40.3
+    - _ShakeSpeed2: 35.9
+    - _VerticalShakeSpeed: 25
+    m_Colors:
+    - _ShakeDirection1: {r: 1, g: 0, b: 0, a: 0}
+    - _ShakeDirection2: {r: 0, g: 1, b: 0, a: 0}
 --- !u!1 &1743633656
 GameObject:
   m_ObjectHideFlags: 0
