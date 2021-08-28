@@ -74,7 +74,7 @@ namespace Rito
         private static ScreenEffectController controller;
 
         /// <summary> 기준 FPS를 설정할지 여부 </summary>
-        [SerializeField] private bool useTargetFPS = false;
+        [SerializeField] private bool useTargetFPS = true;
         [SerializeField] private float targetFPS = 60;
 
         /// <summary> 시간 계산 방식이 초인지 프레임인지 여부 </summary>
@@ -364,7 +364,7 @@ namespace Rito
                 currentFrame++;
             }
 
-            if (currentFrame > durationFrame + 0.5f) // +0.5f : 타임라인의 마지막에 비활성화될 때, 재활성화 되는 버그 해결
+            if (currentFrame >= durationFrame)
             {
                 switch (stopAction)
                 {
