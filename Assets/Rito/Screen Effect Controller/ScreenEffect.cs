@@ -1,3 +1,6 @@
+
+//#define SHOW_MATERIAL_NAME
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -93,7 +96,9 @@ namespace Rito
         /// <summary> 플레이 모드 중 Current Time 직접 수정 가능 모드 </summary>
         private bool __editMode = false;
 
+#if SHOW_MATERIAL_NAME
         [SerializeField] private bool showMaterialNameInHierarchy = false; // Deprecated
+#endif
 
         [SerializeField] private bool __optionFoldout1 = true;
         [SerializeField] private bool __optionFoldout2 = true;
@@ -662,7 +667,7 @@ namespace Rito
                             InitMaterial();
                         }
 
-                        if (isPlayMode)
+                        if (isPlayMode && isDurationZero == false)
                         {
                             EditorGUILayout.Space();
                             EditorGUILayout.Space();
@@ -1053,7 +1058,9 @@ namespace Rito
                 else
                 {
                     fieldCount = 5;
-
+#if SHOW_MATERIAL_NAME
+                    fieldCount++;
+#endif
                     if (isDurationZero) fieldCount--; // 설정 시간 또는 프레임이 0이면 종료 동작 표시하지 않음
                     else
                     {
@@ -1106,13 +1113,13 @@ namespace Rito
                 //==============================================================
 
                 // 마테리얼 이름 표시(Checkbox) - 게임오브젝트에 직접 이름 지정되도록 변경
-                /*
+#if SHOW_MATERIAL_NAME
                 using (new RitoEditorGUI.HorizontalMarginScope())
                 {
                     RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Show Material Name", "마테리얼 이름 표시"));
                     m.showMaterialNameInHierarchy = EditorGUILayout.Toggle(m.showMaterialNameInHierarchy);
                 }
-                */
+#endif
 
                 // 우선순위(Int Slider)
                 using (new RitoEditorGUI.HorizontalMarginScope())
@@ -1287,7 +1294,7 @@ namespace Rito
                     using (new RitoEditorGUI.HorizontalMarginScope())
                     {
                         RitoEditorGUI.DrawPrefixLabelLayout(
-                            EngHan("Use Target FPS", "기준 FPS 사용"));
+                            EngHan("Use Target FPS", "기준 FPS 설정"));
 
                         m.useTargetFPS = EditorGUILayout.Toggle(m.useTargetFPS);
                     }
@@ -1378,7 +1385,7 @@ namespace Rito
                 if (!m.__matPropListFoldout)
                     return;
 
-                EditorGUI.BeginDisabledGroup(isPlayMode && m.gameObject.activeSelf && !m.__editMode);
+                EditorGUI.BeginDisabledGroup(isPlayMode && !isDurationZero && m.gameObject.activeSelf && !m.__editMode);
 
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
@@ -1410,49 +1417,62 @@ namespace Rito
                     {
                         case ShaderPropertyType.Float:
                             {
-                                EditorGUI.BeginChangeCheck();
+                                // 지속 시간이 무제한인 경우, 플레이모드 변경사항 저장
+                                if (isDurationZero)
+                                {
+                                    currentMatValue.floatValue = EditorGUILayout.FloatField(currentMatValue.floatValue);
+                                }
+                                // 지속 시간이 유한한 경우, 플레이모드 변경사항 저장하지 않음
+                                else
+                                {
+                                    currentMatValue.floatValue = EditorGUILayout.FloatField(material.GetFloat(mp.propName));
+                                }
 
-                                currentMatValue.floatValue = material.GetFloat(mp.propName);
-                                currentMatValue.floatValue = EditorGUILayout.FloatField(currentMatValue.floatValue);
-
-                                if (EditorGUI.EndChangeCheck())
-                                    material.SetFloat(mp.propName, currentMatValue.floatValue);
+                                material.SetFloat(mp.propName, currentMatValue.floatValue);
                             }
                             break;
                         case ShaderPropertyType.Range:
                             {
-                                EditorGUI.BeginChangeCheck();
+                                if (isDurationZero)
+                                {
+                                    currentMatValue.floatValue =
+                                        EditorGUILayout.Slider(currentMatValue.floatValue, currentMatValue.min, currentMatValue.max);
+                                }
+                                else
+                                {
+                                    currentMatValue.floatValue =
+                                        EditorGUILayout.Slider(material.GetFloat(mp.propName), currentMatValue.min, currentMatValue.max);
+                                }
 
-                                currentMatValue.floatValue = material.GetFloat(mp.propName);
-                                currentMatValue.floatValue =
-                                    EditorGUILayout.Slider(currentMatValue.floatValue, currentMatValue.min, currentMatValue.max);
-
-                                if (EditorGUI.EndChangeCheck())
-                                    material.SetFloat(mp.propName, currentMatValue.floatValue);
+                                material.SetFloat(mp.propName, currentMatValue.floatValue);
                             }
                             break;
                         case ShaderPropertyType.Vector:
                             {
-                                EditorGUI.BeginChangeCheck();
+                                if (isDurationZero)
+                                {
+                                    currentMatValue.vector4 = EditorGUILayout.Vector4Field("", currentMatValue.vector4);
+                                }
+                                else
+                                {
+                                    currentMatValue.vector4 = EditorGUILayout.Vector4Field("", material.GetVector(mp.propName));
+                                }
 
-                                currentMatValue.vector4 = material.GetVector(mp.propName);
-                                currentMatValue.vector4 =
-                                    EditorGUILayout.Vector4Field("", currentMatValue.vector4);
-
-                                if (EditorGUI.EndChangeCheck())
-                                    material.SetVector(mp.propName, currentMatValue.vector4);
+                                material.SetVector(mp.propName, currentMatValue.vector4);
                             }
                             break;
                         case ShaderPropertyType.Color:
                             {
-                                EditorGUI.BeginChangeCheck();
+                                if (isDurationZero)
+                                {
+                                    currentMatValue.color = EditorGUILayout.ColorField(currentMatValue.color);
+                                }
+                                else
+                                {
+                                    currentMatValue.color = EditorGUILayout.ColorField(material.GetColor(mp.propName));
+                                }
 
-                                currentMatValue.color = material.GetColor(mp.propName);
-                                currentMatValue.color =
-                                    EditorGUILayout.ColorField(currentMatValue.color);
-
-                                if (EditorGUI.EndChangeCheck())
-                                    material.SetColor(mp.propName, currentMatValue.color);
+                                material.SetColor(mp.propName, currentMatValue.color);
                             }
                             break;
                     }
@@ -2074,8 +2094,11 @@ namespace Rito
                 }
                 for (int i = 0; i < graph.length; i++)
                 {
-                    AnimationUtility.SetKeyLeftTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
-                    AnimationUtility.SetKeyRightTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+                    if(i > 0)
+                        AnimationUtility.SetKeyLeftTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
+
+                    if(i < graph.length - 1)
+                        AnimationUtility.SetKeyRightTangentMode(graph, i, AnimationUtility.TangentMode.Linear);
                 }
 
                 // 그래프 배경 색상 설정
@@ -3032,32 +3055,39 @@ namespace Rito
             if (effect.priority <= -100)
                 labelPosX += 8f;
 
+            // Priority
             Rect priorityLabelRect = new Rect(leftButtonRect);
             priorityLabelRect.xMax = leftButtonRect.xMin - 4f;
             priorityLabelRect.xMin = priorityLabelRect.xMax - labelPosX;
+
+            if (priorityLabelStyle == null)
+                priorityLabelStyle = new GUIStyle(EditorStyles.label);
+
+            priorityLabelStyle.normal.textColor = goActive ? Color.cyan : Color.gray;
+
+#if SHOW_MATERIAL_NAME
+            // Material Name
 
             Rect matNameRect = new Rect(priorityLabelRect);
             matNameRect.xMax = priorityLabelRect.xMin - 4f;
             matNameRect.xMin = matNameRect.xMax - 160f;
 
-
-            // Labels
-            if (priorityLabelStyle == null)
-                priorityLabelStyle = new GUIStyle(EditorStyles.label);
             if (matNameLabelStyle == null)
                 matNameLabelStyle = new GUIStyle(EditorStyles.label);
 
-            priorityLabelStyle.normal.textColor = goActive ? Color.cyan : Color.gray;
             matNameLabelStyle.normal.textColor = goActive ? Color.magenta * 1.5f : Color.gray;
+#endif
 
             EditorGUI.BeginDisabledGroup(!goActive);
             {
                 // Priority Label
                 GUI.Label(priorityLabelRect, effect.priority.ToString(), priorityLabelStyle);
 
+#if SHOW_MATERIAL_NAME
                 // Material Name Label
                 if (effect.showMaterialNameInHierarchy && matIsNotNull)
                     GUI.Label(matNameRect, effect.effectMaterial.shader.name, matNameLabelStyle);
+#endif
             }
             EditorGUI.EndDisabledGroup();
 

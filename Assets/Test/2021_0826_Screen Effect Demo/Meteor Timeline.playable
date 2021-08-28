@@ -176,10 +176,10 @@ MonoBehaviour:
   - {fileID: 2025297177007591193}
   - {fileID: 1180642323399969772}
   - {fileID: -8654516037983823518}
-  m_FixedDuration: 0
+  m_FixedDuration: 13.333333333333334
   m_EditorSettings:
     m_Framerate: 60
-  m_DurationMode: 0
+  m_DurationMode: 1
   m_MarkerTrack: {fileID: 1824363928461011740}
 --- !u!114 &1180642323399969772
 MonoBehaviour:
