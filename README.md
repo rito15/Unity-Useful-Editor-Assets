@@ -1,6 +1,6 @@
 # Unity Useful Editor Assets
 
-## Game View Auto Update
+## Game View Auto Updater
   - <https://rito15.github.io/posts/unity-game-view-auto-updater/>
 
 <br>
