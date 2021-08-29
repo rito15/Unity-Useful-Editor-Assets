@@ -485,7 +485,7 @@ namespace Rito
                 switch (propType)
                 {
                     case ShaderPropertyType.Float:
-                        FLOAT:
+                    FLOAT:
                         newKey.floatValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, 0.5f);
                         break;
 
@@ -1092,8 +1092,13 @@ namespace Rito
                         }
                     }
                 }
+#if UNITY_2019_3_OR_NEWER
+                const float FieldHeight = 20f;
+#else
+                const float FieldHeight = 18;
+#endif
 
-                RitoEditorGUI.FoldoutHeaderBox(ref m.__optionFoldout1, EngHan("Options", "설정"), fieldCount);
+                RitoEditorGUI.FoldoutHeaderBox(ref m.__optionFoldout1, EngHan("Options", "설정"), fieldCount, FieldHeight);
                 if (!m.__optionFoldout1) return;
 
                 // 이펙트 마테리얼
@@ -2953,7 +2958,7 @@ namespace Rito
             }
 
             static GUIStyle foldoutHeaderTextStyle;
-            public static void FoldoutHeaderBox(ref bool foldout, string headerText, int contentCount, bool setDefaultColors = true)
+            public static void FoldoutHeaderBox(ref bool foldout, string headerText, int contentCount, float oneHeight = 20f, bool setDefaultColors = true)
             {
                 if (setDefaultColors)
                 {
@@ -2965,11 +2970,10 @@ namespace Rito
 
                 const float OutWidth = 2f;
                 const float HeaderHeight = 20f;
-                const float OneHeight = 20f;
                 const float HeaderLeftPadding = 4f; // 헤더 박스 내 좌측 패딩(레이블 왼쪽 여백)
                 const float ContentTopPadding = 4f; // 내용 박스 내 상단 패딩
                 const float ContentBotPadding = 4f; // 내용 박스 내 하단 패딩
-                float contentHeight = !foldout ? 0f : (ContentTopPadding + OneHeight * contentCount + ContentBotPadding);
+                float contentHeight = !foldout ? 0f : (ContentTopPadding + oneHeight * contentCount + ContentBotPadding);
                 float totalHeight = !foldout ? (HeaderHeight) : (HeaderHeight + OutWidth + contentHeight);
 
                 Rect H = GUILayoutUtility.GetRect(1, HeaderHeight); // Header
