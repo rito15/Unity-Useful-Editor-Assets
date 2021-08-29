@@ -9973,58 +9973,42 @@ MonoBehaviour:
     propName: _ShakeIntensity
     propType: 3
     enabled: 1
-    eventList:
-    - time: 0
-      frame: 0
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 3.0000002
-      frame: 120
-      floatValue: 0.2
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.2, g: 0, b: 1, a: 0}
-      vector4: {x: 0.2, y: 0, z: 1, w: 0}
+    animKeyList: []
     __displayName: Shake Intensity
     __propIndex: 0
     __foldout: 1
     __playingIndex: 0
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 474775296}
     propName: _HorizontalShakeSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Horizontal Shake Speed
     __propIndex: 1
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 474775296}
     propName: _VerticalShakeSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Vertical Shake Speed
     __propIndex: 2
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
 --- !u!4 &586977413
@@ -10080,7 +10064,7 @@ MonoBehaviour:
   durationFrame: 220
   __optionFoldout1: 1
   __optionFoldout2: 1
-  __matPropListFoldout: 0
+  __matPropListFoldout: 1
   __propCount: 11
   __materialDefaultValues:
   - time: 0
@@ -10182,20 +10166,20 @@ MonoBehaviour:
     vector4: {x: -1, y: 0, z: 0, w: 0}
   - time: 0
     frame: 0
-    floatValue: 0
+    floatValue: 0.15
     range: {x: 0, y: 1}
     min: 0
     max: 1
-    color: {r: 0, g: 0, b: 1, a: 0}
-    vector4: {x: 0, y: 0, z: 1, w: 0}
+    color: {r: 0.15, g: 0, b: 1, a: 0}
+    vector4: {x: 0.15, y: 0, z: 1, w: 0}
   - time: 0
     frame: 0
-    floatValue: 6
+    floatValue: 2
     range: {x: 1, y: 10}
     min: 1
     max: 10
-    color: {r: 6, g: 1, b: 10, a: 0}
-    vector4: {x: 6, y: 1, z: 10, w: 0}
+    color: {r: 2, g: 1, b: 10, a: 0}
+    vector4: {x: 2, y: 1, z: 10, w: 0}
   - time: 0
     frame: 0
     floatValue: 3
@@ -10249,204 +10233,140 @@ MonoBehaviour:
     propName: _Color
     propType: 0
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Color
     __propIndex: 1
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _Distortion
     propType: 2
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Distortion
     __propIndex: 2
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _AreaRange
     propType: 3
     enabled: 1
-    eventList:
-    - time: 0
-      frame: 0
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 24
-      floatValue: 0.15
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.15, g: 0, b: 1, a: 0}
-      vector4: {x: 0.15, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 195
-      floatValue: 0.15
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.15, g: 0, b: 1, a: 0}
-      vector4: {x: 0.15, y: 0, z: 1, w: 0}
-    - time: 3.0000002
-      frame: 220
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
+    animKeyList: []
     __displayName: Area Range
     __propIndex: 3
     __foldout: 1
     __playingIndex: 2
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 0
   - material: {fileID: 2076668949}
     propName: _AreaPower
     propType: 3
     enabled: 1
-    eventList:
-    - time: 0
-      frame: 0
-      floatValue: 6
-      range: {x: 1, y: 10}
-      min: 1
-      max: 10
-      color: {r: 6, g: 1, b: 10, a: 0}
-      vector4: {x: 6, y: 1, z: 10, w: 0}
-    - time: 0
-      frame: 23
-      floatValue: 2
-      range: {x: 1, y: 10}
-      min: 1
-      max: 10
-      color: {r: 2, g: 1, b: 10, a: 0}
-      vector4: {x: 2, y: 1, z: 10, w: 0}
-    - time: 0
-      frame: 195
-      floatValue: 2
-      range: {x: 1, y: 10}
-      min: 1
-      max: 10
-      color: {r: 2, g: 1, b: 10, a: 0}
-      vector4: {x: 2, y: 1, z: 10, w: 0}
-    - time: 3.0000002
-      frame: 220
-      floatValue: 6
-      range: {x: 1, y: 10}
-      min: 1
-      max: 10
-      color: {r: 6, g: 1, b: 10, a: 0}
-      vector4: {x: 6, y: 1, z: 10, w: 0}
+    animKeyList: []
     __displayName: Area Power
     __propIndex: 4
     __foldout: 1
     __playingIndex: 2
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _CircleNoiseScale
     propType: 2
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Circle Noise Scale
     __propIndex: 5
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _CircleSpreadSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Circle Spread Speed
     __propIndex: 6
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _PatternSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Speed
     __propIndex: 7
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _PatternBorderOpacity
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Border Opacity
     __propIndex: 8
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _PatternColorOpacity
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Color Opacity
     __propIndex: 9
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 2076668949}
     propName: _PatternAreaRange
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Area Range
     __propIndex: 10
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
 --- !u!4 &736330581
@@ -10725,268 +10645,140 @@ MonoBehaviour:
     propName: _Color
     propType: 0
     enabled: 1
-    eventList:
-    - time: 0
-      frame: 0
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0
-      frame: 40
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0
-      frame: 45
-      floatValue: 1
-      range: {x: 0.020000001, y: 0}
-      min: 0.020000001
-      max: 0
-      color: {r: 1, g: 0.020000001, b: 0, a: 0}
-      vector4: {x: 1, y: 0.020000001, z: 0, w: 0}
-    - time: 0
-      frame: 50
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 2
-      frame: 130
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0
-      frame: 135
-      floatValue: 0.536
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.536, g: 0, b: 1, a: 0}
-      vector4: {x: 0.536, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 140
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 4
-      frame: 240
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
+    animKeyList: []
     __displayName: Color
     __propIndex: 1
     __foldout: 1
     __playingIndex: 3
     __showGraph: 1
     __showVectorGraphs: 01010100
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _Distortion
     propType: 2
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Distortion
     __propIndex: 2
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _AreaRange
     propType: 3
     enabled: 1
-    eventList:
-    - time: 0
-      frame: 0
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 30
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 45
-      floatValue: 0.4
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.4, g: 0, b: 1, a: 0}
-      vector4: {x: 0.4, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 60
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 120
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 135
-      floatValue: 0.4
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0.4, g: 0, b: 1, a: 0}
-      vector4: {x: 0.4, y: 0, z: 1, w: 0}
-    - time: 0
-      frame: 150
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
-    - time: 4
-      frame: 240
-      floatValue: 0
-      range: {x: 0, y: 1}
-      min: 0
-      max: 1
-      color: {r: 0, g: 0, b: 1, a: 0}
-      vector4: {x: 0, y: 0, z: 1, w: 0}
+    animKeyList: []
     __displayName: Area Range
     __propIndex: 3
     __foldout: 1
     __playingIndex: 3
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 0
   - material: {fileID: 1701295827}
     propName: _AreaPower
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Area Power
     __propIndex: 4
     __foldout: 0
     __playingIndex: 0
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showEvents: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _CircleNoiseScale
     propType: 2
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Circle Noise Scale
     __propIndex: 5
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _CircleSpreadSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Circle Spread Speed
     __propIndex: 6
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _PatternSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Speed
     __propIndex: 7
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _PatternBorderOpacity
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Border Opacity
     __propIndex: 8
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _PatternColorOpacity
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Color Opacity
     __propIndex: 9
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1701295827}
     propName: _PatternAreaRange
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Pattern Area Range
     __propIndex: 10
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
 --- !u!4 &987036238

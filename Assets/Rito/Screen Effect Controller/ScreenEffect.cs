@@ -45,16 +45,6 @@ public enum ShaderPropertyType
  *  - 2021.1.16f1 테스트 완료
  */
 
-/*
- * [Future Works]
- * 
- * - 편집모드 체크된 상태(이벤트 진행 멈춤)에서, 각 그래프를 클릭하면 해당 지점으로 currentTime 또는 currentFrame 이동시키기
- * - 구현 완료하고 각종 테스트 진행
- * 
- * - 구현 전부 완료하고 2018 ~ 2021 빌드 테스트 진행
- * 
- */
-
 namespace Rito
 {
     /// <summary> 
@@ -106,13 +96,15 @@ namespace Rito
 
         [SerializeField] private int __propCount; // 마테리얼 프로퍼티 개수 기억(변화 감지용)
 
+        [SerializeField] private int __durationChangeActionPopupIndex = 0;
+
         /// <summary> 마테리얼의 초깃값 기억 </summary>
         [SerializeField]
-        private MaterialPropertyValue[] __materialDefaultValues;
+        private MaterialPropertyAnimKey[] __materialDefaultValues;
 
         /// <summary> 복제된 마테리얼 현재 값 기억 (Undo 용도)</summary>
         [SerializeField]
-        private MaterialPropertyValue[] __materialCurrentValues;
+        private MaterialPropertyAnimKey[] __materialCurrentValues;
 
         private Action __OnEditorUpdate;
 #endif
@@ -166,14 +158,14 @@ namespace Rito
             for (int i = 0; i < matPropertyList.Count; i++)
             {
                 var mp = matPropertyList[i];
-                if (mp == null || mp.eventList == null || mp.eventList.Count == 0)
+                if (mp == null || mp.animKeyList == null || mp.animKeyList.Count == 0)
                     continue;
 
                 if (mp.enabled == false)
                     continue;
 
-                var eventList = mp.eventList;
-                int eventCount = eventList.Count - 1;
+                var animKeyList = mp.animKeyList;
+                int animKeyCount = animKeyList.Count - 1;
 
                 // 최적화를 위해 추가 : 처리 완료 확인
                 bool handled = false;
@@ -183,9 +175,9 @@ namespace Rito
                 {
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
-                    for (int j = 0; j < eventCount; j++)
+                    for (int j = 0; j < animKeyCount; j++)
                     {
-                        if (eventList[j].time <= currentSeconds && currentSeconds < eventList[j + 1].time)
+                        if (animKeyList[j].time <= currentSeconds && currentSeconds < animKeyList[j + 1].time)
                         {
                             mp.__playingIndex = j;
                             break;
@@ -196,19 +188,19 @@ namespace Rito
                     {
                         case ShaderPropertyType.Float:
                         case ShaderPropertyType.Range:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
                                 // 해당하는 시간 구간이 아닐 경우, 판정하지 않음
-                                if (currentSeconds < prevEvent.time || nextEvent.time <= currentSeconds) continue;
-                                float t = (currentSeconds - prevEvent.time) / (nextEvent.time - prevEvent.time);
+                                if (currentSeconds < prevKey.time || nextKey.time <= currentSeconds) continue;
+                                float t = (currentSeconds - prevKey.time) / (nextKey.time - prevKey.time);
 
                                 // REMAP
-                                float curValue = Mathf.Lerp(prevEvent.floatValue, nextEvent.floatValue, t);
+                                float curValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, t);
 
                                 effectMaterial.SetFloat(mp.propName, curValue);
                                 handled = true;
@@ -216,16 +208,16 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Color:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
-                                if (currentSeconds < prevEvent.time || nextEvent.time <= currentSeconds) continue;
-                                float t = (currentSeconds - prevEvent.time) / (nextEvent.time - prevEvent.time);
-                                Color curValue = Color.Lerp(prevEvent.color, nextEvent.color, t);
+                                if (currentSeconds < prevKey.time || nextKey.time <= currentSeconds) continue;
+                                float t = (currentSeconds - prevKey.time) / (nextKey.time - prevKey.time);
+                                Color curValue = Color.Lerp(prevKey.color, nextKey.color, t);
 
                                 effectMaterial.SetColor(mp.propName, curValue);
                                 handled = true;
@@ -233,16 +225,16 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Vector:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
-                                if (currentSeconds < prevEvent.time || nextEvent.time <= currentSeconds) continue;
-                                float t = (currentSeconds - prevEvent.time) / (nextEvent.time - prevEvent.time);
-                                Vector4 curValue = Vector4.Lerp(prevEvent.vector4, nextEvent.vector4, t);
+                                if (currentSeconds < prevKey.time || nextKey.time <= currentSeconds) continue;
+                                float t = (currentSeconds - prevKey.time) / (nextKey.time - prevKey.time);
+                                Vector4 curValue = Vector4.Lerp(prevKey.vector4, nextKey.vector4, t);
 
                                 effectMaterial.SetVector(mp.propName, curValue);
                                 handled = true;
@@ -255,9 +247,9 @@ namespace Rito
                 {
 #if UNITY_EDITOR
                     // 현재 재생 중인 인덱스 초기화
-                    for (int j = 0; j < eventCount; j++)
+                    for (int j = 0; j < animKeyCount; j++)
                     {
-                        if (eventList[j].frame <= currentFrame && currentFrame < eventList[j + 1].frame)
+                        if (animKeyList[j].frame <= currentFrame && currentFrame < animKeyList[j + 1].frame)
                         {
                             mp.__playingIndex = j;
                             break;
@@ -268,16 +260,16 @@ namespace Rito
                     {
                         case ShaderPropertyType.Float:
                         case ShaderPropertyType.Range:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
-                                if (currentFrame < prevEvent.frame || nextEvent.frame <= currentFrame) continue;
-                                float t = (float)(currentFrame - prevEvent.frame) / (nextEvent.frame - prevEvent.frame);
-                                float curValue = Mathf.Lerp(prevEvent.floatValue, nextEvent.floatValue, t);
+                                if (currentFrame < prevKey.frame || nextKey.frame <= currentFrame) continue;
+                                float t = (float)(currentFrame - prevKey.frame) / (nextKey.frame - prevKey.frame);
+                                float curValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, t);
 
                                 effectMaterial.SetFloat(mp.propName, curValue);
                                 handled = true;
@@ -285,16 +277,16 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Color:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
-                                if (currentFrame < prevEvent.frame || nextEvent.frame <= currentFrame) continue;
-                                float t = (float)(currentFrame - prevEvent.frame) / (nextEvent.frame - prevEvent.frame);
-                                Color curValue = Color.Lerp(prevEvent.color, nextEvent.color, t);
+                                if (currentFrame < prevKey.frame || nextKey.frame <= currentFrame) continue;
+                                float t = (float)(currentFrame - prevKey.frame) / (nextKey.frame - prevKey.frame);
+                                Color curValue = Color.Lerp(prevKey.color, nextKey.color, t);
 
                                 effectMaterial.SetColor(mp.propName, curValue);
                                 handled = true;
@@ -302,16 +294,16 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Vector:
-                            for (int j = 0; j < eventCount; j++)
+                            for (int j = 0; j < animKeyCount; j++)
                             {
                                 if (handled) break;
 
-                                var prevEvent = eventList[j];
-                                var nextEvent = eventList[j + 1];
+                                var prevKey = animKeyList[j];
+                                var nextKey = animKeyList[j + 1];
 
-                                if (currentFrame < prevEvent.frame || nextEvent.frame <= currentFrame) continue;
-                                float t = (float)(currentFrame - prevEvent.frame) / (nextEvent.frame - prevEvent.frame);
-                                Vector4 curValue = Vector4.Lerp(prevEvent.vector4, nextEvent.vector4, t);
+                                if (currentFrame < prevKey.frame || nextKey.frame <= currentFrame) continue;
+                                float t = (float)(currentFrame - prevKey.frame) / (nextKey.frame - prevKey.frame);
+                                Vector4 curValue = Vector4.Lerp(prevKey.vector4, nextKey.vector4, t);
 
                                 effectMaterial.SetVector(mp.propName, curValue);
                                 handled = true;
@@ -386,7 +378,7 @@ namespace Rito
         }
 
         /***********************************************************************
-        *                           Material Property Events
+        *                           Material Property Animation
         ***********************************************************************/
         #region .
         [System.Serializable]
@@ -397,23 +389,23 @@ namespace Rito
             public ShaderPropertyType propType;
             public bool enabled;
 
-            public List<MaterialPropertyValue> eventList;
+            public List<MaterialPropertyAnimKey> animKeyList;
 
 #if UNITY_EDITOR
-            public bool __HasEvents => eventList != null && eventList.Count > 0;
+            public bool __HasAnimation => animKeyList != null && animKeyList.Count > 0;
 
             public string __displayName;
             public int __propIndex;
 
             public bool __foldout = true;
-            public int __playingIndex = 0; // 현재 재생 중인 이벤트의 인덱스
+            public int __playingIndex = 0; // 현재 재생 중인 애니메이션 키 인덱스
 
             // 그래프 보여주기
             public bool __showGraph = false;
             public bool[] __showVectorGraphs;
 
-            // 이벤트 보여주기
-            public bool __showEvents = false;
+            // 애니메이션 보여주기
+            public bool __showAnimation = false;
 
             // 컬러 : 그라디언트 or 그래프
             public bool __isGradientView = true;
@@ -430,20 +422,20 @@ namespace Rito
                 this.__propIndex = propIndex;
                 this.enabled = false;
 
-                this.eventList = new List<MaterialPropertyValue>(10);
+                this.animKeyList = new List<MaterialPropertyAnimKey>(10);
 
                 this.__showVectorGraphs = new bool[4];
                 for (int i = 0; i < this.__showVectorGraphs.Length; i++)
                     this.__showVectorGraphs[i] = true;
             }
 
-            /// <summary> 이벤트가 아예 없었던 경우, 초기 이벤트 2개(시작, 끝) 추가 </summary>
-            public void Edt_AddInitialEvents(float duration, bool isTimeModeSeconds)
+            /// <summary> 애니메이션이 아예 없었던 경우, 초기 애니메이션 키 2개(시작, 끝) 추가 </summary>
+            public void Edt_AddInitialAnimKeys(float duration, bool isTimeModeSeconds)
             {
                 this.enabled = true;
 
-                var begin = new MaterialPropertyValue();
-                var end = new MaterialPropertyValue();
+                var begin = new MaterialPropertyAnimKey();
+                var end = new MaterialPropertyAnimKey();
 
                 begin.time = 0;
 
@@ -471,57 +463,52 @@ namespace Rito
                         break;
                 }
 
-                eventList.Add(begin);
-                eventList.Add(end);
+                animKeyList.Add(begin);
+                animKeyList.Add(end);
             }
 
-            /// <summary> 해당 인덱스의 바로 뒤에 새로운 이벤트 추가 </summary>
-            public void Edt_AddNewEvent(int index, bool isTimeModeSeconds)
+            /// <summary> 해당 인덱스의 바로 뒤에 새로운 애니메이션 키 추가 </summary>
+            public void Edt_AddNewAnimKey(int index, bool isTimeModeSeconds)
             {
-                MaterialPropertyValue prevEvent = eventList[index];
-                MaterialPropertyValue nextEvent = eventList[index + 1];
+                MaterialPropertyAnimKey prevKey = animKeyList[index];
+                MaterialPropertyAnimKey nextKey = animKeyList[index + 1];
 
-                var newValue = new MaterialPropertyValue();
+                var newKey = new MaterialPropertyAnimKey();
 
                 // 시간은 중간 값으로 전달
                 if (isTimeModeSeconds)
-                    newValue.time = (prevEvent.time + nextEvent.time) * 0.5f;
+                    newKey.time = (prevKey.time + nextKey.time) * 0.5f;
                 else
-                    newValue.frame = (prevEvent.frame + nextEvent.frame) / 2;
+                    newKey.frame = (prevKey.frame + nextKey.frame) / 2;
 
-                // 현재 마테리얼로부터 값 가져와 초기화
-                Edt_SetPropertyValueFromMaterial(newValue);
-
-                eventList.Insert(index + 1, newValue);
-            }
-
-            private void Edt_SetPropertyValueFromMaterial(MaterialPropertyValue dest)
-            {
+                // 값도 중간 값으로 초기화
                 switch (propType)
                 {
                     case ShaderPropertyType.Float:
-                        dest.floatValue = material.GetFloat(propName);
+                        FLOAT:
+                        newKey.floatValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, 0.5f);
                         break;
 
                     case ShaderPropertyType.Range:
-                        dest.floatValue = material.GetFloat(propName);
-                        dest.range = material.shader.GetPropertyRangeLimits(__propIndex);
-                        break;
+                        newKey.range = material.shader.GetPropertyRangeLimits(__propIndex);
+                        goto FLOAT;
 
                     case ShaderPropertyType.Color:
-                        dest.color = material.GetColor(propName);
+                        newKey.color = Color.Lerp(prevKey.color, nextKey.color, 0.5f);
                         break;
 
                     case ShaderPropertyType.Vector:
-                        dest.vector4 = material.GetVector(propName);
+                        newKey.vector4 = Vector4.Lerp(prevKey.vector4, nextKey.vector4, 0.5f);
                         break;
                 }
+
+                animKeyList.Insert(index + 1, newKey);
             }
 
-            /// <summary> 프로퍼티 내의 모든 이벤트 제거 </summary>
-            public void Edt_RemoveAllEvents()
+            /// <summary> 프로퍼티 내의 모든 애니메이션 키 제거 </summary>
+            public void Edt_RemoveAllAnimKeys()
             {
-                this.eventList.Clear();
+                this.animKeyList.Clear();
                 this.enabled = false;
             }
 #endif
@@ -529,7 +516,7 @@ namespace Rito
 
         [System.Serializable]
         [StructLayout(LayoutKind.Explicit)]
-        private class MaterialPropertyValue
+        private class MaterialPropertyAnimKey
         {
             [FieldOffset(0)] public float time;
             [FieldOffset(4)] public float frame;
@@ -580,10 +567,10 @@ namespace Rito
             private static GUIStyle blackTextButtonStyle; // 글씨가 하얀색인 버튼
             private static GUIStyle graphToggleButtonStyle;
             private static GUIStyle boldFoldoutStyle;
-            private static GUIStyle propertyEventTimeLabelStyle;
+            private static GUIStyle propertyAnimKeyTimeLabelStyle;
             private static GUIStyle whiteBoldLabelStyle;
             private static GUIStyle yellowBoldLabelStyle;
-            private static GUIStyle whiteEventKeyIndexLabelStyle;
+            private static GUIStyle whiteAnimKeyIndexLabelStyle;
 
             private static Texture2D playTexture;
             private static Texture2D pauseTexture;
@@ -666,7 +653,7 @@ namespace Rito
                     }
                     else
                     {
-                        // 마테리얼 정보가 변한 경우, 전체 마테리얼 프로퍼티 및 이벤트 목록 초기화
+                        // 마테리얼 정보가 변한 경우, 전체 마테리얼 프로퍼티 및 애니메이션 초기화
                         if (isMaterialChanged)
                         {
                             InitMaterial();
@@ -685,7 +672,7 @@ namespace Rito
 
                         EditorGUILayout.Space();
                         EditorGUILayout.Space();
-                        DrawMaterialPropertyEventList();
+                        DrawMaterialPropertyAnimKeyList();
                     }
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -713,6 +700,14 @@ namespace Rito
             private static readonly string[] TimeModesHan = new string[]
             {
                 "시간(초)", "프레임"
+            };
+            private static readonly string[] DurationChangeActionEng = new string[]
+            {
+                "Keep Ratio", "Keep Time Value"
+            };
+            private static readonly string[] DurationChangeActionHan = new string[]
+            {
+                "시간 비율 유지", "시간 값 유지"
             };
 
             bool onOffMoving = false;
@@ -945,10 +940,10 @@ namespace Rito
                         fontStyle = FontStyle.Bold
                     };
                 }
-                if (propertyEventTimeLabelStyle == null)
+                if (propertyAnimKeyTimeLabelStyle == null)
                 {
-                    propertyEventTimeLabelStyle = new GUIStyle(EditorStyles.label);
-                    propertyEventTimeLabelStyle.normal.textColor = TimeColor;
+                    propertyAnimKeyTimeLabelStyle = new GUIStyle(EditorStyles.label);
+                    propertyAnimKeyTimeLabelStyle.normal.textColor = TimeColor;
                 }
                 if (whiteBoldLabelStyle == null)
                 {
@@ -960,16 +955,16 @@ namespace Rito
                     yellowBoldLabelStyle = new GUIStyle(EditorStyles.boldLabel);
                     yellowBoldLabelStyle.normal.textColor = Color.yellow;
                 }
-                if (whiteEventKeyIndexLabelStyle == null)
+                if (whiteAnimKeyIndexLabelStyle == null)
                 {
-                    whiteEventKeyIndexLabelStyle = new GUIStyle(EditorStyles.label);
-                    whiteEventKeyIndexLabelStyle.normal.textColor = Color.white;
-                    whiteEventKeyIndexLabelStyle.fontSize = 10;
+                    whiteAnimKeyIndexLabelStyle = new GUIStyle(EditorStyles.label);
+                    whiteAnimKeyIndexLabelStyle.normal.textColor = Color.white;
+                    whiteAnimKeyIndexLabelStyle.fontSize = 10;
                 }
             }
             private void LoadMaterialProperties()
             {
-                // 기존 이벤트들 백업
+                // 기존 애니메이션 정보 백업
                 var backup = m.matPropertyList;
 
                 int propertyCount = shader.GetPropertyCount();
@@ -995,21 +990,21 @@ namespace Rito
 
                 int validPropCount = m.matPropertyList.Count;
 
-                // 동일 쉐이더일 경우, 백업된 이벤트들에서 동일하게 존재하는 프로퍼티에 이벤트 복제
+                // 동일 쉐이더일 경우, 백업된 애니메이션에서 동일하게 존재하는 프로퍼티에 애니메이션 복제
                 if (validPropCount > 0 && m.matPropertyList[0].material.shader == shader)
                 {
                     for (int i = 0; i < validPropCount; i++)
                     {
                         MaterialPropertyInfo cur = m.matPropertyList[i];
                         MaterialPropertyInfo found = backup.Find(x =>
-                            x.__HasEvents &&
+                            x.__HasAnimation &&
                             x.propName == cur.propName &&
                             x.propType == cur.propType
                         );
 
                         if (found != null)
                         {
-                            cur.eventList = found.eventList;
+                            cur.animKeyList = found.animKeyList;
                             cur.enabled = found.enabled;
                             cur.__foldout = found.__foldout;
                         }
@@ -1017,13 +1012,13 @@ namespace Rito
                 }
 
                 // 마테리얼 기본 값들 기억, 현재 값들 저장
-                m.__materialDefaultValues = new MaterialPropertyValue[validPropCount];
-                m.__materialCurrentValues = new MaterialPropertyValue[validPropCount];
+                m.__materialDefaultValues = new MaterialPropertyAnimKey[validPropCount];
+                m.__materialCurrentValues = new MaterialPropertyAnimKey[validPropCount];
                 for (int i = 0; i < validPropCount; i++)
                 {
                     var currentInfo = m.matPropertyList[i];
-                    var backupValue = m.__materialDefaultValues[i] = new MaterialPropertyValue();
-                    var currentValue = m.__materialCurrentValues[i] = new MaterialPropertyValue();
+                    var backupValue = m.__materialDefaultValues[i] = new MaterialPropertyAnimKey();
+                    var currentValue = m.__materialCurrentValues[i] = new MaterialPropertyAnimKey();
 
                     switch (currentInfo.propType)
                     {
@@ -1081,7 +1076,7 @@ namespace Rito
                 if (m.effectMaterial == null) fieldCount = 1;
                 else
                 {
-                    fieldCount = 5;
+                    fieldCount = 6;
 #if SHOW_MATERIAL_NAME
                     fieldCount++;
 #endif
@@ -1172,13 +1167,13 @@ namespace Rito
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
+                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasAnimation == false)
                                     continue;
 
-                                var eventList = m.matPropertyList[i].eventList;
-                                for (int j = 0; j < eventList.Count; j++)
+                                var animKeyList = m.matPropertyList[i].animKeyList;
+                                for (int j = 0; j < animKeyList.Count; j++)
                                 {
-                                    eventList[j].time = eventList[j].frame / m.targetFPS;
+                                    animKeyList[j].time = animKeyList[j].frame / m.targetFPS;
                                 }
                             }
 
@@ -1192,13 +1187,13 @@ namespace Rito
 
                             for (int i = 0; i < m.matPropertyList.Count; i++)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
+                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasAnimation == false)
                                     continue;
 
-                                var eventList = m.matPropertyList[i].eventList;
-                                for (int j = 0; j < eventList.Count; j++)
+                                var animKeyList = m.matPropertyList[i].animKeyList;
+                                for (int j = 0; j < animKeyList.Count; j++)
                                 {
-                                    eventList[j].frame = (eventList[j].time * m.targetFPS);
+                                    animKeyList[j].frame = (animKeyList[j].time * m.targetFPS);
                                 }
                             }
 
@@ -1220,7 +1215,7 @@ namespace Rito
                     if (m.isTimeModeSeconds)
                     {
                         m.durationSeconds.RefClamp_000();
-                        float prevDuration = m.durationSeconds;
+                        float prevDurationSec = m.durationSeconds;
 
                         Color col = GUI.color;
                         if (m.durationSeconds <= 0f)
@@ -1237,21 +1232,61 @@ namespace Rito
 
                         GUI.color = col;
 
-                        // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
-                        if (prevDuration != m.durationSeconds && m.durationSeconds > 0f)
+                        // Duration 변경 시 동작
+                        if (prevDurationSec != m.durationSeconds && m.durationSeconds > 0f)
                         {
-                            float changeRatio = m.durationSeconds / prevDuration;
-
-                            for (int i = 0; i < m.matPropertyList.Count; i++)
+                            // [1] 비율을 유지하면서 애니메이션 키들의 Time 변경
+                            if (m.__durationChangeActionPopupIndex == 0)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].__HasEvents == false)
-                                    continue;
+                                float changeRatio = m.durationSeconds / prevDurationSec;
 
-                                var eventList = m.matPropertyList[i].eventList;
-                                for (int j = 0; j < eventList.Count; j++)
+                                for (int i = 0; i < m.matPropertyList.Count; i++)
                                 {
-                                    eventList[j].time *= changeRatio;
+                                    if (m.matPropertyList[i].__HasAnimation == false)
+                                        continue;
+
+                                    var animKeyList = m.matPropertyList[i].animKeyList;
+                                    for (int j = 0; j < animKeyList.Count; j++)
+                                    {
+                                        // 시작 키 : 0프레임
+                                        if (j == 0)
+                                            continue;
+                                        // 종료 키 : 마지막 프레임
+                                        else if (j == animKeyList.Count - 1)
+                                            animKeyList[j].time = m.durationSeconds;
+                                        // 나머지 키 : 계산
+                                        else
+                                            animKeyList[j].time *= changeRatio;
+                                    }
                                 }
+                            }
+                            // [2] 자르기
+                            else
+                            {
+                                // 공통 : 각 애니메이션들의 마지막 키 시간만 Duration으로 바꿔주기
+                                for (int i = 0; i < m.matPropertyList.Count; i++)
+                                {
+                                    if (m.matPropertyList[i].__HasAnimation == false)
+                                        continue;
+
+                                    var animKeyList = m.matPropertyList[i].animKeyList;
+                                    animKeyList.Last().time = m.durationSeconds;
+                                }
+
+                                // [2-2] 지속 시간이 짧아진 경우
+                                if (prevDurationSec > m.durationSeconds)
+                                {
+                                    // 바뀐 지속 시간보다 긴 키들은 제거
+                                    for (int i = 0; i < m.matPropertyList.Count; i++)
+                                    {
+                                        if (m.matPropertyList[i].__HasAnimation == false)
+                                            continue;
+
+                                        var animKeyList = m.matPropertyList[i].animKeyList;
+                                        animKeyList.RemoveAll(key => key.time > m.durationSeconds);
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -1275,29 +1310,61 @@ namespace Rito
 
                         GUI.color = col;
 
-                        // Duration 변경 시, 비율을 유지하면서 이벤트들의 Time 변경
+                        // Duration 변경 시 동작
                         if (prevDurationFrame != m.durationFrame && m.durationSeconds > 0f)
                         {
-                            float changeRatio = (float)m.durationFrame / prevDurationFrame;
-
-                            for (int i = 0; i < m.matPropertyList.Count; i++)
+                            // [1] 비율을 유지하면서 애니메이션 키들의 Frame 변경
+                            if (m.__durationChangeActionPopupIndex == 0)
                             {
-                                if (m.matPropertyList[i] == null || m.matPropertyList[i].eventList == null || m.matPropertyList[i].eventList.Count == 0)
-                                    continue;
+                                float changeRatio = (float)m.durationFrame / prevDurationFrame;
 
-                                var eventList = m.matPropertyList[i].eventList;
-                                for (int j = 0; j < eventList.Count; j++)
+                                for (int i = 0; i < m.matPropertyList.Count; i++)
                                 {
-                                    // 시작 이벤트 : 0프레임
-                                    if (j == 0)
+                                    if (m.matPropertyList[i].__HasAnimation == false)
                                         continue;
-                                    // 종료 이벤트 : 마지막 프레임
-                                    else if (j == eventList.Count - 1)
-                                        eventList[j].frame = m.durationFrame;
-                                    // 나머지 이벤트 : 계산
-                                    else
-                                        eventList[j].frame = (eventList[j].frame * changeRatio);
+
+                                    var animKeyList = m.matPropertyList[i].animKeyList;
+                                    for (int j = 0; j < animKeyList.Count; j++)
+                                    {
+                                        // 시작 키 : 0프레임
+                                        if (j == 0)
+                                            continue;
+                                        // 종료 키 : 마지막 프레임
+                                        else if (j == animKeyList.Count - 1)
+                                            animKeyList[j].frame = m.durationFrame;
+                                        // 나머지 키 : 계산
+                                        else
+                                            animKeyList[j].frame = (int)(animKeyList[j].frame * changeRatio);
+                                    }
                                 }
+                            }
+                            // [2] 자르기
+                            else
+                            {
+                                // 공통 : 각 애니메이션들의 마지막 키 프레임만 Duration으로 바꿔주기
+                                for (int i = 0; i < m.matPropertyList.Count; i++)
+                                {
+                                    if (m.matPropertyList[i].__HasAnimation == false)
+                                        continue;
+
+                                    var animKeyList = m.matPropertyList[i].animKeyList;
+                                    animKeyList.Last().frame = m.durationFrame;
+                                }
+
+                                // [2-2] 지속 시간이 짧아진 경우
+                                if (prevDurationFrame > m.durationFrame)
+                                {
+                                    // 바뀐 지속 시간보다 긴 키들은 제거
+                                    for (int i = 0; i < m.matPropertyList.Count; i++)
+                                    {
+                                        if (m.matPropertyList[i].__HasAnimation == false)
+                                            continue;
+
+                                        var animKeyList = m.matPropertyList[i].animKeyList;
+                                        animKeyList.RemoveAll(key => key.frame > m.durationFrame);
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -1310,6 +1377,16 @@ namespace Rito
                     EditorGUI.LabelField(durationRect, EngHan("Looping", "상시 지속"), whiteBoldLabelStyle);
                 }
 
+                // 지속시간 변경 시 동작
+                using (new RitoEditorGUI.HorizontalMarginScope())
+                {
+                    RitoEditorGUI.DrawPrefixLabelLayout(
+                            EngHan("Duration Change Action", "지속 시간 변경 시 동작"));
+
+                    m.__durationChangeActionPopupIndex =
+                        EditorGUILayout.Popup(m.__durationChangeActionPopupIndex,
+                            isHangle ? DurationChangeActionHan : DurationChangeActionEng);
+                }
 
                 // 프레임 전용 설정
                 if (m.IsTimeModeFrame && !isDurationZero)
@@ -1417,20 +1494,20 @@ namespace Rito
                     if ((int)mp.propType == 4) // 4 : Texture
                         continue;
 
-                    MaterialPropertyValue currentMatValue = m.__materialCurrentValues[i];
+                    MaterialPropertyAnimKey currentMatValue = m.__materialCurrentValues[i];
 
                     Color currentColor = mp.enabled ? EnabledColor : Color.gray;
-                    bool hasEvents = mp.__HasEvents;
+                    bool hasAnimation = mp.__HasAnimation;
 
                     EditorGUILayout.BeginHorizontal();
 
                     RitoEditorGUI.DrawHorizontalSpace(4f);
 
                     RitoEditorGUI.DrawPrefixLabelLayout(mp.__displayName,
-                        hasEvents ? currentColor : Color.white, 0.25f);
+                        hasAnimation ? currentColor : Color.white, 0.25f);
 
                     Color guiColor = GUI.color;
-                    if (hasEvents)
+                    if (hasAnimation)
                         GUI.color = currentColor;
 
                     // 레이블 하얗게 만들기
@@ -1532,8 +1609,8 @@ namespace Rito
 
                     RitoEditorGUI.DrawHorizontalSpace(4f);
 
-                    // 프로퍼티에 이벤트 존재할 경우 : 활성화, 제거 버튼
-                    if (hasEvents)
+                    // 프로퍼티에 애니메이션 존재할 경우 : 활성화, 제거 버튼
+                    if (hasAnimation)
                     {
                         string enableButtonString = mp.enabled ? "E" : "D";
 
@@ -1541,9 +1618,9 @@ namespace Rito
                             mp.enabled = !mp.enabled;
 
                         if (RitoEditorGUI.DrawButtonLayout("-", Color.red * 1.5f, 20f, 18f))
-                            mp.Edt_RemoveAllEvents();
+                            mp.Edt_RemoveAllAnimKeys();
                     }
-                    // 이벤트 없을 경우 : 추가 버튼
+                    // 애니메이션 없을 경우 : 추가 버튼
                     else
                     {
 #if UNITY_2017_9_OR_NEWER
@@ -1554,7 +1631,7 @@ namespace Rito
                         bool addButton = RitoEditorGUI.DrawButtonLayout("+", Color.green * 1.5f, PlusButtonWidth, 18f);
                         if (addButton)
                         {
-                            mp.Edt_AddInitialEvents(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
+                            mp.Edt_AddInitialAnimKeys(m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame, m.isTimeModeSeconds);
                         }
                     }
 
@@ -1566,8 +1643,8 @@ namespace Rito
                 EditorGUI.EndDisabledGroup();
             }
 
-            /// <summary> 프로퍼티 이벤트들 모두 그리기 </summary>
-            private void DrawMaterialPropertyEventList()
+            /// <summary> 프로퍼티 애니메이션 모두 그리기 </summary>
+            private void DrawMaterialPropertyAnimKeyList()
             {
                 if (isDurationZero)
                 {
@@ -1575,7 +1652,7 @@ namespace Rito
                     EditorStyles.helpBox.fontSize = 12;
 
                     EditorGUILayout.HelpBox(
-                        EngHan("Cannot create events if duration is 0.", "이벤트를 생성하려면 지속 시간을 설정해야 합니다."),
+                        EngHan("Cannot create animations if duration is 0.", "애니메이션을 생성하려면 지속 시간을 설정해야 합니다."),
                         MessageType.Info);
 
                     EditorStyles.helpBox.fontSize = fs;
@@ -1585,12 +1662,12 @@ namespace Rito
 
                 for (int i = 0; i < m.matPropertyList.Count; i++)
                 {
-                    if (m.matPropertyList[i].__HasEvents)
+                    if (m.matPropertyList[i].__HasAnimation)
                     {
-                        DrawPropertyEvents(m.matPropertyList[i], () =>
+                        DrawPropertyAnimation(m.matPropertyList[i], () =>
                         {
-                            // [-] 버튼 클릭하면 해당 프로퍼티에서 이벤트들 싹 제거
-                            m.matPropertyList[i].Edt_RemoveAllEvents();
+                            // [-] 버튼 클릭하면 해당 프로퍼티에서 애니메이션 키들 싹 제거
+                            m.matPropertyList[i].Edt_RemoveAllAnimKeys();
                         }
                         );
 
@@ -1606,10 +1683,10 @@ namespace Rito
             }
 
 
-            GUIStyle eventFoldoutHeaderStyle;
+            GUIStyle animationFoldoutHeaderStyle;
 
             // 그래프 너비 옵션
-            const float GraphToggleButtonWidth = 100f;
+            const float GraphToggleButtonWidth = 120f;
             const float GraphMarginLeft = 4f;
             const float GraphMarginRight = 4f;
 
@@ -1625,15 +1702,15 @@ namespace Rito
             const float RGBAButtonHeight = 20f;          // 벡터, 색상 XYZW 또는 RGBA 버튼 높이
             const float RGBAButtonBottomMargin = 2f;
 
-            // 이벤트 표시 버튼 옵션
-            const float EventToggleButtonWidth = 100f;      // 이벤트 표시 토글 버튼 너비
+            // 애니메이션 표시 버튼 옵션
+            const float AnimationToggleButtonWidth = 120f;      // 애니메이션 표시 토글 버튼 너비
 
-            const float EventToggleButtonMarginTop = 4f;    // 이벤트 표시 토글 버튼 상단 여백
-            const float EventToggleButtonHeight = 20f;      // 이벤트 표시 토글 버튼 높이
-            const float EventToggleButtonMarginBottom = 4f; // 이벤트 표시 토글 버튼 ~ 이벤트 사이 간격
+            const float AnimationToggleButtonMarginTop = 4f;    // 애니메이션 표시 토글 버튼 상단 여백
+            const float AnimationToggleButtonHeight = 20f;      // 애니메이션 표시 토글 버튼 높이
+            const float AnimationToggleButtonMarginBottom = 4f; // 애니메이션 표시 토글 버튼 ~ 애니메이션 사이 간격
 
-            /// <summary> 프로퍼티 하나의 이벤트 모두 그리기 </summary>
-            private void DrawPropertyEvents(MaterialPropertyInfo mp, Action removeAction)
+            /// <summary> 프로퍼티 하나의 애니메이션 키 모두 그리기 </summary>
+            private void DrawPropertyAnimation(MaterialPropertyInfo mp, Action removeAction)
             {
                 ref bool enabled = ref mp.enabled;
                 bool isFloatOrRangeType = mp.propType == ShaderPropertyType.Float || mp.propType == ShaderPropertyType.Range;
@@ -1641,7 +1718,7 @@ namespace Rito
                 bool isColorType = mp.propType == ShaderPropertyType.Color;
                 bool isVectorType = mp.propType == ShaderPropertyType.Vector;
 
-                // NOTE : GraphToggleButton, EventToggleButton은 항상 그림
+                // NOTE : GraphToggleButton, AnimationToggleButton은 항상 그림
 
                 // NOTE : showGraph가 true이면
                 //  - Float/Range : 그래프를 그림
@@ -1708,22 +1785,22 @@ namespace Rito
                     }
                 }
 
-                // 이벤트 표시 토글 버튼 최종 높이
-                float eventButtonTotalHeight = EventToggleButtonMarginTop + EventToggleButtonHeight + EventToggleButtonMarginBottom;
+                // 애니메이션 표시 토글 버튼 최종 높이
+                float animToggleButtonTotalHeight = AnimationToggleButtonMarginTop + AnimationToggleButtonHeight + AnimationToggleButtonMarginBottom;
 
-                // 이벤트 최종 높이 합
-                float eventContentsTotalHeight = 0f;
+                // 애니메이션 최종 높이 합
+                float animContentsTotalHeight = 0f;
 
-                if (mp.__showEvents)
+                if (mp.__showAnimation)
                 {
-                    // 이벤트 하나당 요소 개수
-                    int countPerEvent = isColorType ? 3 : 2;
+                    // 애니메이션 키 하나당 요소 개수
+                    int countPerAnimKey = isColorType ? 3 : 2;
 
-                    // 전체 이벤트의 요소 개수
-                    int contentCount = countPerEvent * mp.eventList.Count;
+                    // 애니메이션의 요소 개수
+                    int contentCount = countPerAnimKey * mp.animKeyList.Count;
 
-                    // 전체 이벤트의 + 버튼 개수
-                    int plusButtonCount = mp.eventList.Count - 1;
+                    // 애니메이션의 + 버튼 개수
+                    int plusButtonCount = mp.animKeyList.Count - 1;
 
 #if UNITY_2019_3_OR_NEWER
                     float heightPerElement = isVectorType ? 22f : 21f;
@@ -1732,22 +1809,22 @@ namespace Rito
                     float heightPerElement = isVectorType ? 21f : 21f;
                     float heightPerButton = isColorType ? 17f : 20f;
 #endif
-                    eventContentsTotalHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
+                    animContentsTotalHeight = contentCount * heightPerElement + plusButtonCount * heightPerButton;
                 }
 
                 // 최종 Foldout 높이 결정
                 float foldoutContHeight =
                     graphToggleButtonTotalHeight + // 그래프 토글 버튼
                     graphTotalHeight +             // 그래프
-                    eventButtonTotalHeight +       // 이벤트 토글 버튼
-                    eventContentsTotalHeight;      // 이벤트
+                    animToggleButtonTotalHeight +  // 애니메이션 토글 버튼
+                    animContentsTotalHeight;       // 애니메이션 전체 높이
 
                 // Foldout 스타일 설정
-                if (eventFoldoutHeaderStyle == null)
-                    eventFoldoutHeaderStyle = new GUIStyle(EditorStyles.label);
-                eventFoldoutHeaderStyle.normal.textColor =
-                eventFoldoutHeaderStyle.onNormal.textColor = enabled ? Color.black : Color.gray;
-                eventFoldoutHeaderStyle.fontStyle = FontStyle.Bold;
+                if (animationFoldoutHeaderStyle == null)
+                    animationFoldoutHeaderStyle = new GUIStyle(EditorStyles.label);
+                animationFoldoutHeaderStyle.normal.textColor =
+                animationFoldoutHeaderStyle.onNormal.textColor = enabled ? Color.black : Color.gray;
+                animationFoldoutHeaderStyle.fontStyle = FontStyle.Bold;
 
                 string headerText = $"{mp.__displayName} [{mp.propType}]";
 
@@ -1757,7 +1834,7 @@ namespace Rito
                 Color removeButtonColor = Color.red * 1.8f;
 
                 // Draw Foldout
-                RitoEditorGUI.EventFoldoutHeaderBox(ref mp.__foldout, headerText, foldoutContHeight, eventFoldoutHeaderStyle,
+                RitoEditorGUI.AnimationFoldoutHeaderBox(ref mp.__foldout, headerText, foldoutContHeight, animationFoldoutHeaderStyle,
                     headerBgColor, enableButtonBgColor, enableButtonTextColor, removeButtonColor,
                     ref mp.enabled, out bool removePressed);
 
@@ -1848,39 +1925,39 @@ namespace Rito
                         }
 
                         // [10] 그래프에 X 좌표마다 강조 표시
-                        //  - 현재 등록된 이벤트들 위치
+                        //  - 현재 등록된 애니메이션 키들 위치
                         //  - 현재 재생 중인 위치
                         DrawMarkersOnGraphRect(mp, graphRect);
                     }
                 }
 
 
-                // ==================== 이벤트 토글 버튼 그리기 ====================== //
+                // ==================== 애니메이션 토글 버튼 그리기 ====================== //
                 // [1] 버튼 상단 여백 확보
-                GUILayoutUtility.GetRect(1f, EventToggleButtonMarginTop);
+                GUILayoutUtility.GetRect(1f, AnimationToggleButtonMarginTop);
 
                 // [2] 버튼 영역 확보
-                Rect eventButtonRect = GUILayoutUtility.GetRect(1f, EventToggleButtonHeight);
+                Rect animToggleButtonRect = GUILayoutUtility.GetRect(1f, AnimationToggleButtonHeight);
 
                 // 버튼 그리기
-                DrawEventToggleButton(mp, eventButtonRect);
+                DrawAnimationToggleButton(mp, animToggleButtonRect);
 
                 // [3] 버튼 하단 여백 확보
-                GUILayoutUtility.GetRect(1f, EventToggleButtonMarginBottom);
+                GUILayoutUtility.GetRect(1f, AnimationToggleButtonMarginBottom);
 
 
-                if (mp.__showEvents == false) return;
-                // ======================== 이벤트들 그리기 ========================== //
-                int addNewEvent = -1;
-                var eventList = mp.eventList;
+                if (mp.__showAnimation == false) return;
+                // ======================== 애니메이션 키들 그리기 ========================== //
+                int addNewAnimKey = -1;
+                var animKeyList = mp.animKeyList;
 
-                for (int i = 0; i < eventList.Count; i++)
+                for (int i = 0; i < animKeyList.Count; i++)
                 {
-                    // 이벤트 항목 한개 그리기
-                    DrawEachEvent(mp, eventList[i], i);
+                    // 애니메이션 키 한개 그리기
+                    DrawEachAnimKey(mp, animKeyList[i], i);
 
-                    // 이벤틑 사이사이 [+] 버튼 : 새로운 이벤트 추가
-                    if (i < eventList.Count - 1)
+                    // 애니메이션 키 사이사이 [+] 버튼 : 새로운 키 추가
+                    if (i < animKeyList.Count - 1)
                     {
                         EditorGUILayout.BeginHorizontal();
 
@@ -1888,16 +1965,16 @@ namespace Rito
 
                         // 버튼 중앙 정렬
                         RitoEditorGUI.DrawHorizontalSpace((EditorGUIUtility.currentViewWidth) * 0.5f - ButtonWidth);
-                        if (RitoEditorGUI.DrawPlusButtonLayout(ButtonWidth)) addNewEvent = i;
+                        if (RitoEditorGUI.DrawPlusButtonLayout(ButtonWidth)) addNewAnimKey = i;
 
                         EditorGUILayout.EndHorizontal();
                     }
                 }
 
-                // 새로운 이벤트 추가
-                if (addNewEvent > -1)
+                // 새로운 애니메이션 키 추가
+                if (addNewAnimKey > -1)
                 {
-                    mp.Edt_AddNewEvent(addNewEvent, m.isTimeModeSeconds);
+                    mp.Edt_AddNewAnimKey(addNewAnimKey, m.isTimeModeSeconds);
                 }
             }
 
@@ -1974,17 +2051,17 @@ namespace Rito
                 float totalWidth = graphRect.width - 2f;
                 markerRect.width = 2f;
 
-                // 1. 이벤트 위치들 표시
-                var eventList = mp.eventList;
-                for (int i = 0; i < eventList.Count; i++)
+                // 1. 애니메이션 키 위치들 표시
+                var animKeyList = mp.animKeyList;
+                for (int i = 0; i < animKeyList.Count; i++)
                 {
-                    var cur = eventList[i];
+                    var cur = animKeyList[i];
                     float t = m.isTimeModeSeconds ?
                         cur.time / m.durationSeconds :
                         (float)cur.frame / m.durationFrame;
 
                     // 1-1. 그래프 위에 마커 그리기
-                    if (i > 0 && i < eventList.Count - 1)
+                    if (i > 0 && i < animKeyList.Count - 1)
                     {
                         Rect r = new Rect(markerRect);
                         r.x = baseXPos + (t * totalWidth);
@@ -2037,7 +2114,7 @@ namespace Rito
                             indexLabelRect.x -= rightExceed - len;
 
                         //EditorGUI.DrawRect(indexLabelRect, Color.white);
-                        EditorGUI.LabelField(indexLabelRect, label, whiteEventKeyIndexLabelStyle);
+                        EditorGUI.LabelField(indexLabelRect, label, whiteAnimKeyIndexLabelStyle);
                     }
                 }
 
@@ -2080,26 +2157,26 @@ namespace Rito
                 }
             }
 
-            /// <summary> 이벤트 토글 버튼 그리기 </summary>
-            private void DrawEventToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
+            /// <summary> 애니메이션 토글 버튼 그리기 </summary>
+            private void DrawAnimationToggleButton(MaterialPropertyInfo mp, Rect buttonRect)
             {
                 // 버튼 중앙 정렬
                 float viewWidth = buttonRect.width;
-                buttonRect.width = EventToggleButtonWidth;
-                buttonRect.x = (viewWidth - EventToggleButtonWidth * 0.5f) * 0.5f;
+                buttonRect.width = AnimationToggleButtonWidth;
+                buttonRect.x = (viewWidth - AnimationToggleButtonWidth * 0.5f) * 0.5f;
 
-                string buttonLabel = mp.__showEvents ?
-                    EngHan("Hide Events", "이벤트 숨기기") :
-                    EngHan("Show Events", "이벤트 표시");
+                string buttonLabel = mp.__showAnimation ?
+                    EngHan("Hide Animation", "애니메이션 숨기기") :
+                    EngHan("Show Animation", "애니메이션 표시");
 
-                Color buttonColor = mp.__showEvents ? Color.white * 2f : Color.black;
-                graphToggleButtonStyle.normal.textColor = mp.__showEvents ? Color.black : Color.white;
+                Color buttonColor = mp.__showAnimation ? Color.white * 2f : Color.black;
+                graphToggleButtonStyle.normal.textColor = mp.__showAnimation ? Color.black : Color.white;
                 graphToggleButtonStyle.hover.textColor = Color.gray;
 
-                // 이벤트 표시 토글 버튼
+                // 애니메이션 표시 토글 버튼
                 if (RitoEditorGUI.DrawButton(buttonRect, buttonLabel, buttonColor, graphToggleButtonStyle))
                 {
-                    mp.__showEvents = !mp.__showEvents;
+                    mp.__showAnimation = !mp.__showAnimation;
                 }
             }
 
@@ -2107,16 +2184,16 @@ namespace Rito
             private void DrawFloatGraph(MaterialPropertyInfo mp, in Rect graphRect)
             {
                 AnimationCurve graph = new AnimationCurve();
-                for (int i = 0; i < mp.eventList.Count; i++)
+                for (int i = 0; i < mp.animKeyList.Count; i++)
                 {
-                    var curValue = mp.eventList[i];
+                    var curValue = mp.animKeyList[i];
 
                     float t = m.isTimeModeSeconds ? curValue.time : (float)curValue.frame;
 
                     // 인접한 두 키의 시간이 동일한 경우, 시간을 미세하게 더해주기
-                    if (0 < i && i < mp.eventList.Count)
+                    if (0 < i && i < mp.animKeyList.Count)
                     {
-                        if (curValue.time == mp.eventList[i - 1].time)
+                        if (curValue.time == mp.animKeyList[i - 1].time)
                             t += 0.001f;
                     }
 
@@ -2266,8 +2343,8 @@ namespace Rito
                 string[] buttonLabels4 = isVectorType ? xyzwButtonLabels : rgbaButtonLabels;
 
                 // 1. 토글 버튼
-                const float ButtonWidth = 22f;
-                const float Margin = 4f;
+                const float ButtonWidth = 26f;
+                const float Margin = 5f;
                 float centerX = buttonRect.width * 0.5f;
 
                 Rect[] buttonRects = new Rect[ButtonCount];
@@ -2348,12 +2425,12 @@ namespace Rito
                         if (mp.__showVectorGraphs[i] == false)
                             continue;
 
-                        for (int j = 0; j < mp.eventList.Count; j++)
+                        for (int j = 0; j < mp.animKeyList.Count; j++)
                         {
-                            if (graphMinY > mp.eventList[j].vector4[i])
-                                graphMinY = mp.eventList[j].vector4[i];
-                            if (graphMaxY < mp.eventList[j].vector4[i])
-                                graphMaxY = mp.eventList[j].vector4[i];
+                            if (graphMinY > mp.animKeyList[j].vector4[i])
+                                graphMinY = mp.animKeyList[j].vector4[i];
+                            if (graphMaxY < mp.animKeyList[j].vector4[i])
+                                graphMaxY = mp.animKeyList[j].vector4[i];
                         }
                     }
                 }
@@ -2366,10 +2443,10 @@ namespace Rito
                         if (mp.__showVectorGraphs[i] == false)
                             continue;
 
-                        for (int j = 0; j < mp.eventList.Count; j++)
+                        for (int j = 0; j < mp.animKeyList.Count; j++)
                         {
-                            if (graphMaxY < mp.eventList[j].vector4[i])
-                                graphMaxY = mp.eventList[j].vector4[i];
+                            if (graphMaxY < mp.animKeyList[j].vector4[i])
+                                graphMaxY = mp.animKeyList[j].vector4[i];
                         }
                     }
 
@@ -2386,17 +2463,17 @@ namespace Rito
                     if (mp.__showVectorGraphs[a] == false)
                         continue;
 
-                    // i : 이벤트 개수
-                    for (int i = 0; i < mp.eventList.Count; i++)
+                    // i : 애니메이션 키 개수
+                    for (int i = 0; i < mp.animKeyList.Count; i++)
                     {
-                        var current = mp.eventList[i];
+                        var current = mp.animKeyList[i];
 
                         float t = m.isTimeModeSeconds ? current.time : (float)current.frame;
 
                         // 인접한 두 키의 시간이 동일한 경우, 시간을 미세하게 더해주기
-                        if (0 < i && i < mp.eventList.Count)
+                        if (0 < i && i < mp.animKeyList.Count)
                         {
-                            if (current.time == mp.eventList[i - 1].time)
+                            if (current.time == mp.animKeyList[i - 1].time)
                                 t += 0.001f;
                         }
 
@@ -2428,7 +2505,7 @@ namespace Rito
             private void DrawColorGradientView(MaterialPropertyInfo mp, in Rect gradientRect)
             {
                 // 그라디언트 내 색상 최대 개수 제한
-                if (mp.eventList.Count > 8)
+                if (mp.animKeyList.Count > 8)
                 {
                     var oldAlign = EditorStyles.helpBox.alignment;
                     var oldFS = EditorStyles.helpBox.fontSize;
@@ -2449,24 +2526,24 @@ namespace Rito
 
                 Gradient grad = new Gradient();
 
-                var eventList = mp.eventList;
+                var animKeyList = mp.animKeyList;
                 bool showR = mp.__showVectorGraphs[0];
                 bool showG = mp.__showVectorGraphs[1];
                 bool showB = mp.__showVectorGraphs[2];
                 bool showA = mp.__showVectorGraphs[3];
 
-                GradientColorKey[] colorKeys = new GradientColorKey[eventList.Count];
+                GradientColorKey[] colorKeys = new GradientColorKey[animKeyList.Count];
                 GradientAlphaKey[] alphaKeys = null;
 
                 if (showA)
                 {
-                    alphaKeys = new GradientAlphaKey[eventList.Count];
+                    alphaKeys = new GradientAlphaKey[animKeyList.Count];
                 }
 
                 // 그라디언트에 컬러키, 알파키 추가
-                for (int i = 0; i < eventList.Count; i++)
+                for (int i = 0; i < animKeyList.Count; i++)
                 {
-                    MaterialPropertyValue key = eventList[i];
+                    MaterialPropertyAnimKey key = animKeyList[i];
                     float t = m.isTimeModeSeconds ? (key.time / m.durationSeconds) : ((float)key.frame / m.durationFrame);
                     float r = showR ? key.color.r : 0f;
                     float g = showG ? key.color.g : 0f;
@@ -2490,26 +2567,26 @@ namespace Rito
             private static readonly Color HighlightFirstOrLast = new Color(0.3f, 0.3f, 0.3f);
             private static readonly Color HighlightPlaying = new Color(0.0f, 0.4f, 0.5f);
 
-            /// <summary> 프로퍼티의 이벤트 하나 그리기 (시간, 값) </summary>
-            private void DrawEachEvent(MaterialPropertyInfo mp, MaterialPropertyValue mpEvent, int index)
+            /// <summary> 프로퍼티의 애니메이션 키 하나 그리기 (시간, 값) </summary>
+            private void DrawEachAnimKey(MaterialPropertyInfo mp, MaterialPropertyAnimKey mpKey, int index)
             {
                 bool isFirst = index == 0;
-                bool isLast = index == mp.eventList.Count - 1;
+                bool isLast = index == mp.animKeyList.Count - 1;
                 bool isFirstOrLast = isFirst || isLast;
                 bool isColorType = mp.propType == ShaderPropertyType.Color;
 
                 // Clamp Time Value (First, Last)
-                if (isFirst) mpEvent.time = 0f;
-                else if (isLast) mpEvent.time = m.durationSeconds;
+                if (isFirst) mpKey.time = 0f;
+                else if (isLast) mpKey.time = m.durationSeconds;
 
-                // 현재 재생, 보간되는 두 이벤트 배경 하이라이트
+                // 현재 재생, 보간되는 두 애니메이션 키 배경 하이라이트
                 bool currentPlaying =
                     isPlayMode &&
                     m.isActiveAndEnabled &&
                     mp.enabled &&
                     (index == mp.__playingIndex || index - 1 == mp.__playingIndex);
 
-                // 추가된 이벤트마다 배경 하이라이트
+                // 추가된 애니메이션 키마다 배경 하이라이트
                 Rect highlightRight = GUILayoutUtility.GetRect(1f, 0f);
 #if UNITY_2019_3_OR_NEWER
                 highlightRight.height = isColorType ? 62f : 42f;
@@ -2599,35 +2676,43 @@ namespace Rito
                     // [1] 시간 계산 방식 : 초
                     if (m.isTimeModeSeconds)
                     {
-                        mpEvent.time.RefClamp_000();
+                        mpKey.time.RefClamp_000();
 
                         EditorGUI.BeginChangeCheck();
-                        mpEvent.time = EditorGUILayout.Slider(mpEvent.time, 0f, m.durationSeconds);
+                        mpKey.time = EditorGUILayout.Slider(mpKey.time, 0f, m.durationSeconds);
+
+                        if (isLast)
+                            mpKey.time = m.durationSeconds;
+
                         if (EditorGUI.EndChangeCheck())
                         {
-                            MaterialPropertyValue prevEvent = mp.eventList[index - 1];
-                            MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+                            MaterialPropertyAnimKey prevKey = mp.animKeyList[index - 1];
+                            MaterialPropertyAnimKey nextKey = mp.animKeyList[index + 1];
 
-                            if (mpEvent.time < prevEvent.time)
-                                mpEvent.time = prevEvent.time;
-                            if (mpEvent.time > nextEvent.time)
-                                mpEvent.time = nextEvent.time;
+                            if (mpKey.time < prevKey.time)
+                                mpKey.time = prevKey.time;
+                            if (mpKey.time > nextKey.time)
+                                mpKey.time = nextKey.time;
                         }
                     }
                     // [2] 시간 계산 방식 : 프레임
                     else
                     {
                         EditorGUI.BeginChangeCheck();
-                        mpEvent.frame = EditorGUILayout.IntSlider((int)mpEvent.frame, 0, (int)m.durationFrame);
+                        mpKey.frame = EditorGUILayout.IntSlider((int)mpKey.frame, 0, (int)m.durationFrame);
+
+                        if (isLast)
+                            mpKey.frame = m.durationFrame;
+
                         if (EditorGUI.EndChangeCheck())
                         {
-                            MaterialPropertyValue prevEvent = mp.eventList[index - 1];
-                            MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+                            MaterialPropertyAnimKey prevKey = mp.animKeyList[index - 1];
+                            MaterialPropertyAnimKey nextKey = mp.animKeyList[index + 1];
 
-                            if (mpEvent.frame < prevEvent.frame)
-                                mpEvent.frame = prevEvent.frame;
-                            if (mpEvent.frame > nextEvent.frame)
-                                mpEvent.frame = nextEvent.frame;
+                            if (mpKey.frame < prevKey.frame)
+                                mpKey.frame = prevKey.frame;
+                            if (mpKey.frame > nextKey.frame)
+                                mpKey.frame = nextKey.frame;
                         }
                     }
 
@@ -2638,22 +2723,22 @@ namespace Rito
 #if false
                     if (isFirstOrLast == false)
                     {
-                        MaterialPropertyValue prevEvent = mp.eventList[index - 1];
-                        MaterialPropertyValue nextEvent = mp.eventList[index + 1];
+                        MaterialPropertyValue prevKey = mp.animKeyList[index - 1];
+                        MaterialPropertyValue nextKey = mp.animKeyList[index + 1];
 
                         if (m.isTimeModeSeconds)
                         {
-                            if (prevEvent.time > mpEvent.time)
-                                prevEvent.time = mpEvent.time;
-                            if (nextEvent.time < mpEvent.time)
-                                nextEvent.time = mpEvent.time;
+                            if (prevKey.time > mpKey.time)
+                                prevKey.time = mpKey.time;
+                            if (nextKey.time < mpKey.time)
+                                nextKey.time = mpKey.time;
                         }
                         else
                         {
-                            if (prevEvent.frame > mpEvent.frame)
-                                prevEvent.frame = mpEvent.frame;
-                            if (nextEvent.frame < mpEvent.frame)
-                                nextEvent.frame = mpEvent.frame;
+                            if (prevKey.frame > mpKey.frame)
+                                prevKey.frame = mpKey.frame;
+                            if (nextKey.frame < mpKey.frame)
+                                nextKey.frame = mpKey.frame;
                         }
                     }
 #endif
@@ -2663,11 +2748,11 @@ namespace Rito
                     Rect minusButtonRect = GUILayoutUtility.GetLastRect();
                     minusButtonRect.xMax -= RightButtonMargin;
 
-                    // 이 이벤트 제거 버튼
+                    // 이 애니메이션 키 제거 버튼
                     if (isFirstOrLast == false)
                     {
                         if (RitoEditorGUI.DrawButton(minusButtonRect, "-", MinusButtonColor, bigMinusButtonStyle))
-                            mp.eventList.RemoveAt(index);
+                            mp.animKeyList.RemoveAt(index);
                     }
                 }
                 EditorGUILayout.EndHorizontal();
@@ -2689,11 +2774,11 @@ namespace Rito
                 switch (mp.propType)
                 {
                     case ShaderPropertyType.Float:
-                        mpEvent.floatValue = EditorGUILayout.FloatField(mpEvent.floatValue);
+                        mpKey.floatValue = EditorGUILayout.FloatField(mpKey.floatValue);
                         break;
 
                     case ShaderPropertyType.Range:
-                        mpEvent.floatValue = EditorGUILayout.Slider(mpEvent.floatValue, mpEvent.min, mpEvent.max);
+                        mpKey.floatValue = EditorGUILayout.Slider(mpKey.floatValue, mpKey.min, mpKey.max);
                         break;
 
                     case ShaderPropertyType.Vector:
@@ -2701,7 +2786,7 @@ namespace Rito
                         Color colLN = EditorStyles.label.normal.textColor;
                         EditorStyles.label.normal.textColor = Color.white;
                         {
-                            mpEvent.vector4 = EditorGUILayout.Vector4Field("", mpEvent.vector4); // Vec4 Field
+                            mpKey.vector4 = EditorGUILayout.Vector4Field("", mpKey.vector4); // Vec4 Field
                         }
                         EditorStyles.label.normal.textColor = colLN;
                         break;
@@ -2709,9 +2794,9 @@ namespace Rito
                     case ShaderPropertyType.Color:
                         EditorGUILayout.BeginVertical();
 
-                        mpEvent.vector4.RefClamp_000();
+                        mpKey.vector4.RefClamp_000();
 
-                        mpEvent.color = EditorGUILayout.ColorField(mpEvent.color); // Color Field
+                        mpKey.color = EditorGUILayout.ColorField(mpKey.color); // Color Field
 
                         // XYZW 레이블 -> RGBA로 변경
                         vector4FieldLables[0].text = "R";
@@ -2722,7 +2807,7 @@ namespace Rito
                         Color colLN2 = EditorStyles.label.normal.textColor;
                         EditorStyles.label.normal.textColor = Color.white;
                         {
-                            mpEvent.vector4 = EditorGUILayout.Vector4Field("", mpEvent.vector4); // Vec4 Field
+                            mpKey.vector4 = EditorGUILayout.Vector4Field("", mpKey.vector4); // Vec4 Field
                         }
                         EditorStyles.label.normal.textColor = colLN2;
 
@@ -2749,13 +2834,13 @@ namespace Rito
                     {
                         case ShaderPropertyType.Float:
                         case ShaderPropertyType.Range:
-                            mpEvent.floatValue = material.GetFloat(mp.propName);
+                            mpKey.floatValue = material.GetFloat(mp.propName);
                             break;
                         case ShaderPropertyType.Vector:
-                            mpEvent.vector4 = material.GetVector(mp.propName);
+                            mpKey.vector4 = material.GetVector(mp.propName);
                             break;
                         case ShaderPropertyType.Color:
-                            mpEvent.color = material.GetColor(mp.propName);
+                            mpKey.color = material.GetColor(mp.propName);
                             break;
                     }
                 }
@@ -2954,7 +3039,7 @@ namespace Rito
             }
 
             private static GUIStyle enableButtonStyle;
-            public static void EventFoldoutHeaderBox(ref bool foldout, string headerText, float contentHeight, GUIStyle headerTextStyle,
+            public static void AnimationFoldoutHeaderBox(ref bool foldout, string headerText, float contentHeight, GUIStyle headerTextStyle,
                 in Color enabledHeaderColor, in Color enabledButtonColor, in Color enabledButtonTextColor, in Color removeButtonColor,
                 ref bool enabled, out bool removePressed)
             {
