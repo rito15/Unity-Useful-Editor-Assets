@@ -245,6 +245,7 @@ MonoBehaviour:
   __optionFoldout2: 1
   __matPropListFoldout: 1
   __propCount: 4
+  __durationChangeActionPopupIndex: 0
   __materialDefaultValues:
   - time: 0
     frame: 0
@@ -300,42 +301,42 @@ MonoBehaviour:
     propName: _ShakeIntensity
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Shake Intensity
     __propIndex: 0
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1046263295}
     propName: _HorizontalShakeSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Horizontal Shake Speed
     __propIndex: 1
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
   - material: {fileID: 1046263295}
     propName: _VerticalShakeSpeed
     propType: 3
     enabled: 0
-    eventList: []
+    animKeyList: []
     __displayName: Vertical Shake Speed
     __propIndex: 2
     __foldout: 1
     __playingIndex: 0
     __showGraph: 0
     __showVectorGraphs: 01010101
-    __showEvents: 0
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
 --- !u!4 &307091775

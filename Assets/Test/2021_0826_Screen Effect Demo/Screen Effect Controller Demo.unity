@@ -24646,7 +24646,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2085064184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24894,7 +24894,7 @@ MonoBehaviour:
     __playingIndex: 4
     __showGraph: 1
     __showVectorGraphs: 01010100
-    __showAnimation: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 0
   - material: {fileID: 1639937837}
@@ -24978,7 +24978,7 @@ MonoBehaviour:
     __playingIndex: 5
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showAnimation: 1
+    __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 0
   - material: {fileID: 1639937837}

@@ -703,11 +703,11 @@ namespace Rito
             };
             private static readonly string[] DurationChangeActionEng = new string[]
             {
-                "Keep Ratio", "Keep Time Value"
+                "Keep Animation Time Ratio", "Keep Animation Time Value"
             };
             private static readonly string[] DurationChangeActionHan = new string[]
             {
-                "시간 비율 유지", "시간 값 유지"
+                "애니메이션 시간 비율 유지", "애니메이션 시간 값 유지"
             };
 
             bool onOffMoving = false;
