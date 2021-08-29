@@ -812,7 +812,7 @@ namespace Rito
 
             #endregion
             /************************************************************************
-             *                          Tiny Methods, Init Methods
+             *                              Tiny Methods, Init Methods
              ************************************************************************/
             #region .
             private bool CheckMaterialChanged()
@@ -1064,6 +1064,29 @@ namespace Rito
                     m.gameObject.name = "Screen Effect";
                 }
             }
+            #endregion
+            /***********************************************************************
+            *                               Mouse Events
+            ***********************************************************************/
+            #region .
+            private static bool IsLeftMouseDown =>
+                Event.current.type == EventType.MouseDown && Event.current.button == 0;
+            private static bool IsLeftMouseDrag =>
+                Event.current.type == EventType.MouseDrag && Event.current.button == 0;
+            private static bool IsLeftMouseUp =>
+                Event.current.type == EventType.MouseUp && Event.current.button == 0;
+
+            private static bool IsRightMouseDown =>
+                Event.current.type == EventType.MouseDown && Event.current.button == 1;
+            private static bool IsRightMouseDrag =>
+                Event.current.type == EventType.MouseDrag && Event.current.button == 1;
+            private static bool IsRightMouseUp =>
+                Event.current.type == EventType.MouseUp && Event.current.button == 1;
+
+            private static bool IsMouseExitEditor =>
+                Event.current.type == EventType.MouseLeaveWindow;
+
+            private static Vector2 MousePosition => Event.current.mousePosition;
             #endregion
             /************************************************************************
              *                               Drawing Methods
@@ -2046,6 +2069,14 @@ namespace Rito
                     EditorGUI.LabelField(graphTimeRect, $"{m.currentFrame:F0}", yellowBoldLabelStyle);
             }
 
+            MaterialPropertyAnimKey selectedAnimKey; // 이동 대상 키
+            float mouseClickPosX;
+            float selectedKeyTimeOrFrame; // 선택된 순간의 대상 time 또는 frame 값
+            float leftKeyTimeOrFrame;  // 선택 대상 왼쪽의 time/frame
+            float rightKeyTimeOrFrame; // 선택 대상 오른쪽의 time/frame
+
+            MaterialPropertyAnimKey animKeyToRemove; // 제거 대상 키
+
             /// <summary> 그래프 내의 특정 위치들을 강조 표시하기 </summary>
             private void DrawMarkersOnGraphRect(MaterialPropertyInfo mp, in Rect graphRect)
             {
@@ -2055,6 +2086,9 @@ namespace Rito
                 float baseXPos = graphRect.x;
                 float totalWidth = graphRect.width - 2f;
                 markerRect.width = 2f;
+
+                // 마우스로 키 움직이는 이벤트가 허용되는 경우
+                bool animKeyMoveEventAllowed = m.gameObject.activeSelf == false || m.__editMode || isPlayMode == false;
 
                 // 1. 애니메이션 키 위치들 표시
                 var animKeyList = mp.animKeyList;
@@ -2085,6 +2119,39 @@ namespace Rito
                         keyRect.x += graphRect.width * t - 1f;
 
                         EditorGUI.DrawRect(keyRect, Color.white);
+
+                        // 마우스 이벤트
+                        if (animKeyMoveEventAllowed && i > 0 && i < animKeyList.Count - 1)
+                        {
+                            // 마우스 인식 영역
+                            Rect mouseRect = new Rect(keyRect);
+                            mouseRect.height += 12f;
+                            mouseRect.x -= 2f;
+                            mouseRect.width += 4f;
+
+                            bool mouseEntered = mouseRect.Contains(MousePosition);
+
+                            EditorGUIUtility.AddCursorRect(mouseRect, MouseCursor.Link);
+
+                            // 우클릭 시 제거 대상으로 등록
+                            if (selectedAnimKey == null && animKeyToRemove == null && IsRightMouseDown && mouseEntered)
+                            {
+                                animKeyToRemove = cur;
+                            }
+
+                            // 작은 키 네모네모에 마우스 좌클릭 : 이동 타겟으로 설정
+                            if (animKeyToRemove == null && selectedAnimKey == null && IsLeftMouseDown && mouseEntered)
+                            {
+                                selectedAnimKey = cur;
+
+                                mouseClickPosX = MousePosition.x;
+                                selectedKeyTimeOrFrame = m.isTimeModeSeconds ? cur.time : cur.frame;
+                                leftKeyTimeOrFrame  = m.isTimeModeSeconds ? animKeyList[i - 1].time : animKeyList[i - 1].frame;
+                                rightKeyTimeOrFrame = m.isTimeModeSeconds ? animKeyList[i + 1].time : animKeyList[i + 1].frame;
+
+                                //Debug.Log($"이동 대상 : {i}");
+                            }
+                        }
 
                         // 1-2-2. 인덱스 레이블
                         Rect indexLabelRect = new Rect(keyRect);
@@ -2120,6 +2187,48 @@ namespace Rito
 
                         //EditorGUI.DrawRect(indexLabelRect, Color.white);
                         EditorGUI.LabelField(indexLabelRect, label, whiteAnimKeyIndexLabelStyle);
+                    }
+                }
+
+                // 제거할 키가 등록된 경우 : 제거 처리
+                if (animKeyToRemove != null)
+                {
+                    mp.animKeyList.Remove(animKeyToRemove);
+                    animKeyToRemove = null;
+                }
+
+                // 마우스 이벤트가 불가능한 상황
+                if (animKeyMoveEventAllowed == false)
+                {
+                    selectedAnimKey = null;
+                }
+                // 마우스 이벤트 가능 + 현재 선택된 키 존재
+                else if (selectedAnimKey != null)
+                {
+                    // 드래그 시 이동
+                    if (IsLeftMouseDrag)
+                    {
+                        float xOffset = MousePosition.x - mouseClickPosX;
+                        float ratioOffset = xOffset / graphRect.width;
+                        float timeGoal =
+                            selectedKeyTimeOrFrame + (ratioOffset * (m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame));
+
+                        // 좌우 이동 허용 범위 내에서 키 이동
+                        if (leftKeyTimeOrFrame < timeGoal && timeGoal < rightKeyTimeOrFrame)
+                        {
+                            if (m.isTimeModeSeconds)
+                                selectedAnimKey.time = timeGoal;
+                            else
+                                selectedAnimKey.frame = (int)timeGoal;
+                        }
+
+                        Repaint();
+                    }
+                    // 마우스 떼거나 에디터 영역 밖으로 나가면 선택 종료
+                    else if (IsLeftMouseUp || IsMouseExitEditor || MousePosition.x < 0f)
+                    {
+                        selectedAnimKey = null;
+                        //Debug.Log($"이동 대상 해제");
                     }
                 }
 

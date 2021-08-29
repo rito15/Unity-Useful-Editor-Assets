@@ -10553,8 +10553,8 @@ MonoBehaviour:
   stopAction: 2
   useTargetFPS: 1
   targetFPS: 60
-  isTimeModeSeconds: 0
-  durationSeconds: 4
+  isTimeModeSeconds: 1
+  durationSeconds: 3.0000002
   durationFrame: 240
   __optionFoldout1: 1
   __optionFoldout2: 1
@@ -10737,15 +10737,23 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0
-      frame: 120
+    - time: 0.73300004
+      frame: 74
+      floatValue: 1
+      range: {x: 0.16100001, y: 0}
+      min: 0.16100001
+      max: 0
+      color: {r: 1, g: 0.16100001, b: 0, a: 0}
+      vector4: {x: 1, y: 0.16100001, z: 0, w: 0}
+    - time: 2.1590002
+      frame: 91
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
       min: 0.6
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 4
+    - time: 3.0000002
       frame: 240
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
@@ -10756,10 +10764,10 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010100
-    __showAnimation: 0
+    __showAnimation: 1
     __isGradientView: 1
     __showIndexOrTime: 0
   - material: {fileID: 1097094180}
@@ -10769,29 +10777,61 @@ MonoBehaviour:
     animKeyList:
     - time: 0
       frame: 0
-      floatValue: -1
+      floatValue: 0
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: -1, g: 0, b: 0, a: 0}
-      vector4: {x: -1, y: 0, z: 0, w: 0}
-    - time: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 0.41324094
+      frame: 0
+      floatValue: 2
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 2, g: 0, b: 0, a: 0}
+      vector4: {x: 2, y: 0, z: 0, w: 0}
+    - time: 0.8838615
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 1.5760001
+      frame: 0
+      floatValue: 1
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 1, g: 0, b: 0, a: 0}
+      vector4: {x: 1, y: 0, z: 0, w: 0}
+    - time: 2.25
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 0}
+      min: 0
+      max: 0
+      color: {r: 0, g: 0, b: 0, a: 0}
+      vector4: {x: 0, y: 0, z: 0, w: 0}
+    - time: 3.0000002
       frame: 240
-      floatValue: -1
+      floatValue: 2
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: -1, g: 0, b: 0, a: 0}
-      vector4: {x: -1, y: 0, z: 0, w: 0}
+      color: {r: 2, g: 0, b: 0, a: 0}
+      vector4: {x: 2, y: 0, z: 0, w: 0}
     __displayName: Distortion
     __propIndex: 2
     __foldout: 1
     __playingIndex: 0
-    __showGraph: 0
+    __showGraph: 1
     __showVectorGraphs: 01010101
     __showAnimation: 0
     __isGradientView: 1
-    __showIndexOrTime: 1
+    __showIndexOrTime: 0
   - material: {fileID: 1097094180}
     propName: _AreaRange
     propType: 3
