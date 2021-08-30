@@ -56,7 +56,7 @@ namespace Rito
     {
         public enum StopAction
         {
-            Destroy, Disable, Repeat
+            Destroy, Disable, Repeat, KeepCurrentState
         }
 
         public Material effectMaterial;
@@ -81,6 +81,9 @@ namespace Rito
         // 지속시간 : 프레임
         [SerializeField] private float durationFrame = 0;
         private float currentFrame = 0;
+
+        /// <summary> 현재 시간/프레임, 애니메이션 진행사항 유지 </summary>
+        private bool keepCurrentState = false;
 
 #if UNITY_EDITOR
         /// <summary> 플레이 모드 중 Current Time 직접 수정 가능 모드 </summary>
@@ -119,6 +122,7 @@ namespace Rito
 
             currentSeconds = 0f;
             currentFrame = 0;
+            keepCurrentState = false;
         }
         private void OnDisable()
         {
@@ -132,8 +136,9 @@ namespace Rito
         private void Update()
         {
             if (Application.isPlaying == false) return;
+            if (keepCurrentState) return; // 현재 시간, 진행 사항 유지
 
-            UpdateMaterialProperties();
+            UpdateMaterialPropertyAnimations();
 
 #if UNITY_EDITOR
             if (__editMode) return;
@@ -142,7 +147,7 @@ namespace Rito
             UpdateTime();
         }
 
-        private void UpdateMaterialProperties()
+        private void UpdateMaterialPropertyAnimations()
         {
             if (isTimeModeSeconds)
             {
@@ -329,20 +334,7 @@ namespace Rito
             currentSeconds += Time.deltaTime;
             if (currentSeconds >= durationSeconds)
             {
-                switch (stopAction)
-                {
-                    case StopAction.Destroy:
-                        Destroy(gameObject);
-                        break;
-                    case StopAction.Disable:
-                        gameObject.SetActive(false);
-                        break;
-                        //case StopAction.Repeat:
-                        //    currentSeconds = 0f;
-                        //    break;
-                }
-
-                currentSeconds = 0f;
+                DoStopActions();
             }
         }
 
@@ -363,17 +355,31 @@ namespace Rito
 
             if (currentFrame >= durationFrame)
             {
-                switch (stopAction)
-                {
-                    case StopAction.Destroy:
-                        Destroy(gameObject);
-                        break;
-                    case StopAction.Disable:
-                        gameObject.SetActive(false);
-                        break;
-                }
+                DoStopActions();
+            }
+        }
 
-                currentFrame = 0;
+        /// <summary> 종료 동작 수행 </summary>
+        private void DoStopActions()
+        {
+            switch (stopAction)
+            {
+                case StopAction.Destroy:
+                    Destroy(gameObject);
+                    break;
+
+                case StopAction.Disable:
+                    gameObject.SetActive(false);
+                    break;
+
+                case StopAction.Repeat:
+                    currentSeconds = 0f;
+                    currentFrame = 0f;
+                    break;
+
+                case StopAction.KeepCurrentState:
+                    keepCurrentState = true;
+                    break;
             }
         }
 
@@ -730,7 +736,7 @@ namespace Rito
 
             private static readonly string[] StopActionsHangle = new string[]
             {
-                "파괴", "비활성화", "반복(재시작)"
+                "파괴", "비활성화", "반복(재시작)", "현재 상태 유지"
             };
             private static readonly string[] TimeModesEng = new string[]
             {
@@ -1041,11 +1047,22 @@ namespace Rito
                             x.propType == cur.propType
                         );
 
+                        // 각 마테리얼 프로퍼티의 현재 상태 복제
                         if (found != null)
                         {
-                            cur.animKeyList = found.animKeyList;
+                            cur.animKeyList = found.animKeyList; // 애니메이션 키들 복제
                             cur.enabled = found.enabled;
                             cur.__foldout = found.__foldout;
+                            cur.__showAnimation = found.__showAnimation;
+                            cur.__showGraph = found.__showGraph;
+                            cur.__showIndexOrTime = found.__showIndexOrTime;
+
+                            try
+                            {
+                                for (int j = 0; j < 4; j++)
+                                    cur.__showVectorGraphs[j] = found.__showVectorGraphs[j];
+                            }
+                            catch { }
                         }
                     }
                 }
@@ -1071,6 +1088,12 @@ namespace Rito
                                 material.GetFloat(currentInfo.propName);
 
                             currentValue.range = shader.GetPropertyRangeLimits(m.matPropertyList[i].__propIndex);
+
+                            // Range 타입일 경우, MinMax 바뀌었을 수 있으니 모든 애니메이션 키마다 다시 적용
+                            for (int j = 0; j < currentInfo.animKeyList.Count; j++)
+                            {
+                                currentInfo.animKeyList[j].range = currentValue.range;
+                            }
                             break;
 
                         case ShaderPropertyType.Vector:
@@ -2481,6 +2504,7 @@ namespace Rito
                 {
                     m.gameObject.SetActive(true);
                     m.__editMode = false;
+                    m.keepCurrentState = false;
                 }
                 if (pausePressed)
                 {
