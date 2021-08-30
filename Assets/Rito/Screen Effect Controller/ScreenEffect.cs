@@ -413,6 +413,10 @@ namespace Rito
             // 마커 : 인덱스 표시 or 시간/프레임 표시
             public bool __showIndexOrTime = true;
 
+            // 키 목록이 더러워용
+            // 그래프 - 마우스 이벤트 처리 중 리스트에 변경사항 발생
+            public bool __isKeyListDirty = false;
+
             public MaterialPropertyInfo(Material material, string name, string displayName, ShaderPropertyType type, int propIndex)
             {
                 this.material = material;
@@ -468,25 +472,25 @@ namespace Rito
             }
 
             /// <summary> 해당 인덱스의 바로 뒤에 새로운 애니메이션 키 추가 </summary>
-            public void Edt_AddNewAnimKey(int index, bool isTimeModeSeconds)
+            public void Edt_AddNewAnimKey(int index, bool isTimeModeSeconds, float interpolation = 0.5f)
             {
                 MaterialPropertyAnimKey prevKey = animKeyList[index];
                 MaterialPropertyAnimKey nextKey = animKeyList[index + 1];
 
                 var newKey = new MaterialPropertyAnimKey();
 
-                // 시간은 중간 값으로 전달
+                // 시간or프레임 - 보간하여 전달
                 if (isTimeModeSeconds)
-                    newKey.time = (prevKey.time + nextKey.time) * 0.5f;
+                    newKey.time = Mathf.Lerp(prevKey.time, nextKey.time, interpolation);
                 else
-                    newKey.frame = (prevKey.frame + nextKey.frame) / 2;
+                    newKey.frame = Mathf.Lerp(prevKey.frame, nextKey.frame, interpolation);
 
-                // 값도 중간 값으로 초기화
+                // 값도 보간하여 초기화
                 switch (propType)
                 {
                     case ShaderPropertyType.Float:
                     FLOAT:
-                        newKey.floatValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, 0.5f);
+                        newKey.floatValue = Mathf.Lerp(prevKey.floatValue, nextKey.floatValue, interpolation);
                         break;
 
                     case ShaderPropertyType.Range:
@@ -494,15 +498,50 @@ namespace Rito
                         goto FLOAT;
 
                     case ShaderPropertyType.Color:
-                        newKey.color = Color.Lerp(prevKey.color, nextKey.color, 0.5f);
+                        newKey.color = Color.Lerp(prevKey.color, nextKey.color, interpolation);
                         break;
 
                     case ShaderPropertyType.Vector:
-                        newKey.vector4 = Vector4.Lerp(prevKey.vector4, nextKey.vector4, 0.5f);
+                        newKey.vector4 = Vector4.Lerp(prevKey.vector4, nextKey.vector4, interpolation);
                         break;
                 }
 
                 animKeyList.Insert(index + 1, newKey);
+            }
+
+            /// <summary> 지정한 시간 또는 프레임 위치에 알맞게 새로운 애니메이션 키 추가 </summary>
+            public void Edt_InsertNewAnimKey(float timeOrFrame, bool isTimeModeSeconds)
+            {
+                if (animKeyList.Count == 0)
+                {
+                    Debug.LogWarning("Animation Key List가 비어 있습니다.");
+                    return;
+                }
+
+                if (isTimeModeSeconds)
+                {
+                    for (int i = 0; i < animKeyList.Count - 1; i++)
+                    {
+                        if (animKeyList[i].time < timeOrFrame && timeOrFrame < animKeyList[i + 1].time)
+                        {
+                            float invLerp = Mathf.InverseLerp(animKeyList[i].time, animKeyList[i + 1].time, timeOrFrame);
+                            Edt_AddNewAnimKey(i, isTimeModeSeconds, invLerp);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < animKeyList.Count - 1; i++)
+                    {
+                        if (animKeyList[i].frame < timeOrFrame && timeOrFrame < animKeyList[i + 1].frame)
+                        {
+                            float invLerp = Mathf.InverseLerp(animKeyList[i].frame, animKeyList[i + 1].frame, timeOrFrame);
+                            Edt_AddNewAnimKey(i, isTimeModeSeconds, invLerp);
+                            return;
+                        }
+                    }
+                }
             }
 
             /// <summary> 프로퍼티 내의 모든 애니메이션 키 제거 </summary>
@@ -1975,6 +2014,11 @@ namespace Rito
 
 
                 if (mp.__showAnimation == false) return;
+                if (mp.__isKeyListDirty)
+                {
+                    mp.__isKeyListDirty = false;
+                    return;
+                }
                 // ======================== 애니메이션 키들 그리기 ========================== //
                 int addNewAnimKey = -1;
                 var animKeyList = mp.animKeyList;
@@ -2087,8 +2131,14 @@ namespace Rito
                 float totalWidth = graphRect.width - 2f;
                 markerRect.width = 2f;
 
+                // 마우스 인식 영역 높이
+                const float MouseRectHeight = 18f;
+
                 // 마우스로 키 움직이는 이벤트가 허용되는 경우
                 bool animKeyMoveEventAllowed = m.gameObject.activeSelf == false || m.__editMode || isPlayMode == false;
+
+                // 키 영역 중 한군데라도 마우스가 올라갔는지 여부
+                bool isOverAnyMouseRects = false;
 
                 // 1. 애니메이션 키 위치들 표시
                 var animKeyList = mp.animKeyList;
@@ -2125,11 +2175,15 @@ namespace Rito
                         {
                             // 마우스 인식 영역
                             Rect mouseRect = new Rect(keyRect);
-                            mouseRect.height += 12f;
-                            mouseRect.x -= 2f;
-                            mouseRect.width += 4f;
+                            mouseRect.height = MouseRectHeight;
+                            mouseRect.x -= 3f;
+                            mouseRect.width += 6f;
 
                             bool mouseEntered = mouseRect.Contains(MousePosition);
+
+                            // 키 영역 중 하나라도 마우스가 올라감
+                            if (mouseEntered)
+                                isOverAnyMouseRects = true;
 
                             EditorGUIUtility.AddCursorRect(mouseRect, MouseCursor.Link);
 
@@ -2146,7 +2200,7 @@ namespace Rito
 
                                 mouseClickPosX = MousePosition.x;
                                 selectedKeyTimeOrFrame = m.isTimeModeSeconds ? cur.time : cur.frame;
-                                leftKeyTimeOrFrame  = m.isTimeModeSeconds ? animKeyList[i - 1].time : animKeyList[i - 1].frame;
+                                leftKeyTimeOrFrame = m.isTimeModeSeconds ? animKeyList[i - 1].time : animKeyList[i - 1].frame;
                                 rightKeyTimeOrFrame = m.isTimeModeSeconds ? animKeyList[i + 1].time : animKeyList[i + 1].frame;
 
                                 //Debug.Log($"이동 대상 : {i}");
@@ -2190,46 +2244,72 @@ namespace Rito
                     }
                 }
 
-                // 제거할 키가 등록된 경우 : 제거 처리
-                if (animKeyToRemove != null)
-                {
-                    mp.animKeyList.Remove(animKeyToRemove);
-                    animKeyToRemove = null;
-                }
-
                 // 마우스 이벤트가 불가능한 상황
                 if (animKeyMoveEventAllowed == false)
                 {
                     selectedAnimKey = null;
+                    animKeyToRemove = null;
                 }
-                // 마우스 이벤트 가능 + 현재 선택된 키 존재
-                else if (selectedAnimKey != null)
+                // 마우스 이벤트 가능
+                else
                 {
-                    // 드래그 시 이동
-                    if (IsLeftMouseDrag)
+                    // [1] 제거할 키가 등록된 경우 : 제거 처리
+                    if (animKeyToRemove != null)
                     {
-                        float xOffset = MousePosition.x - mouseClickPosX;
-                        float ratioOffset = xOffset / graphRect.width;
-                        float timeGoal =
-                            selectedKeyTimeOrFrame + (ratioOffset * (m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame));
-
-                        // 좌우 이동 허용 범위 내에서 키 이동
-                        if (leftKeyTimeOrFrame < timeGoal && timeGoal < rightKeyTimeOrFrame)
+                        mp.animKeyList.Remove(animKeyToRemove);
+                        animKeyToRemove = null;
+                    }
+                    // [2] 현재 선택된 키 존재
+                    else if (selectedAnimKey != null)
+                    {
+                        // 드래그 시 이동
+                        if (IsLeftMouseDrag)
                         {
-                            if (m.isTimeModeSeconds)
-                                selectedAnimKey.time = timeGoal;
-                            else
-                                selectedAnimKey.frame = (int)timeGoal;
-                        }
+                            float xOffset = MousePosition.x - mouseClickPosX;
+                            float ratioOffset = xOffset / graphRect.width;
+                            float timeGoal =
+                                selectedKeyTimeOrFrame + (ratioOffset * (m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame));
 
-                        Repaint();
+                            // 좌우 이동 허용 범위 내에서 키 이동
+                            if (leftKeyTimeOrFrame < timeGoal && timeGoal < rightKeyTimeOrFrame)
+                            {
+                                if (m.isTimeModeSeconds)
+                                    selectedAnimKey.time = timeGoal;
+                                else
+                                    selectedAnimKey.frame = (int)timeGoal;
+                            }
+
+                            Repaint();
+                        }
+                        // 마우스 떼거나 에디터 영역 밖으로 나가면 선택 종료
+                        else if (IsLeftMouseUp || IsMouseExitEditor || MousePosition.x < 0f)
+                        {
+                            selectedAnimKey = null;
+                            Repaint();
+                            //Debug.Log($"이동 대상 해제");
+                        }
                     }
-                    // 마우스 떼거나 에디터 영역 밖으로 나가면 선택 종료
-                    else if (IsLeftMouseUp || IsMouseExitEditor || MousePosition.x < 0f)
+                    // [3] 새로운 키 추가
+                    else if (isOverAnyMouseRects == false)
                     {
-                        selectedAnimKey = null;
-                        //Debug.Log($"이동 대상 해제");
+                        // 그래프 하단의 넓은 영역 : 새로운 키 추가용
+                        Rect wideMouseRect = new Rect(graphRect);
+                        wideMouseRect.y = graphRect.yMax;
+                        wideMouseRect.height = MouseRectHeight;
+
+                        EditorGUIUtility.AddCursorRect(wideMouseRect, MouseCursor.ArrowPlus);
+
+                        if (IsRightMouseDown && wideMouseRect.Contains(MousePosition))
+                        {
+                            float ratio = (MousePosition.x - wideMouseRect.x) / wideMouseRect.width;
+                            float timeOrFrame = m.isTimeModeSeconds ? (m.durationSeconds * ratio) : (int)(m.durationFrame * ratio);
+                            timeOrFrame.RefClamp_00();
+
+                            mp.Edt_InsertNewAnimKey(timeOrFrame, m.isTimeModeSeconds);
+                            mp.__isKeyListDirty = true; // 더티 플래그 세워주기(예외 핸들링)
+                        }
                     }
+
                 }
 
                 if (isPlayMode)

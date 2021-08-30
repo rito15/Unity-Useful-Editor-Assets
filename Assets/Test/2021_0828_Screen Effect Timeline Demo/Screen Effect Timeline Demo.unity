@@ -9984,6 +9984,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 474775296}
     propName: _HorizontalShakeSpeed
     propType: 3
@@ -9998,6 +9999,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 474775296}
     propName: _VerticalShakeSpeed
     propType: 3
@@ -10012,6 +10014,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
 --- !u!4 &586977413
 Transform:
   m_ObjectHideFlags: 0
@@ -10293,6 +10296,7 @@ MonoBehaviour:
     __showAnimation: 1
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _Distortion
     propType: 2
@@ -10307,6 +10311,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _AreaRange
     propType: 3
@@ -10353,6 +10358,7 @@ MonoBehaviour:
     __showAnimation: 1
     __isGradientView: 1
     __showIndexOrTime: 0
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _AreaPower
     propType: 3
@@ -10367,6 +10373,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _CircleNoiseScale
     propType: 2
@@ -10381,6 +10388,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _CircleSpreadSpeed
     propType: 3
@@ -10395,6 +10403,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _PatternSpeed
     propType: 3
@@ -10409,6 +10418,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _PatternBorderOpacity
     propType: 3
@@ -10423,6 +10433,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _PatternColorOpacity
     propType: 3
@@ -10437,6 +10448,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 2076668949}
     propName: _PatternAreaRange
     propType: 3
@@ -10451,6 +10463,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
 --- !u!4 &736330581
 Transform:
   m_ObjectHideFlags: 0
@@ -10555,7 +10568,7 @@ MonoBehaviour:
   targetFPS: 60
   isTimeModeSeconds: 1
   durationSeconds: 3.0000002
-  durationFrame: 240
+  durationFrame: 180
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -10737,24 +10750,40 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 0.73300004
-      frame: 74
-      floatValue: 1
-      range: {x: 0.16100001, y: 0}
-      min: 0.16100001
-      max: 0
-      color: {r: 1, g: 0.16100001, b: 0, a: 0}
-      vector4: {x: 1, y: 0.16100001, z: 0, w: 0}
-    - time: 2.1590002
-      frame: 91
-      floatValue: 0.17600001
-      range: {x: 0.6, y: 1}
-      min: 0.6
-      max: 1
-      color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
-      vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 3.0000002
-      frame: 240
+    - time: 1.3
+      frame: 78
+      floatValue: 0.70100003
+      range: {x: 0.319, y: 0.36200002}
+      min: 0.319
+      max: 0.36200002
+      color: {r: 0.70100003, g: 0.319, b: 0.36200002, a: 0}
+      vector4: {x: 0.70100003, y: 0.319, z: 0.36200002, w: 0}
+    - time: 1.7166667
+      frame: 103
+      floatValue: 0.588
+      range: {x: 0.38000003, y: 0.5}
+      min: 0.38000003
+      max: 0.5
+      color: {r: 0.588, g: 0.38000003, b: 0.5, a: 0}
+      vector4: {x: 0.588, y: 0.38000003, z: 0.5, w: 0}
+    - time: 2.3333333
+      frame: 140
+      floatValue: 0.36
+      range: {x: 0.50100005, y: 0.77500004}
+      min: 0.50100005
+      max: 0.77500004
+      color: {r: 0.36, g: 0.50100005, b: 0.77500004, a: 0}
+      vector4: {x: 0.36, y: 0.50100005, z: 0.77500004, w: 0}
+    - time: 2.7333333
+      frame: 164
+      floatValue: 0.266
+      range: {x: 0.551, y: 0.88900006}
+      min: 0.551
+      max: 0.88900006
+      color: {r: 0.266, g: 0.551, b: 0.88900006, a: 0}
+      vector4: {x: 0.266, y: 0.551, z: 0.88900006, w: 0}
+    - time: 3
+      frame: 180
       floatValue: 0.17600001
       range: {x: 0.6, y: 1}
       min: 0.6
@@ -10764,12 +10793,13 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 1
+    __playingIndex: 3
     __showGraph: 1
     __showVectorGraphs: 01010100
-    __showAnimation: 1
+    __showAnimation: 0
     __isGradientView: 1
-    __showIndexOrTime: 0
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _Distortion
     propType: 2
@@ -10783,40 +10813,24 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 0.41324094
+    - time: 0.56
       frame: 0
-      floatValue: 2
+      floatValue: 0.37333333
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: 2, g: 0, b: 0, a: 0}
-      vector4: {x: 2, y: 0, z: 0, w: 0}
-    - time: 0.8838615
+      color: {r: 0.37333333, g: 0, b: 0, a: 0}
+      vector4: {x: 0.37333333, y: 0, z: 0, w: 0}
+    - time: 2.1100001
       frame: 0
-      floatValue: 0
+      floatValue: 1.485337
       range: {x: 0, y: 0}
       min: 0
       max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 1.5760001
-      frame: 0
-      floatValue: 1
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 1, g: 0, b: 0, a: 0}
-      vector4: {x: 1, y: 0, z: 0, w: 0}
-    - time: 2.25
-      frame: 0
-      floatValue: 0
-      range: {x: 0, y: 0}
-      min: 0
-      max: 0
-      color: {r: 0, g: 0, b: 0, a: 0}
-      vector4: {x: 0, y: 0, z: 0, w: 0}
+      color: {r: 1.485337, g: 0, b: 0, a: 0}
+      vector4: {x: 1.485337, y: 0, z: 0, w: 0}
     - time: 3.0000002
-      frame: 240
+      frame: 180
       floatValue: 2
       range: {x: 0, y: 0}
       min: 0
@@ -10829,9 +10843,10 @@ MonoBehaviour:
     __playingIndex: 0
     __showGraph: 1
     __showVectorGraphs: 01010101
-    __showAnimation: 0
+    __showAnimation: 1
     __isGradientView: 1
     __showIndexOrTime: 0
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _AreaRange
     propType: 3
@@ -10846,6 +10861,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _AreaPower
     propType: 3
@@ -10860,6 +10876,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _CircleNoiseScale
     propType: 2
@@ -10874,6 +10891,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _CircleSpreadSpeed
     propType: 3
@@ -10888,6 +10906,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _PatternSpeed
     propType: 3
@@ -10902,6 +10921,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _PatternBorderOpacity
     propType: 3
@@ -10916,6 +10936,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _PatternColorOpacity
     propType: 3
@@ -10930,6 +10951,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _PatternAreaRange
     propType: 3
@@ -10944,6 +10966,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
 --- !u!4 &987036238
 Transform:
   m_ObjectHideFlags: 0
