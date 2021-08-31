@@ -82,6 +82,21 @@ namespace Rito
         [SerializeField] private float durationFrame = 0;
         private float currentFrame = 0;
 
+        // 재생 속도 : 0 ~ 2x
+        [SerializeField] private float animPlaySpeed = 1f;
+
+        // 타임스케일 영향 받을지 여부
+        [SerializeField] private bool affectedByTimescale = true;
+
+        private float DeltaTime
+        {
+            get
+            {
+                return affectedByTimescale ?
+                    Time.deltaTime : Time.unscaledDeltaTime;
+            }
+        }
+
         /// <summary> 현재 시간/프레임, 애니메이션 진행사항 유지 </summary>
         private bool keepCurrentState = false;
 
@@ -331,7 +346,7 @@ namespace Rito
         {
             if (durationSeconds <= 0f) return;
 
-            currentSeconds += Time.deltaTime;
+            currentSeconds += DeltaTime * animPlaySpeed;
             if (currentSeconds >= durationSeconds)
             {
                 DoStopActions();
@@ -345,12 +360,12 @@ namespace Rito
             // 1. 타겟 FPS를 지정한 경우 : 프레임 계산하여 증가
             if (useTargetFPS)
             {
-                currentFrame += Time.deltaTime * targetFPS;
+                currentFrame += DeltaTime * targetFPS * animPlaySpeed;
             }
             // 2. 그냥 매 프레임 카운팅 하는 경우 : 매 프레임 1씩 증가
             else
             {
-                currentFrame++;
+                currentFrame += animPlaySpeed;
             }
 
             if (currentFrame >= durationFrame)
@@ -694,7 +709,7 @@ namespace Rito
                 EditorGUI.BeginChangeCheck();
                 {
                     EditorGUILayout.Space();
-                    DrawDefaultFields();
+                    DrawOptionFields();
 
                     if (m.effectMaterial == null)
                     {
@@ -1161,14 +1176,15 @@ namespace Rito
              *                               Drawing Methods
              ************************************************************************/
             #region .
-            private void DrawDefaultFields()
+            /// <summary> 상단 옵션 그리기 </summary>
+            private void DrawOptionFields()
             {
                 int fieldCount;
 
                 if (m.effectMaterial == null) fieldCount = 1;
                 else
                 {
-                    fieldCount = 6;
+                    fieldCount = 8;
 #if SHOW_MATERIAL_NAME
                     fieldCount++;
 #endif
@@ -1530,6 +1546,29 @@ namespace Rito
                     }
                 }
 
+
+                // 타임스케일 영향 받을지 여부
+                using (new RitoEditorGUI.HorizontalMarginScope())
+                {
+                    RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Affected by Timescale", "타임스케일 영향 받기"));
+                    m.affectedByTimescale = EditorGUILayout.Toggle(m.affectedByTimescale);
+                }
+
+                // 재생 속도(float slider)
+                using (new RitoEditorGUI.HorizontalMarginScope())
+                {
+                    RitoEditorGUI.DrawPrefixLabelLayout(EngHan("Animation Play Speed", "애니메이션 재생 속도"));
+
+                    Color col = GUI.color;
+                    if (m.animPlaySpeed != 1f)
+                    {
+                        GUI.color = Color.cyan * 1.5f;
+                    }
+                    m.animPlaySpeed = EditorGUILayout.Slider(m.animPlaySpeed, 0f, 2f);
+
+                    GUI.color = col;
+                }
+
 #if !UNITY_2019_3_OR_NEWER
                 EditorGUILayout.Space();
 #endif
@@ -1566,6 +1605,7 @@ namespace Rito
                         if (m.__editMode)
                             m.currentFrame = EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
                         else
+                            // 편집모드가 아닐 경우, 현재 프레임이 정수 캐스팅의 영향 받지 않도록
                             EditorGUILayout.IntSlider((int)m.currentFrame, 0, (int)m.durationFrame);
                     }
 

@@ -5000,6 +5000,36 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!21 &468145220
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Zoom Blur
+  m_Shader: {fileID: 4800000, guid: 789388740a07b514c8784e795ea40812, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AreaRange: 0
+    - _AreaSmoothness: 0.5
+    - _BlurSize: 19.5
+    - _SampleCount: 16
+    m_Colors:
+    - _CenterPos: {r: 0.5, g: 0.5, b: 0, a: 0}
 --- !u!21 &474775296
 Material:
   serializedVersion: 6
@@ -9947,6 +9977,8 @@ MonoBehaviour:
   isTimeModeSeconds: 0
   durationSeconds: 3.0000002
   durationFrame: 120
+  animPlaySpeed: 1
+  affectedByTimescale: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -10099,6 +10131,8 @@ MonoBehaviour:
   isTimeModeSeconds: 0
   durationSeconds: 3.0000002
   durationFrame: 220
+  animPlaySpeed: 1
+  affectedByTimescale: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -10511,6 +10545,129 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &933616395
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 933616397}
+  - component: {fileID: 933616396}
+  m_Layer: 0
+  m_Name: Screen Effect [Screen Posterize]
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &933616396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933616395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectMaterial: {fileID: 1792725795}
+  priority: 2
+  stopAction: 0
+  useTargetFPS: 1
+  targetFPS: 60
+  isTimeModeSeconds: 1
+  durationSeconds: 0
+  durationFrame: 0
+  animPlaySpeed: 1
+  affectedByTimescale: 1
+  __optionFoldout1: 1
+  __optionFoldout2: 1
+  __matPropListFoldout: 1
+  __propCount: 4
+  __durationChangeActionPopupIndex: 0
+  __materialDefaultValues:
+  - time: 0
+    frame: 0
+    floatValue: 6
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 6, g: 0, b: 0, a: 0}
+    vector4: {x: 6, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 1, g: 0, b: 0, a: 0}
+    vector4: {x: 1, y: 0, z: 0, w: 0}
+  __materialCurrentValues:
+  - time: 0
+    frame: 0
+    floatValue: 6
+    range: {x: 1, y: 10}
+    min: 1
+    max: 10
+    color: {r: 6, g: 1, b: 10, a: 0}
+    vector4: {x: 6, y: 1, z: 10, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 1
+    range: {x: 0, y: 1}
+    min: 0
+    max: 1
+    color: {r: 1, g: 0, b: 1, a: 0}
+    vector4: {x: 1, y: 0, z: 1, w: 0}
+  matPropertyList:
+  - material: {fileID: 1792725795}
+    propName: _PosterizeCount
+    propType: 3
+    enabled: 0
+    animKeyList: []
+    __displayName: Posterize Count
+    __propIndex: 1
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+  - material: {fileID: 1792725795}
+    propName: _Intensity
+    propType: 3
+    enabled: 0
+    animKeyList: []
+    __displayName: Intensity
+    __propIndex: 2
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+--- !u!4 &933616397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 933616395}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &985057425
 GameObject:
   m_ObjectHideFlags: 0
@@ -10527,7 +10684,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &985057426
 Transform:
   m_ObjectHideFlags: 0
@@ -10581,7 +10738,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &987036237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10602,6 +10759,8 @@ MonoBehaviour:
   isTimeModeSeconds: 0
   durationSeconds: 4
   durationFrame: 240
+  animPlaySpeed: 1
+  affectedByTimescale: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -10714,7 +10873,7 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 1
     __showGraph: 1
     __showVectorGraphs: 01010100
     __showAnimation: 1
@@ -10769,7 +10928,7 @@ MonoBehaviour:
     __displayName: Range
     __propIndex: 2
     __foldout: 0
-    __playingIndex: 0
+    __playingIndex: 1
     __showGraph: 0
     __showVectorGraphs: 01010101
     __showAnimation: 1
@@ -25415,6 +25574,301 @@ Transform:
   m_Children: []
   m_Father: {fileID: 517342364}
   m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &1792725795
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Rito_Screen Posterize
+  m_Shader: {fileID: 4800000, guid: fc03b705ca3d60b44af1bbd1a0fd9acf, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Intensity: 1
+    - _PosterizeCount: 6
+    m_Colors: []
+--- !u!1 &2040344474
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2040344476}
+  - component: {fileID: 2040344475}
+  m_Layer: 0
+  m_Name: Screen Effect [Screen Zoom Blur]
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2040344475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040344474}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7731e18125717ec48bf79d880784ea73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectMaterial: {fileID: 468145220}
+  priority: 3
+  stopAction: 0
+  useTargetFPS: 1
+  targetFPS: 60
+  isTimeModeSeconds: 0
+  durationSeconds: 0
+  durationFrame: 300
+  animPlaySpeed: 1
+  affectedByTimescale: 1
+  __optionFoldout1: 1
+  __optionFoldout2: 1
+  __matPropListFoldout: 1
+  __propCount: 6
+  __durationChangeActionPopupIndex: 0
+  __materialDefaultValues:
+  - time: 0
+    frame: 0
+    floatValue: 0.5
+    range: {x: 0.5, y: 0}
+    min: 0.5
+    max: 0
+    color: {r: 0.5, g: 0.5, b: 0, a: 0}
+    vector4: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 16
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 16, g: 0, b: 0, a: 0}
+    vector4: {x: 16, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 20
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 20, g: 0, b: 0, a: 0}
+    vector4: {x: 20, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0.5
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0.5, g: 0, b: 0, a: 0}
+    vector4: {x: 0.5, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0.5
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 0.5, g: 0, b: 0, a: 0}
+    vector4: {x: 0.5, y: 0, z: 0, w: 0}
+  __materialCurrentValues:
+  - time: 0
+    frame: 0
+    floatValue: 0.5
+    range: {x: 0.5, y: 0}
+    min: 0.5
+    max: 0
+    color: {r: 0.5, g: 0.5, b: 0, a: 0}
+    vector4: {x: 0.5, y: 0.5, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 16
+    range: {x: 0, y: 0}
+    min: 0
+    max: 0
+    color: {r: 16, g: 0, b: 0, a: 0}
+    vector4: {x: 16, y: 0, z: 0, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 19.5
+    range: {x: 0, y: 100}
+    min: 0
+    max: 100
+    color: {r: 19.5, g: 0, b: 100, a: 0}
+    vector4: {x: 19.5, y: 0, z: 100, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0
+    range: {x: 0, y: 1}
+    min: 0
+    max: 1
+    color: {r: 0, g: 0, b: 1, a: 0}
+    vector4: {x: 0, y: 0, z: 1, w: 0}
+  - time: 0
+    frame: 0
+    floatValue: 0.5
+    range: {x: 0, y: 1}
+    min: 0
+    max: 1
+    color: {r: 0.5, g: 0, b: 1, a: 0}
+    vector4: {x: 0.5, y: 0, z: 1, w: 0}
+  matPropertyList:
+  - material: {fileID: 468145220}
+    propName: _CenterPos
+    propType: 1
+    enabled: 0
+    animKeyList: []
+    __displayName: Center Pos
+    __propIndex: 1
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+  - material: {fileID: 468145220}
+    propName: _SampleCount
+    propType: 2
+    enabled: 0
+    animKeyList: []
+    __displayName: Sample Count
+    __propIndex: 2
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+  - material: {fileID: 468145220}
+    propName: _BlurSize
+    propType: 3
+    enabled: 0
+    animKeyList: []
+    __displayName: Blur Size
+    __propIndex: 3
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+  - material: {fileID: 468145220}
+    propName: _AreaRange
+    propType: 3
+    enabled: 1
+    animKeyList:
+    - time: 0
+      frame: 0
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 0
+      frame: 60
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 0
+      frame: 80
+      floatValue: 0.4
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.4, g: 0, b: 1, a: 0}
+      vector4: {x: 0.4, y: 0, z: 1, w: 0}
+    - time: 0
+      frame: 220
+      floatValue: 0.4
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0.4, g: 0, b: 1, a: 0}
+      vector4: {x: 0.4, y: 0, z: 1, w: 0}
+    - time: 0
+      frame: 240
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    - time: 0
+      frame: 300
+      floatValue: 0
+      range: {x: 0, y: 1}
+      min: 0
+      max: 1
+      color: {r: 0, g: 0, b: 1, a: 0}
+      vector4: {x: 0, y: 0, z: 1, w: 0}
+    __displayName: Area Range
+    __propIndex: 4
+    __foldout: 1
+    __playingIndex: 4
+    __showGraph: 1
+    __showVectorGraphs: 01010101
+    __showAnimation: 1
+    __isGradientView: 1
+    __showIndexOrTime: 0
+    __isKeyListDirty: 0
+  - material: {fileID: 468145220}
+    propName: _AreaSmoothness
+    propType: 3
+    enabled: 0
+    animKeyList: []
+    __displayName: Area Smoothness
+    __propIndex: 5
+    __foldout: 1
+    __playingIndex: 0
+    __showGraph: 0
+    __showVectorGraphs: 01010101
+    __showAnimation: 0
+    __isGradientView: 1
+    __showIndexOrTime: 1
+    __isKeyListDirty: 0
+--- !u!4 &2040344476
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2040344474}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &2076668949
 Material:
