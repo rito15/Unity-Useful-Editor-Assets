@@ -10563,7 +10563,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   effectMaterial: {fileID: 1097094180}
   priority: 0
-  stopAction: 2
+  stopAction: 0
   useTargetFPS: 1
   targetFPS: 60
   isTimeModeSeconds: 1
@@ -10750,32 +10750,32 @@ MonoBehaviour:
       max: 1
       color: {r: 0.17600001, g: 0.6, b: 1, a: 0}
       vector4: {x: 0.17600001, y: 0.6, z: 1, w: 0}
-    - time: 1.3000001
-      frame: 78
+    - time: 0.8
+      frame: 45
       floatValue: 0.70100003
       range: {x: 0.319, y: 0.36200002}
       min: 0.319
       max: 0.36200002
       color: {r: 0.70100003, g: 0.319, b: 0.36200002, a: 0}
       vector4: {x: 0.70100003, y: 0.319, z: 0.36200002, w: 0}
-    - time: 1.7160001
-      frame: 103
+    - time: 1.7
+      frame: 102
       floatValue: 0.588
       range: {x: 0.38000003, y: 0.5}
       min: 0.38000003
       max: 0.5
       color: {r: 0.588, g: 0.38000003, b: 0.5, a: 0}
       vector4: {x: 0.588, y: 0.38000003, z: 0.5, w: 0}
-    - time: 2.3330002
-      frame: 140
+    - time: 2.1000001
+      frame: 126
       floatValue: 0.36
       range: {x: 0.50100005, y: 0.77500004}
       min: 0.50100005
       max: 0.77500004
       color: {r: 0.36, g: 0.50100005, b: 0.77500004, a: 0}
       vector4: {x: 0.36, y: 0.50100005, z: 0.77500004, w: 0}
-    - time: 2.733
-      frame: 164
+    - time: 2.6000001
+      frame: 156
       floatValue: 0.266
       range: {x: 0.551, y: 0.88900006}
       min: 0.551
@@ -10793,12 +10793,12 @@ MonoBehaviour:
     __displayName: Color
     __propIndex: 1
     __foldout: 1
-    __playingIndex: 0
+    __playingIndex: 4
     __showGraph: 1
     __showVectorGraphs: 01010100
     __showAnimation: 1
     __isGradientView: 1
-    __showIndexOrTime: 1
+    __showIndexOrTime: 0
     __isKeyListDirty: 0
   - material: {fileID: 1097094180}
     propName: _Distortion
@@ -10813,16 +10813,16 @@ MonoBehaviour:
       max: 0
       color: {r: 0, g: 0, b: 0, a: 0}
       vector4: {x: 0, y: 0, z: 0, w: 0}
-    - time: 0.56
-      frame: 0
+    - time: 0.55
+      frame: 33
       floatValue: 0.37333333
       range: {x: 0, y: 0}
       min: 0
       max: 0
       color: {r: 0.37333333, g: 0, b: 0, a: 0}
       vector4: {x: 0.37333333, y: 0, z: 0, w: 0}
-    - time: 2.1100001
-      frame: 0
+    - time: 2.1000001
+      frame: 126
       floatValue: 1.485337
       range: {x: 0, y: 0}
       min: 0

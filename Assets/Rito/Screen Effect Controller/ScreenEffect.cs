@@ -56,7 +56,7 @@ namespace Rito
     {
         public enum StopAction
         {
-            Destroy, Disable, Repeat, KeepCurrentState
+            KeepLastState, Disable, Destroy, Repeat
         }
 
         public Material effectMaterial;
@@ -364,21 +364,21 @@ namespace Rito
         {
             switch (stopAction)
             {
-                case StopAction.Destroy:
-                    Destroy(gameObject);
+                case StopAction.KeepLastState:
+                    keepCurrentState = true;
                     break;
 
                 case StopAction.Disable:
                     gameObject.SetActive(false);
                     break;
 
+                case StopAction.Destroy:
+                    Destroy(gameObject);
+                    break;
+
                 case StopAction.Repeat:
                     currentSeconds = 0f;
                     currentFrame = 0f;
-                    break;
-
-                case StopAction.KeepCurrentState:
-                    keepCurrentState = true;
                     break;
             }
         }
@@ -736,7 +736,7 @@ namespace Rito
 
             private static readonly string[] StopActionsHangle = new string[]
             {
-                "파괴", "비활성화", "반복(재시작)", "현재 상태 유지"
+                "마지막 상태 유지", "비활성화", "파괴", "반복(재시작)"
             };
             private static readonly string[] TimeModesEng = new string[]
             {
@@ -2285,6 +2285,11 @@ namespace Rito
                     // [2] 현재 선택된 키 존재
                     else if (selectedAnimKey != null)
                     {
+                        // 왼쪽 CTRL 누름
+                        bool lCtrlPressed = (Event.current.modifiers == EventModifiers.Control);
+                        // 왼쪽 Shift 누름
+                        bool lShiftPressed = (Event.current.modifiers == EventModifiers.Shift);
+
                         // 드래그 시 이동
                         if (IsLeftMouseDrag)
                         {
@@ -2293,13 +2298,48 @@ namespace Rito
                             float timeGoal =
                                 selectedKeyTimeOrFrame + (ratioOffset * (m.isTimeModeSeconds ? m.durationSeconds : m.durationFrame));
 
+                            if (m.isTimeModeSeconds)
+                            {
+                                // LCTRL 누르면 0.1초 단위로 스냅
+                                if (lCtrlPressed)
+                                {
+                                    timeGoal *= 10f;
+                                    timeGoal = Mathf.Round(timeGoal) * 0.1f;
+                                }
+                                // LSHIFT 누르면 0.05초 단위로 스냅
+                                else if (lShiftPressed)
+                                {
+                                    timeGoal *= 20f;
+                                    timeGoal = Mathf.Round(timeGoal) * 0.05f;
+                                }
+                            }
+                            else
+                            {
+                                // LCTRL 누르면 10프레임 단위로 스냅
+                                if (lCtrlPressed)
+                                {
+                                    timeGoal *= 0.1f;
+                                    timeGoal = Mathf.Round(timeGoal) * 10f;
+                                }
+                                // LSHIFT 누르면 5프레임 단위로 스냅
+                                else if (lShiftPressed)
+                                {
+                                    timeGoal *= 0.2f;
+                                    timeGoal = Mathf.Round(timeGoal) * 5f;
+                                }
+                            }
+
                             // 좌우 이동 허용 범위 내에서 키 이동
                             if (leftKeyTimeOrFrame < timeGoal && timeGoal < rightKeyTimeOrFrame)
                             {
                                 if (m.isTimeModeSeconds)
+                                {
                                     selectedAnimKey.time = timeGoal;
+                                }
                                 else
+                                {
                                     selectedAnimKey.frame = (int)timeGoal;
+                                }
                             }
 
                             Repaint();
