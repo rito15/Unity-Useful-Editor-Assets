@@ -1789,7 +1789,7 @@ namespace Rito
                     EditorStyles.helpBox.fontSize = 12;
 
                     EditorGUILayout.HelpBox(
-                        EngHan("Cannot create animations if duration is 0.", "애니메이션을 생성하려면 지속 시간을 설정해야 합니다."),
+                        EngHan("Cannot create animations if duration is 0.", "애니메이션을 적용하려면 지속 시간을 설정해야 합니다."),
                         MessageType.Info);
 
                     EditorStyles.helpBox.fontSize = fs;
