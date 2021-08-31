@@ -603,6 +603,10 @@ namespace Rito
             /// <summary> 현재 시간 진행도(0.0 ~ 1.0) </summary>
             private float currentTimeOrFrameRatio;
 
+            /// <summary> 값 복사, 붙여넣기를 위한 값 </summary>
+            private MaterialPropertyAnimKey clipboardValue;
+            private ShaderPropertyType clipboardValueType;
+
             private static readonly Color MinusButtonColor = Color.red * 1.5f;
             private static readonly Color TimeColor = new Color(1.5f, 1.5f, 0.2f, 1f);  // Yellow
             private static readonly Color EnabledColor = new Color(0f, 1.5f, 1.5f, 1f); // Cyan
@@ -1009,13 +1013,15 @@ namespace Rito
             }
             private void LoadMaterialProperties()
             {
+                // NOTE : 새로 할당된 마테리얼이 null일 경우 여기로 진입 못함. 따라서 null 처리 불필요
+
                 // 기존 애니메이션 정보 백업
                 var backup = m.matPropertyList;
 
                 int propertyCount = shader.GetPropertyCount();
                 m.matPropertyList = new List<MaterialPropertyInfo>(propertyCount);
 
-                // 쉐이더, 마테리얼 프로퍼티 목록 순회하면서 데이터 가져오기
+                // 새로운 쉐이더의 프로퍼티 목록 순회하면서 데이터 가져오기
                 for (int i = 0; i < propertyCount; i++)
                 {
                     ShaderPropertyType propType = shader.GetPropertyType(i);
@@ -1036,7 +1042,8 @@ namespace Rito
                 int validPropCount = m.matPropertyList.Count;
 
                 // 동일 쉐이더일 경우, 백업된 애니메이션에서 동일하게 존재하는 프로퍼티에 애니메이션 복제
-                if (validPropCount > 0 && m.matPropertyList[0].material.shader == shader)
+                // 동일 쉐이더 여부는 이름으로 확인
+                if (backup != null && backup.Count > 0 && backup[0].material.shader.name == shader.name)
                 {
                     for (int i = 0; i < validPropCount; i++)
                     {
@@ -1073,18 +1080,18 @@ namespace Rito
                 for (int i = 0; i < validPropCount; i++)
                 {
                     var currentInfo = m.matPropertyList[i];
-                    var backupValue = m.__materialDefaultValues[i] = new MaterialPropertyAnimKey();
+                    var defaultValue = m.__materialDefaultValues[i] = new MaterialPropertyAnimKey();
                     var currentValue = m.__materialCurrentValues[i] = new MaterialPropertyAnimKey();
 
                     switch (currentInfo.propType)
                     {
                         case ShaderPropertyType.Float:
-                            backupValue.floatValue = currentValue.floatValue =
+                            defaultValue.floatValue = currentValue.floatValue =
                                 material.GetFloat(currentInfo.propName);
                             break;
 
                         case ShaderPropertyType.Range:
-                            backupValue.floatValue = currentValue.floatValue =
+                            defaultValue.floatValue = currentValue.floatValue =
                                 material.GetFloat(currentInfo.propName);
 
                             currentValue.range = shader.GetPropertyRangeLimits(m.matPropertyList[i].__propIndex);
@@ -1097,12 +1104,12 @@ namespace Rito
                             break;
 
                         case ShaderPropertyType.Vector:
-                            backupValue.vector4 = currentValue.vector4 =
+                            defaultValue.vector4 = currentValue.vector4 =
                                 material.GetVector(currentInfo.propName);
                             break;
 
                         case ShaderPropertyType.Color:
-                            backupValue.color = currentValue.color =
+                            defaultValue.color = currentValue.color =
                                 material.GetColor(currentInfo.propName);
                             break;
                     }
@@ -2881,7 +2888,7 @@ namespace Rito
                 const float LeftMargin = 6f;
                 const float IndexLabelWidth = 20f;
                 const float LabelWidth = 80f;
-                const float MinusButtonWidth = 40f;
+                const float MinusButtonWidth = 48f;
                 const float RightButtonMargin = 6f;
 
                 // 1. Time 슬라이더
@@ -3082,24 +3089,52 @@ namespace Rito
                 GUI.color = col;
 
                 RitoEditorGUI.DrawHorizontalSpace(MinusButtonWidth);
-                Rect setButtonRect = GUILayoutUtility.GetLastRect();
-                setButtonRect.xMax -= RightButtonMargin;
+                Rect cpButtonRect = GUILayoutUtility.GetLastRect();
+                cpButtonRect.xMax -= RightButtonMargin;
 
-                // Set 버튼 : 현재 마테리얼이 가진 값으로 값 설정
-                if (RitoEditorGUI.DrawButton(setButtonRect, "Set", Color.magenta * 1.5f))
+                Rect copyButtonRect = new Rect(cpButtonRect);
+                copyButtonRect.width *= 0.5f;
+
+                Rect pasteButtonRect = new Rect(copyButtonRect);
+                pasteButtonRect.x += pasteButtonRect.width;
+
+                // Copy 버튼 : 값 복사하기
+                if (RitoEditorGUI.DrawButton(copyButtonRect, "C", Color.magenta * 1.5f))
                 {
+                    clipboardValueType = mp.propType;
+                    if (clipboardValue == null)
+                        clipboardValue = new MaterialPropertyAnimKey();
+
                     switch (mp.propType)
                     {
                         case ShaderPropertyType.Float:
                         case ShaderPropertyType.Range:
-                            mpKey.floatValue = material.GetFloat(mp.propName);
+                            clipboardValue.floatValue = mpKey.floatValue;
                             break;
+
                         case ShaderPropertyType.Vector:
-                            mpKey.vector4 = material.GetVector(mp.propName);
-                            break;
                         case ShaderPropertyType.Color:
-                            mpKey.color = material.GetColor(mp.propName);
+                            clipboardValue.vector4 = mpKey.vector4;
                             break;
+                    }
+                }
+                // Paste 버튼 : 복사한 값 붙여넣기(타입 일치하는 경우에만)
+                if (RitoEditorGUI.DrawButton(pasteButtonRect, "P", Color.magenta * 1.5f))
+                {
+                    if (clipboardValue != null && clipboardValueType == mp.propType)
+                    {
+                        switch (mp.propType)
+                        {
+                            case ShaderPropertyType.Float:
+                            case ShaderPropertyType.Range:
+                                mpKey.floatValue = clipboardValue.floatValue;
+                                break;
+
+                            case ShaderPropertyType.Vector:
+                            case ShaderPropertyType.Color:
+                                mpKey.vector4 = clipboardValue.vector4;
+                                break;
+                        }
                     }
                 }
 
