@@ -3612,19 +3612,22 @@ namespace Rito
         [MenuItem(HierarchyMenuItemTitle, false, 501)]
         private static void MenuItem()
         {
-            if (Selection.activeGameObject == null)
+            GameObject go = new GameObject("Screen Effect");
+            go.AddComponent<ScreenEffect>();
+
+            if (Selection.activeTransform != null)
             {
-                GameObject go = new GameObject("Screen Effect");
-                go.AddComponent<ScreenEffect>();
-                Selection.activeGameObject = go; // 선택
+                go.transform.SetParent(Selection.activeTransform);
             }
+
+            Selection.activeGameObject = go; // 선택
         }
 
-        [MenuItem(HierarchyMenuItemTitle, true)] // Validation
-        private static bool MenuItem_Validate()
-        {
-            return Selection.activeGameObject == null;
-        }
+        //[MenuItem(HierarchyMenuItemTitle, true)] // Validation
+        //private static bool MenuItem_Validate()
+        //{
+        //    return Selection.activeGameObject == null;
+        //}
 #endif
         #endregion
         /***********************************************************************
