@@ -15,7 +15,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Experimental.UIElements;
 #endif
 
-namespace UnityToolbarExtender
+namespace UnityToolbarExtenderTSS
 {
 	public static class ToolbarCallback
 	{

@@ -10,7 +10,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace UnityToolbarExtender
+namespace UnityToolbarExtenderTSS
 {
 	[InitializeOnLoad]
 	public static class ToolbarExtender

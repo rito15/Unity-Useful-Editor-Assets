@@ -29,9 +29,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Height: 1
-    - _PosX: 0.6540285
+    - _PosX: 0.5
     - _PosY: 0.5
     - _Radius: 0.2
     - _Smoothness: 0.2
     - _Width: 1
-    m_Colors: []
+    m_Colors:
+    - _Color: {r: 0, g: 0, b: 0, a: 0}
