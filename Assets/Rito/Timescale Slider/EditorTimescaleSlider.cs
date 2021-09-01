@@ -57,35 +57,12 @@ namespace UnityToolbarExtenderTSS
     [InitializeOnLoad]
     public static class ToolbarExtender
     {
-        static int m_toolCount;
         static GUIStyle m_commandStyle = null;
 
-        public static readonly List<Action> LeftToolbarGUI = new List<Action>();
         public static readonly List<Action> RightToolbarGUI = new List<Action>();
 
         static ToolbarExtender()
         {
-            Type toolbarType = typeof(Editor).Assembly.GetType("UnityEditor.Toolbar");
-
-#if UNITY_2019_1_OR_NEWER
-            string fieldName = "k_ToolCount";
-#else
-            string fieldName = "s_ShownToolIcons";
-#endif
-
-            FieldInfo toolIcons = toolbarType.GetField(fieldName,
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-
-#if UNITY_2019_3_OR_NEWER
-            m_toolCount = toolIcons != null ? ((int)toolIcons.GetValue(null)) : 8;
-#elif UNITY_2019_1_OR_NEWER
-            m_toolCount = toolIcons != null ? ((int) toolIcons.GetValue(null)) : 7;
-#elif UNITY_2018_1_OR_NEWER
-            m_toolCount = toolIcons != null ? ((Array) toolIcons.GetValue(null)).Length : 6;
-#else
-            m_toolCount = toolIcons != null ? ((Array) toolIcons.GetValue(null)).Length : 5;
-#endif
-
             ToolbarCallback.OnToolbarGUI -= OnGUI;
             ToolbarCallback.OnToolbarGUI += OnGUI;
         }
@@ -119,17 +96,6 @@ namespace UnityToolbarExtenderTSS
             // Following calculations match code reflected from Toolbar.OldOnGUI()
             float playButtonsPosition = Mathf.RoundToInt((screenWidth - playPauseStopWidth) / 2);
 
-            Rect leftRect = new Rect(0, 0, screenWidth, Screen.height);
-            leftRect.xMin += space; // Spacing left
-            leftRect.xMin += buttonWidth * m_toolCount; // Tool buttons
-#if UNITY_2019_3_OR_NEWER
-            leftRect.xMin += space; // Spacing between tools and pivot
-#else
-            leftRect.xMin += largeSpace; // Spacing between tools and pivot
-#endif
-            leftRect.xMin += 64 * 2; // Pivot buttons
-            leftRect.xMax = playButtonsPosition;
-
             Rect rightRect = new Rect(0, 0, screenWidth, Screen.height);
             rightRect.xMin = playButtonsPosition;
             rightRect.xMin += m_commandStyle.fixedWidth * 3; // Play buttons
@@ -150,15 +116,11 @@ namespace UnityToolbarExtenderTSS
             rightRect.xMax -= 78; // Colab
 
             // Add spacing around existing controls
-            leftRect.xMin += space;
-            leftRect.xMax -= space;
             rightRect.xMin += space;
             rightRect.xMax -= space;
 
             // Add top and bottom margins
 #if UNITY_2019_3_OR_NEWER
-            leftRect.y = 4;
-            leftRect.height = 22;
             rightRect.y = 4;
             rightRect.height = 22;
 #else
@@ -167,20 +129,6 @@ namespace UnityToolbarExtenderTSS
             rightRect.y = 5;
             rightRect.height = 24;
 #endif
-
-            if (leftRect.width > 0)
-            {
-                GUILayout.BeginArea(leftRect);
-                GUILayout.BeginHorizontal();
-                foreach (var handler in LeftToolbarGUI)
-                {
-                    handler();
-                }
-
-                GUILayout.EndHorizontal();
-                GUILayout.EndArea();
-            }
-
             if (rightRect.width > 0)
             {
                 GUILayout.BeginArea(rightRect);
@@ -259,8 +207,7 @@ namespace UnityToolbarExtenderTSS
 
         static void OnGUI()
         {
-            var handler = OnToolbarGUI;
-            if (handler != null) handler();
+            if (OnToolbarGUI != null) OnToolbarGUI();
         }
     }
 
