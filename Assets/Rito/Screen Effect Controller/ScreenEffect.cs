@@ -3565,7 +3565,7 @@ namespace Rito
 #else
             iconRect.x = 0f;
 #endif
-            if (goActive && matIsNotNull)
+            if (goActive && matIsNotNull && iconTexture != null)
             {
                 GUI.DrawTexture(iconRect, iconTexture);
             }
