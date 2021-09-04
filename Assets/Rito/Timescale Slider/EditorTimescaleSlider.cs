@@ -124,8 +124,6 @@ namespace UnityToolbarExtenderTSS
             rightRect.y = 4;
             rightRect.height = 22;
 #else
-            leftRect.y = 5;
-            leftRect.height = 24;
             rightRect.y = 5;
             rightRect.height = 24;
 #endif
