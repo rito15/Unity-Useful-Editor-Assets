@@ -12,3 +12,13 @@
 
 ## Screen Effect Controller
   - <https://rito15.github.io/posts/unity-screen-effect-controller/>
+
+<br>
+
+## Timescale Slider
+  - <https://rito15.github.io/posts/unity-editor-timescale-slider/>
+
+<br>
+
+## Script Line Counter
+  - <https://rito15.github.io/posts/unity-cs-script-line-counter/>
