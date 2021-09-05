@@ -2,12 +2,15 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEditor;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Reflection;
+using System.Linq;
 
 // 날짜 : 2021-09-04 PM 5:01:03
 // 작성자 : Rito
@@ -53,13 +56,25 @@ namespace Rito
         private GUIContent folderLabel;
 
         [SerializeField]
-        private DirTree treeRoot;
+        private DirectoryTree treeRoot;
 
         [SerializeField]
         private Vector2 scrollPos = Vector2.zero;
 
         [SerializeField]
-        private bool isCalculating = false;
+        private int isCalculating = FALSE;
+
+        private int calculatingIndex = 0;
+        private static readonly string[] calculatingStrings = new string[]
+        {
+            "Calculating",
+            "Calculating.",
+            "Calculating..",
+            "Calculating...",
+        };
+
+        private readonly ConcurrentQueue<Action> onGuiChangedQueue = new ConcurrentQueue<Action>();
+
         #endregion
         /***********************************************************************
         *                               GUI Methods
@@ -75,9 +90,6 @@ namespace Rito
         {
             InitGUI();
 
-            // 스크롤바 생성
-            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
-
             folderAsset = EditorGUILayout.ObjectField(folderLabel, folderAsset, typeof(DefaultAsset), false) as DefaultAsset;
 
             if (GUILayout.Button("Calculate"))
@@ -89,14 +101,22 @@ namespace Rito
                 Task.Run(() => CreateTreeData(di));
             }
 
-            if (isCalculating)
+            // 스크롤바 생성
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+
+            if (isCalculating == TRUE)
             {
                 var oldAlign = EditorStyles.helpBox.alignment;
                 var oldSize = EditorStyles.helpBox.fontSize;
-                EditorStyles.helpBox.alignment = TextAnchor.MiddleCenter;
+                EditorStyles.helpBox.alignment = TextAnchor.MiddleLeft;
                 EditorStyles.helpBox.fontSize = 14;
 
-                EditorGUILayout.HelpBox("Calculating...", MessageType.Info);
+                int index = (calculatingIndex / 100) % calculatingStrings.Length;
+
+                EditorGUILayout.HelpBox(calculatingStrings[index], MessageType.Info);
+
+                calculatingIndex++;
+                Repaint();
 
                 EditorStyles.helpBox.alignment = oldAlign;
                 EditorStyles.helpBox.fontSize = oldSize;
@@ -107,13 +127,36 @@ namespace Rito
             }
 
             EditorGUILayout.EndScrollView();
+
+            // GUI 변경 사항 적용 처리
+            if (Event.current.type != EventType.Layout && onGuiChangedQueue.IsEmpty == false)
+            {
+                bool deq = onGuiChangedQueue.TryDequeue(out Action action);
+                if (deq) action();
+            }
         }
 
         private void CreateTreeData(DirectoryInfo rootFolder)
         {
-            isCalculating = true;
-            treeRoot = new DirTree(rootFolder, 0);
-            isCalculating = false;
+            // 기존에 작업 중인 경우에는 시도조차 X
+            if (isCalculating == TRUE) return;
+
+            // 작업 시작 예약
+            onGuiChangedQueue.Enqueue(() =>
+            {
+                calculatingIndex = 0;
+                isCalculating = TRUE;
+                Repaint();
+            });
+
+            var newTreeRoot = new DirectoryTree(rootFolder, 0); // 실제 처리
+
+            // 변경 사항 적용 예약
+            onGuiChangedQueue.Enqueue(() =>
+            {
+                treeRoot = newTreeRoot;
+                isCalculating = FALSE;
+            });
         }
 
         private void DrawTree()
@@ -122,7 +165,7 @@ namespace Rito
             EditorGUI.indentLevel = 0;
 
             // 재귀적으로 트리 그리기
-            void Local_DrawTree(DirTree tree)
+            void Local_DrawTree(DirectoryTree tree)
             {
                 if (tree.totalFileCount == 0) return;
 
@@ -156,9 +199,9 @@ namespace Rito
         *                               Class Definitions
         ***********************************************************************/
         #region .
-        // 재귀 직렬 문제 발생 (원인 : DirTree[] folders 필드)
+        // 직렬화 시, 재귀 직렬 문제 발생 (원인 : DirectoryTree[] folders 필드)
         //[System.Serializable]
-        public class DirTree
+        public class DirectoryTree
         {
             //private DirectoryInfo folderInfo;
             public string absFolderPath;
@@ -172,10 +215,10 @@ namespace Rito
 
             public bool foldout = false;
 
-            public DirTree[] folders;
+            public DirectoryTree[] folders;
             public FileLineData[] files;
 
-            public DirTree(DirectoryInfo folderInfo, int depth, DirTree parent = null)
+            public DirectoryTree(DirectoryInfo folderInfo, int depth, DirectoryTree parent = null)
             {
                 //this.folderInfo = folderInfo;
                 this.folderName = folderInfo.Name;
@@ -201,11 +244,11 @@ namespace Rito
 
                 if (subFolderCount > 0)
                 {
-                    folders = new DirTree[subFolderCount];
+                    folders = new DirectoryTree[subFolderCount];
 
                     for (int i = 0; i < subFolderCount; i++)
                     {
-                        folders[i] = new DirTree(subFolders[i], this.depth + 1, this);
+                        folders[i] = new DirectoryTree(subFolders[i], this.depth + 1, this);
                     }
                 }
             }
