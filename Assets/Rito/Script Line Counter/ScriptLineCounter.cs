@@ -175,13 +175,13 @@ namespace Rito
                 tree.foldout = EditorGUILayout.Foldout(tree.foldout, $"{tree.folderName} [C# Files : {tree.totalFileCount}, Total Lines : {tree.totalLineCount}]", true);
                 if (tree.foldout)
                 {
-                    EditorGUI.indentLevel = tree.depth + 1;
-
                     // Draw Folders
                     for (int i = 0; i < tree.FolderCount; i++)
                     {
                         Local_DrawTree(tree.folders[i]);
                     }
+
+                    EditorGUI.indentLevel = tree.depth + 1;
 
                     // Draw File Labels
                     Color col = GUI.color;
