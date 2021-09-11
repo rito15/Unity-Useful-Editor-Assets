@@ -241,6 +241,8 @@ MonoBehaviour:
   isTimeModeSeconds: 1
   durationSeconds: 0.3
   durationFrame: 18
+  animPlaySpeed: 1
+  affectedByTimescale: 1
   __optionFoldout1: 1
   __optionFoldout2: 1
   __matPropListFoldout: 1
@@ -311,6 +313,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1046263295}
     propName: _HorizontalShakeSpeed
     propType: 3
@@ -325,6 +328,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
   - material: {fileID: 1046263295}
     propName: _VerticalShakeSpeed
     propType: 3
@@ -339,6 +343,7 @@ MonoBehaviour:
     __showAnimation: 0
     __isGradientView: 1
     __showIndexOrTime: 1
+    __isKeyListDirty: 0
 --- !u!4 &307091775
 Transform:
   m_ObjectHideFlags: 0
