@@ -1619,8 +1619,29 @@ namespace Rito
             /// <summary> 현재 복제된 마테리얼의 수정 가능한 프로퍼티 목록 표시하기 </summary>
             private void DrawCopiedMaterialProperties()
             {
+                int propCount = m.matPropertyList.Count;
+
+                // 2021. 11. 19. (금) 추가
+                // 2019.3 이상 ~ 2020.2 미만 버전에서
+                // 벡터 프로퍼티만 기본 높이 20f가 아니라 22f
+                // 따라서 벡터 프로퍼티가 많을수록 2f씩 높이가 밀려나는 버그 발생
+#if UNITY_2019_3_OR_NEWER && !UNITY_2020_2_OR_NEWER
+                float additionalHeight = 0f;
+                for (int i = 0; i < propCount; i++)
+                {
+                    if (m.matPropertyList[i].propType == ShaderPropertyType.Vector)
+                        additionalHeight += 2f;
+                }
+                additionalHeight /= propCount;
+#endif
+
                 RitoEditorGUI.FoldoutHeaderBox(ref m.__matPropListFoldout, EngHan("Material Properties", "마테리얼 프로퍼티 목록"),
-                    m.matPropertyList.Count);
+                    m.matPropertyList.Count, 20f
+
+#if UNITY_2019_3_OR_NEWER && !UNITY_2020_2_OR_NEWER
+                    + additionalHeight
+#endif
+                );
 
                 if (!m.__matPropListFoldout)
                     return;
